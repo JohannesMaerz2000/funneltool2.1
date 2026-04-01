@@ -42,3 +42,18 @@ export function getAssetUrl(submissionId: string, key: string): Promise<{ url: s
     `/api/submissions/${encodeURIComponent(submissionId)}/asset-url?${qs}`
   );
 }
+
+export async function batchPresignUrls(
+  items: Array<{ id: string; key: string }>
+): Promise<Array<{ key: string; url: string | null }>> {
+  const res = await fetch("/api/submissions/presign-batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(items),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+  }
+  return res.json();
+}

@@ -5,9 +5,10 @@ import type { SubmissionSummary } from "../types.js";
 
 export const submissionsRouter = Router();
 
-// Cache raw object list for a short period to avoid hammering S3
+// Cache raw object list and parsed summaries to avoid hammering S3
 let objectCache: { ts: number; data: Awaited<ReturnType<typeof listAllObjects>> } | null = null;
-const CACHE_TTL_MS = 30_000;
+let summaryCache: { objectTs: number; data: SubmissionSummary[] } | null = null;
+const CACHE_TTL_MS = 5 * 60_000; // 5 minutes
 
 async function getCachedObjects() {
   const now = Date.now();
@@ -17,27 +18,58 @@ async function getCachedObjects() {
   return data;
 }
 
+async function getCachedSummaries(): Promise<SubmissionSummary[]> {
+  const objects = await getCachedObjects();
+  // Reuse summaries if built from the same object fetch
+  if (summaryCache && summaryCache.objectTs === objectCache!.ts) return summaryCache.data;
+
+  const groups = groupBySubmission(objects);
+  const entries = [...groups.entries()];
+  const BATCH = 20;
+  const summaries: SubmissionSummary[] = [];
+  for (let i = 0; i < entries.length; i += BATCH) {
+    const batch = entries.slice(i, i + BATCH);
+    const results = await Promise.all(batch.map(([id, objs]) => buildSummary(id, objs)));
+    summaries.push(...results);
+  }
+  summaryCache = { objectTs: objectCache!.ts, data: summaries };
+  return summaries;
+}
+
+/**
+ * POST /api/submissions/presign-batch
+ * Body: [{ id, key }] — returns [{ key, url }]
+ */
+submissionsRouter.post("/presign-batch", async (req, res) => {
+  try {
+    const items = req.body as Array<{ id: string; key: string }>;
+    if (!Array.isArray(items) || items.length > 200) {
+      res.status(400).json({ error: "Expected array of up to 200 items" });
+      return;
+    }
+    const results = await Promise.all(
+      items.map(async ({ id, key }) => {
+        if (!key || !key.startsWith(`${PREFIX}${id}/`)) return { key, url: null };
+        const url = await presignUrl(key);
+        return { key, url };
+      })
+    );
+    res.json(results);
+  } catch (err) {
+    console.error("[submissions] presign-batch error:", err);
+    res.status(500).json({ error: "Failed to generate URLs", detail: String(err) });
+  }
+});
+
 /**
  * GET /api/submissions
  * Query params: query, stage, from, to, page (1-indexed), pageSize
  */
 submissionsRouter.get("/", async (req, res) => {
   try {
-    const objects = await getCachedObjects();
-    const groups = groupBySubmission(objects);
+    const summaries = await getCachedSummaries();
 
-    // Build summaries in parallel (batched to avoid excessive S3 calls)
-    const entries = [...groups.entries()];
-    const BATCH = 20;
-    const summaries: SubmissionSummary[] = [];
-    for (let i = 0; i < entries.length; i += BATCH) {
-      const batch = entries.slice(i, i + BATCH);
-      const results = await Promise.all(batch.map(([id, objs]) => buildSummary(id, objs)));
-      summaries.push(...results);
-    }
-
-    // Filtering
-    let filtered = summaries;
+    let filtered = summaries.slice(); // work on a copy
 
     const { query, stage, from, to } = req.query as Record<string, string>;
 

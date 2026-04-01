@@ -129,16 +129,25 @@ export async function buildDetail(
   id: string,
   objects: _Object[]
 ): Promise<SubmissionDetail> {
-  const summary = await buildSummary(id, objects);
-
+  // Fetch payload once and share it between summary fields and detail fields
   const payloadKey = pickPayloadKey(objects);
-  const formData = payloadKey
-    ? await getJsonObject<Record<string, unknown>>(payloadKey)
-    : undefined;
+  const payload = payloadKey ? await getJsonObject<Record<string, unknown>>(payloadKey) : null;
 
-  // Extract structured sections from formData if present
-  const vehicle = formData?.vehicle as Record<string, unknown> | undefined;
-  const seller = formData?.seller as Record<string, unknown> | undefined;
+  const latestObj = objects
+    .filter((o) => o.LastModified)
+    .sort((a, b) => b.LastModified!.getTime() - a.LastModified!.getTime())[0];
+
+  const summary = {
+    id,
+    vin: payload ? extractVin(payload) : undefined,
+    stage: detectStage(objects, payload),
+    updatedAt: latestObj?.LastModified?.toISOString() ?? new Date(0).toISOString(),
+    assetCount: objects.filter((o) => o.Key && !o.Key.endsWith("/")).length,
+    thumbnailKey: pickThumbnailKey(objects),
+  };
+
+  const vehicle = payload?.vehicle as Record<string, unknown> | undefined;
+  const seller = payload?.seller as Record<string, unknown> | undefined;
 
   const assets: Asset[] = objects
     .filter((o) => o.Key && !o.Key.endsWith("/"))
@@ -153,7 +162,7 @@ export async function buildDetail(
     ...summary,
     vehicle,
     seller,
-    formData: formData ?? undefined,
+    formData: payload ?? undefined,
     assets,
   };
 }

@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getAssetUrl, listSubmissions } from "../api/client";
+import { batchPresignUrls, listSubmissions } from "../api/client";
 import type { Stage } from "../types/submission";
 import StageBadge from "../components/StageBadge";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 10;
+
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -14,29 +15,13 @@ function formatDate(iso: string) {
   });
 }
 
-function SubmissionThumbnail({
-  submissionId,
-  thumbnailKey,
-}: {
-  submissionId: string;
-  thumbnailKey?: string;
-}) {
-  const { data } = useQuery({
-    queryKey: ["list-thumbnail-url", submissionId, thumbnailKey],
-    queryFn: () => getAssetUrl(submissionId, thumbnailKey!),
-    enabled: Boolean(thumbnailKey),
-    staleTime: 50 * 60 * 1000,
-  });
-
-  if (!thumbnailKey || !data?.url) {
-    return (
-      <div className="h-14 w-14 rounded-lg border border-gray-200 bg-gray-100" />
-    );
+function SubmissionThumbnail({ url }: { url?: string }) {
+  if (!url) {
+    return <div className="h-14 w-14 rounded-lg border border-gray-200 bg-gray-100" />;
   }
-
   return (
     <img
-      src={data.url}
+      src={url}
       alt="Submission thumbnail"
       className="h-14 w-14 rounded-lg border border-gray-200 object-cover"
       loading="lazy"
@@ -47,18 +32,40 @@ function SubmissionThumbnail({
 export default function SubmissionList() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [stage, setStage] = useState("all");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
   const [page, setPage] = useState(1);
 
   // Reset to page 1 whenever filters change
-  const params = { query, stage, from, to, page, pageSize: PAGE_SIZE };
+  const params = { query, page, pageSize: PAGE_SIZE };
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["submissions", params],
     queryFn: () => listSubmissions(params),
   });
+
+  // Fetch all thumbnail presigned URLs in a single batch request
+  const thumbnailItems = useMemo(
+    () =>
+      (data?.data ?? [])
+        .filter((s) => s.thumbnailKey)
+        .map((s) => ({ id: s.id, key: s.thumbnailKey! })),
+    [data?.data]
+  );
+  const { data: thumbnailResults } = useQuery({
+    queryKey: ["list-thumbnails", thumbnailItems.map((i) => i.key)],
+    queryFn: () => batchPresignUrls(thumbnailItems),
+    enabled: thumbnailItems.length > 0,
+    staleTime: 50 * 60 * 1000,
+  });
+  const thumbnailUrlMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (thumbnailResults) {
+      thumbnailItems.forEach(({ id, key }) => {
+        const found = thumbnailResults.find((r) => r.key === key);
+        if (found?.url) map.set(id, found.url);
+      });
+    }
+    return map;
+  }, [thumbnailResults, thumbnailItems]);
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
 
@@ -70,9 +77,6 @@ export default function SubmissionList() {
     <div>
       <div className="mb-5 flex items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
-            Dashboard
-          </p>
           <h1 className="text-3xl font-semibold tracking-tight">Submissions</h1>
         </div>
         {data && (
@@ -91,33 +95,9 @@ export default function SubmissionList() {
           onChange={(e) => { setQuery(e.target.value); handleFilter(); }}
           className="w-64 rounded-xl border border-gray-300 px-3 py-2 text-sm transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
         />
-        <select
-          value={stage}
-          onChange={(e) => { setStage(e.target.value); handleFilter(); }}
-          className="rounded-xl border border-gray-300 px-3 py-2 text-sm transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-        >
-          <option value="all">All stages</option>
-          <option value="M1">M1</option>
-          <option value="M1.5">M1.5</option>
-          <option value="unknown">Unknown</option>
-        </select>
-        <input
-          type="date"
-          value={from}
-          onChange={(e) => { setFrom(e.target.value); handleFilter(); }}
-          className="rounded-xl border border-gray-300 px-3 py-2 text-sm transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-          title="From date"
-        />
-        <input
-          type="date"
-          value={to}
-          onChange={(e) => { setTo(e.target.value); handleFilter(); }}
-          className="rounded-xl border border-gray-300 px-3 py-2 text-sm transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-          title="To date"
-        />
-        {(query || stage !== "all" || from || to) && (
+        {query && (
           <button
-            onClick={() => { setQuery(""); setStage("all"); setFrom(""); setTo(""); setPage(1); }}
+            onClick={() => { setQuery(""); setPage(1); }}
             className="text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
           >
             Clear
@@ -175,7 +155,7 @@ export default function SubmissionList() {
                     tabIndex={0}
                   >
                     <td className="px-4 py-2">
-                      <SubmissionThumbnail submissionId={s.id} thumbnailKey={s.thumbnailKey} />
+                      <SubmissionThumbnail url={thumbnailUrlMap.get(s.id)} />
                     </td>
                     <td className="px-4 py-2">
                       <span className="font-mono text-xs font-semibold text-emerald-700">
