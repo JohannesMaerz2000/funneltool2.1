@@ -17,6 +17,15 @@ function assetType(key: string): Asset["type"] {
   return "other";
 }
 
+function pickThumbnailKey(objects: _Object[]): string | undefined {
+  const imageKeys = objects
+    .map((o) => o.Key)
+    .filter((key): key is string => Boolean(key && !key.endsWith("/") && assetType(key) === "image"));
+
+  const firstExterior = imageKeys.find((key) => key.toLowerCase().includes("exterior"));
+  return firstExterior ?? imageKeys[0];
+}
+
 /** Derive the submission ID from an S3 key under advance/ */
 export function submissionIdFromKey(key: string): string {
   // advance/<id>/... → id is the first path segment after the prefix
@@ -111,6 +120,7 @@ export async function buildSummary(
     stage: detectStage(objects, payload),
     updatedAt: latestObj?.LastModified?.toISOString() ?? new Date(0).toISOString(),
     assetCount: objects.filter((o) => o.Key && !o.Key.endsWith("/")).length,
+    thumbnailKey: pickThumbnailKey(objects),
   };
 }
 

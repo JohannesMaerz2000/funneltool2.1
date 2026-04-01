@@ -21,7 +21,7 @@ function ImageThumb({
 }: {
   asset: Asset;
   submissionId: string;
-  onClick: (url: string) => void;
+  onClick: (url: string, name: string) => void;
 }) {
   const { data, isLoading } = useQuery({
     queryKey: ["asset-url", submissionId, asset.key],
@@ -31,8 +31,8 @@ function ImageThumb({
 
   return (
     <div
-      className="relative aspect-square bg-gray-100 rounded border border-gray-200 overflow-hidden cursor-pointer hover:border-gray-400 transition"
-      onClick={() => data?.url && onClick(data.url)}
+      className="relative aspect-square cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-sm transition hover:border-emerald-300 hover:shadow"
+      onClick={() => data?.url && onClick(data.url, fileName(asset.key))}
     >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
@@ -46,9 +46,7 @@ function ImageThumb({
           className="w-full h-full object-cover"
         />
       )}
-      <div className="absolute bottom-0 left-0 right-0 bg-black/40 px-1.5 py-0.5 truncate text-white text-xs">
-        {fileName(asset.key)}
-      </div>
+
     </div>
   );
 }
@@ -71,7 +69,7 @@ function AssetItem({
   const icon = asset.type === "document" ? "📄" : "📎";
 
   return (
-    <div className="flex items-center gap-3 py-2 px-3 bg-white rounded border border-gray-200 hover:border-gray-300 transition">
+    <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm transition hover:border-emerald-300 hover:shadow">
       <span className="text-lg leading-none">{icon}</span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{fileName(asset.key)}</p>
@@ -84,7 +82,7 @@ function AssetItem({
           href={data.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-blue-600 hover:underline shrink-0"
+          className="shrink-0 text-xs font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
         >
           Open ↗
         </a>
@@ -92,7 +90,7 @@ function AssetItem({
         <button
           onClick={() => setFetch(true)}
           disabled={isLoading}
-          className="text-xs text-blue-600 hover:underline shrink-0 disabled:opacity-40"
+          className="shrink-0 text-xs font-medium text-emerald-700 hover:text-emerald-800 hover:underline disabled:opacity-40"
         >
           {isLoading ? "Loading…" : "Get link"}
         </button>
@@ -101,7 +99,7 @@ function AssetItem({
   );
 }
 
-function Lightbox({ url, onClose }: { url: string; onClose: () => void }) {
+function Lightbox({ url, name, onClose }: { url: string; name: string; onClose: () => void }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
@@ -109,7 +107,7 @@ function Lightbox({ url, onClose }: { url: string; onClose: () => void }) {
     >
       <img
         src={url}
-        alt="Preview"
+        alt={name}
         className="max-w-[90vw] max-h-[90vh] object-contain rounded shadow-xl"
         onClick={(e) => e.stopPropagation()}
       />
@@ -119,6 +117,9 @@ function Lightbox({ url, onClose }: { url: string; onClose: () => void }) {
       >
         ✕
       </button>
+      <p className="absolute bottom-4 left-0 right-0 text-center text-sm text-white/80">
+        {name}
+      </p>
     </div>
   );
 }
@@ -130,7 +131,7 @@ export default function AssetGallery({
   assets: Asset[];
   submissionId: string;
 }) {
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null);
 
   const images = assets.filter((a) => a.type === "image");
   const docs = assets.filter((a) => a.type === "document");
@@ -138,20 +139,20 @@ export default function AssetGallery({
 
   return (
     <div className="flex flex-col gap-6">
-      {lightboxUrl && (
-        <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
+      {lightbox && (
+        <Lightbox url={lightbox.url} name={lightbox.name} onClose={() => setLightbox(null)} />
       )}
 
       {images.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-wider text-gray-400 mb-2">Images</h4>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+          <h4 className="mb-2 text-xs uppercase tracking-[0.14em] text-gray-500">Images</h4>
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
             {images.map((a) => (
               <ImageThumb
                 key={a.key}
                 asset={a}
                 submissionId={submissionId}
-                onClick={setLightboxUrl}
+                onClick={(url, name) => setLightbox({ url, name })}
               />
             ))}
           </div>
@@ -160,7 +161,7 @@ export default function AssetGallery({
 
       {docs.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-wider text-gray-400 mb-2">Documents</h4>
+          <h4 className="mb-2 text-xs uppercase tracking-[0.14em] text-gray-500">Documents</h4>
           <div className="flex flex-col gap-1">
             {docs.map((a) => (
               <AssetItem key={a.key} asset={a} submissionId={submissionId} />
@@ -171,7 +172,7 @@ export default function AssetGallery({
 
       {others.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-wider text-gray-400 mb-2">Other files</h4>
+          <h4 className="mb-2 text-xs uppercase tracking-[0.14em] text-gray-500">Other files</h4>
           <div className="flex flex-col gap-1">
             {others.map((a) => (
               <AssetItem key={a.key} asset={a} submissionId={submissionId} />

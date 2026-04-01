@@ -39,7 +39,7 @@ export default function SubmissionDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-gray-500 py-10">
+      <div className="flex items-center gap-2 py-10 text-gray-500">
         <span className="animate-spin text-lg">⟳</span> Loading submission…
       </div>
     );
@@ -48,10 +48,10 @@ export default function SubmissionDetail() {
   if (isError) {
     return (
       <div>
-        <Link to="/submissions" className="text-blue-600 hover:underline text-sm">
+        <Link to="/submissions" className="text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline">
           ← Back to list
         </Link>
-        <div className="mt-4 rounded bg-red-50 border border-red-200 text-red-800 p-4 text-sm">
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           <strong>Error:</strong>{" "}
           {error instanceof Error ? error.message : "Failed to load submission"}
         </div>
@@ -66,33 +66,33 @@ export default function SubmissionDetail() {
   return (
     <div>
       {/* Back */}
-      <Link to="/submissions" className="text-blue-600 hover:underline text-sm">
+      <Link to="/submissions" className="text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline">
         ← Back to list
       </Link>
 
       {/* Header */}
-      <div className="mt-4 mb-6 p-5 bg-white rounded border border-gray-200">
+      <div className="mb-6 mt-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-start gap-4 justify-between">
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Submission ID</p>
+            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">Submission ID</p>
             <p className="font-mono text-lg font-semibold">{data.id}</p>
           </div>
           {data.vin && (
             <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">VIN</p>
+              <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">VIN</p>
               <p className="font-mono text-lg font-semibold">{data.vin}</p>
             </div>
           )}
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Stage</p>
+            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">Stage</p>
             <StageBadge stage={data.stage as Stage} />
           </div>
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Last updated</p>
+            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">Last updated</p>
             <p className="text-sm text-gray-700">{formatDate(data.updatedAt)}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Assets</p>
+            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">Assets</p>
             <p className="text-sm text-gray-700">{data.assetCount}</p>
           </div>
         </div>
@@ -104,15 +104,15 @@ export default function SubmissionDetail() {
         <DataSection title="Seller" data={data.seller} />
         <DataSection title="Form data" data={otherFormData} />
         {!data.vehicle && !data.seller && !otherFormData && (
-          <div className="text-gray-400 text-sm italic">No structured form data available.</div>
+          <div className="text-sm italic text-gray-400">No structured form data available.</div>
         )}
 
         <div>
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
             Assets ({data.assets.length})
           </h3>
           {data.assets.length === 0 ? (
-            <p className="text-gray-400 text-sm italic">No assets.</p>
+            <p className="text-sm italic text-gray-400">No assets.</p>
           ) : (
             <AssetGallery assets={data.assets} submissionId={data.id} />
           )}

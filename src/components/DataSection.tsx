@@ -12,20 +12,20 @@ export default function DataSection({
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
         {title}
       </h3>
-      <div className="overflow-x-auto rounded border border-gray-200">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
         <table className="min-w-full text-sm">
           <tbody className="divide-y divide-gray-100">
             {rows.map(([key, value]) => (
-              <tr key={key} className="even:bg-gray-50">
-                <td className="px-3 py-1.5 font-medium text-gray-600 whitespace-nowrap w-1/3">
+              <tr key={key} className="even:bg-emerald-50/30">
+                <td className="w-1/3 whitespace-nowrap px-3 py-2 font-medium text-gray-600">
                   {key}
                 </td>
-                <td className="px-3 py-1.5 text-gray-800 break-all">
+                <td className="break-all px-3 py-2 text-gray-800">
                   {typeof value === "object"
-                    ? <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(value, null, 2)}</pre>
+                    ? <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(value, null, 2)}</pre>
                     : String(value)}
                 </td>
               </tr>

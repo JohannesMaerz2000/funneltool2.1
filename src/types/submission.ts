@@ -6,6 +6,7 @@ export interface SubmissionSummary {
   stage: Stage;
   updatedAt: string;
   assetCount: number;
+  thumbnailKey?: string;
 }
 
 export interface Asset {
