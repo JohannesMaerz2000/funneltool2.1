@@ -21,8 +21,12 @@ funneltool2.1/
 ├── .env.aws                  # AWS credentials — never commit, never expose to client
 ├── IMPLEMENTATION_PLAN.md
 ├── CONTEXT.md                # this file
+├── endpoint_request.md       # spec for future Seller Funnel BE endpoints
+├── schema_result.txt         # DB schema reference
 ├── vite.config.ts            # proxies /api/* → http://localhost:3001
 ├── tailwind.config.js
+├── postcss.config.js
+├── tsconfig.json             # base TS config
 ├── tsconfig.app.json         # frontend typecheck
 ├── tsconfig.server.json      # server typecheck
 │
@@ -32,22 +36,22 @@ funneltool2.1/
 │   ├── parser.ts             # groups S3 objects by submission, extracts VIN/stage/assets
 │   ├── types.ts              # SubmissionSummary, SubmissionDetail, Asset, Stage
 │   └── routes/
-│       └── submissions.ts    # GET /api/submissions, /:id, /:id/asset-url
+│       └── submissions.ts    # GET/POST endpoints: list, detail, presign-batch, download, download-all
 │
 └── src/
     ├── main.tsx              # React entry, QueryClient, BrowserRouter
     ├── App.tsx               # shell layout + routes
     ├── index.css             # Tailwind directives
     ├── api/
-    │   └── client.ts         # fetch wrappers: listSubmissions, getSubmission, getAssetUrl
+    │   └── client.ts         # fetch wrappers: listSubmissions, getSubmission, getAssetUrl, batchPresignUrls
     ├── types/
     │   └── submission.ts     # mirrors server/types.ts (kept in sync manually)
     ├── pages/
-    │   ├── SubmissionList.tsx  # table, search/filter/pagination
+    │   ├── SubmissionList.tsx  # table, search/filter/pagination, thumbnail batch-presign
     │   └── SubmissionDetail.tsx # header + DataSection + AssetGallery
     └── components/
         ├── StageBadge.tsx    # coloured badge for M1 / M1.5 / unknown
-        ├── AssetGallery.tsx  # lists assets; fetches presigned URL on demand
+        ├── AssetGallery.tsx  # image/PDF/doc gallery; batch-presigns all URLs in one request
         └── DataSection.tsx   # renders Record<string,unknown> as key/value table
 ```
 
@@ -66,10 +70,14 @@ funneltool2.1/
 | GET | `/api/submissions` | list with filters: `query`, `stage`, `from`, `to`, `page`, `pageSize` |
 | GET | `/api/submissions/:id` | full detail including assets |
 | GET | `/api/submissions/:id/asset-url?key=` | returns presigned S3 URL (1 h TTL) |
+| POST | `/api/submissions/presign-batch` | batch-presign up to 200 keys; body: `[{id, key}]` |
+| GET | `/api/submissions/:id/download?key=` | proxies S3 object as attachment download |
+| GET | `/api/submissions/:id/download-all` | streams zip of all images for a submission |
 
 ## Key design decisions
 - **Credentials stay server-side.** `.env.aws` is loaded in `server/index.ts` body; S3 client is a lazy singleton so it reads env vars only after they are populated (avoids ES module hoisting issue).
 - **No auth layer yet.** Tool is internal/local only.
-- **30 s object-list cache** in `submissions.ts` to avoid hammering S3 on every request.
+- **5 min object-list cache** in `submissions.ts` (plus cached `groupBySubmission` and summary caches) to avoid hammering S3 on every request.
 - **Types duplicated** between `server/types.ts` and `src/types/submission.ts` — keep them in sync when changing the data model.
-- **Presigned URLs on demand** — not fetched until the user clicks "Get link", keeping the list view fast.
+- **Batch presigned URLs** — list view and detail view both use a single batch-presign request instead of per-asset fetches. Server processes presigns in batches of 20 for concurrency control.
+- **raw_images excluded** — S3 keys containing a `raw_images` path segment are filtered out at both the parser and API level.
