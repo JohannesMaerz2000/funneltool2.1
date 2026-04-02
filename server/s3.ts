@@ -71,14 +71,25 @@ export async function listCommonPrefixes(prefix: string): Promise<string[]> {
   return prefixes;
 }
 
+// In-memory cache for parsed JSON payloads (keyed by S3 key).
+// These rarely change and are fetched repeatedly during summary building.
+const jsonCache = new Map<string, { ts: number; data: unknown }>();
+const JSON_CACHE_TTL_MS = 10 * 60_000; // 10 minutes
+
 /** Fetch an S3 object and parse it as JSON. Returns null on failure. */
 export async function getJsonObject<T = unknown>(key: string): Promise<T | null> {
+  const now = Date.now();
+  const cached = jsonCache.get(key);
+  if (cached && now - cached.ts < JSON_CACHE_TTL_MS) return cached.data as T;
+
   try {
     const cmd = new GetObjectCommand({ Bucket: BUCKET, Key: key });
     const res = await getS3().send(cmd);
     const body = await res.Body?.transformToString("utf-8");
     if (!body) return null;
-    return JSON.parse(body) as T;
+    const parsed = JSON.parse(body) as T;
+    jsonCache.set(key, { ts: now, data: parsed });
+    return parsed;
   } catch {
     return null;
   }

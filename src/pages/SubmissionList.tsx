@@ -1,12 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useDeferredValue } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { batchPresignUrls, listSubmissions } from "../api/client";
 import type { Stage } from "../types/submission";
 import StageBadge from "../components/StageBadge";
 
 const PAGE_SIZE = 10;
-
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -32,14 +31,17 @@ function SubmissionThumbnail({ url }: { url?: string }) {
 export default function SubmissionList() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [page, setPage] = useState(1);
 
   // Reset to page 1 whenever filters change
-  const params = { query, page, pageSize: PAGE_SIZE };
+  const params = { query: deferredQuery, page, pageSize: PAGE_SIZE };
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["submissions", params],
     queryFn: () => listSubmissions(params),
+    staleTime: 2 * 60_000, // avoid re-fetching on every mount/focus
+    placeholderData: keepPreviousData, // keep old data visible while fetching next page
   });
 
   // Fetch all thumbnail presigned URLs in a single batch request

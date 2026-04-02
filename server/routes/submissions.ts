@@ -27,7 +27,7 @@ async function getCachedSummaries(): Promise<SubmissionSummary[]> {
 
   const groups = groupBySubmission(objects);
   const entries = [...groups.entries()];
-  const BATCH = 20;
+  const BATCH = 50;
   const summaries: SubmissionSummary[] = [];
   for (let i = 0; i < entries.length; i += BATCH) {
     const batch = entries.slice(i, i + BATCH);

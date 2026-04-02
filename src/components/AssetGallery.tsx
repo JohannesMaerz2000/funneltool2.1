@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Asset } from "../types/submission";
-import { getAssetUrl } from "../api/client";
+import { getAssetUrl, batchPresignUrls } from "../api/client";
 
 function fileName(key: string) {
   return key.split("/").pop() ?? key;
@@ -177,6 +177,8 @@ function ImageThumb({
           <img
             src={data.url}
             alt={name}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover"
           />
           <button
@@ -339,6 +341,7 @@ function Lightbox({ url, name, onClose }: { url: string; name: string; onClose: 
       <img
         src={url}
         alt={name}
+        decoding="async"
         className="max-w-[90vw] max-h-[90vh] object-contain rounded shadow-xl"
         onClick={(e) => e.stopPropagation()}
       />
@@ -355,6 +358,33 @@ function Lightbox({ url, name, onClose }: { url: string; name: string; onClose: 
   );
 }
 
+/**
+ * Batch-prefetch all presigned URLs for a submission's assets and seed
+ * the individual query cache entries so ImageThumb / PdfThumb pick them up
+ * without firing separate requests.
+ */
+function useBatchPrefetch(submissionId: string, assets: Asset[]) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (assets.length === 0) return;
+
+    const items = assets.map((a) => ({ id: submissionId, key: a.key }));
+    let cancelled = false;
+
+    batchPresignUrls(items).then((results) => {
+      if (cancelled) return;
+      for (const { key, url } of results) {
+        if (url) {
+          queryClient.setQueryData(["asset-url", submissionId, key], { url });
+        }
+      }
+    });
+
+    return () => { cancelled = true; };
+  }, [submissionId, assets, queryClient]);
+}
+
 export default function AssetGallery({
   assets,
   submissionId,
@@ -365,6 +395,9 @@ export default function AssetGallery({
   const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null);
   const [pdfPopout, setPdfPopout] = useState<{ url: string; name: string } | null>(null);
   const categoryStats = buildCategoryStats(assets);
+
+  // Single batch request seeds the cache for all thumbnails
+  useBatchPrefetch(submissionId, assets);
 
   const images = assets.filter((a) => a.type === "image");
   const pdfs = assets.filter((a) => isPdf(a.key));
