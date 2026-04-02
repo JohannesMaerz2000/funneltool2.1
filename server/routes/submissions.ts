@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { Readable } from "node:stream";
+import archiver from "archiver";
 import { listAllObjects, presignUrl, getObjectStream, PREFIX } from "../s3.js";
 import { groupBySubmission, buildSummary, buildDetail } from "../parser.js";
 import type { SubmissionSummary } from "../types.js";
@@ -125,6 +127,53 @@ submissionsRouter.get("/:id", async (req, res) => {
   } catch (err) {
     console.error("[submissions] detail error:", err);
     res.status(500).json({ error: "Failed to load submission", detail: String(err) });
+  }
+});
+
+/**
+ * GET /api/submissions/:id/download-all
+ * Streams a zip archive of all image assets for a submission.
+ */
+submissionsRouter.get("/:id/download-all", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const objects = await getCachedObjects();
+    const groups = groupBySubmission(objects);
+    const objs = groups.get(id);
+    if (!objs) { res.status(404).json({ error: "Submission not found" }); return; }
+
+    const imageExts = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff", ".svg"]);
+    const imageKeys = objs
+      .filter((o) => {
+        const key = o.Key ?? "";
+        const ext = key.slice(key.lastIndexOf(".")).toLowerCase();
+        return imageExts.has(ext);
+      })
+      .map((o) => o.Key!);
+
+    if (imageKeys.length === 0) {
+      res.status(404).json({ error: "No images found" });
+      return;
+    }
+
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="${id}_images.zip"`);
+
+    const archive = archiver("zip", { store: true });
+    archive.pipe(res);
+
+    for (const key of imageKeys) {
+      const { body } = await getObjectStream(key);
+      if (!body) continue;
+      const filename = key.split("/").pop() ?? key;
+      const nodeStream = Readable.fromWeb(body.transformToWebStream() as import("stream/web").ReadableStream);
+      archive.append(nodeStream, { name: filename });
+    }
+
+    await archive.finalize();
+  } catch (err) {
+    console.error("[submissions] download-all error:", err);
+    if (!res.headersSent) res.status(500).json({ error: "Download failed", detail: String(err) });
   }
 });
 

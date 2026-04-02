@@ -399,17 +399,14 @@ export default function AssetGallery({
         <div>
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-xs uppercase tracking-[0.14em] text-gray-500">Images</h4>
-            <button
-              onClick={() => {
-                for (const asset of images) {
-                  downloadAsset(submissionId, asset.key);
-                }
-              }}
+            <a
+              href={`/api/submissions/${encodeURIComponent(submissionId)}/download-all`}
+              download
               className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700"
             >
               <DownloadIcon className="w-3.5 h-3.5" />
-              Download All
-            </button>
+              Download All (.zip)
+            </a>
           </div>
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
             {images.map((a) => (
