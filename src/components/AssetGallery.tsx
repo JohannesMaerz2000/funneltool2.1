@@ -18,6 +18,24 @@ function isPdf(key: string) {
   return key.toLowerCase().endsWith(".pdf");
 }
 
+function downloadAsset(submissionId: string, key: string) {
+  const qs = new URLSearchParams({ key });
+  const url = `/api/submissions/${encodeURIComponent(submissionId)}/download?${qs}`;
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = key.split("/").pop() ?? "download";
+  a.click();
+}
+
+function DownloadIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" className={className}>
+      <path d="M10 3a.75.75 0 01.75.75v7.69l2.22-2.22a.75.75 0 111.06 1.06l-3.5 3.5a.75.75 0 01-1.06 0l-3.5-3.5a.75.75 0 111.06-1.06l2.22 2.22V3.75A.75.75 0 0110 3z" />
+      <path d="M3 15.75a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" />
+    </svg>
+  );
+}
+
 function normalizeCategoryLabel(raw: string): string {
   return raw
     .replace(/[_-]+/g, " ")
@@ -142,10 +160,12 @@ function ImageThumb({
     staleTime: 50 * 60 * 1000,
   });
 
+  const name = fileName(asset.key);
+
   return (
     <div
-      className="relative aspect-square cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-sm transition hover:border-emerald-300 hover:shadow"
-      onClick={() => data?.url && onClick(data.url, fileName(asset.key))}
+      className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-sm transition hover:border-emerald-300 hover:shadow"
+      onClick={() => data?.url && onClick(data.url, name)}
     >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
@@ -153,11 +173,23 @@ function ImageThumb({
         </div>
       )}
       {data?.url && (
-        <img
-          src={data.url}
-          alt={fileName(asset.key)}
-          className="w-full h-full object-cover"
-        />
+        <>
+          <img
+            src={data.url}
+            alt={name}
+            className="w-full h-full object-cover"
+          />
+          <button
+            className="absolute bottom-1 right-1 flex items-center justify-center rounded-lg bg-black/60 p-1.5 text-white opacity-0 transition group-hover:opacity-100 hover:bg-black/80"
+            title={`Download ${name}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              downloadAsset(submissionId, asset.key);
+            }}
+          >
+            <DownloadIcon className="w-4 h-4" />
+          </button>
+        </>
       )}
     </div>
   );
@@ -365,7 +397,20 @@ export default function AssetGallery({
 
       {images.length > 0 && (
         <div>
-          <h4 className="mb-2 text-xs uppercase tracking-[0.14em] text-gray-500">Images</h4>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-xs uppercase tracking-[0.14em] text-gray-500">Images</h4>
+            <button
+              onClick={() => {
+                for (const asset of images) {
+                  downloadAsset(submissionId, asset.key);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700"
+            >
+              <DownloadIcon className="w-3.5 h-3.5" />
+              Download All
+            </button>
+          </div>
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
             {images.map((a) => (
               <ImageThumb

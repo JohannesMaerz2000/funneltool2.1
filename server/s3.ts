@@ -84,6 +84,17 @@ export async function getJsonObject<T = unknown>(key: string): Promise<T | null>
   }
 }
 
+/** Fetch an S3 object as a readable stream with metadata. */
+export async function getObjectStream(key: string) {
+  const cmd = new GetObjectCommand({ Bucket: BUCKET, Key: key });
+  const res = await getS3().send(cmd);
+  return {
+    body: res.Body,
+    contentType: res.ContentType,
+    contentLength: res.ContentLength,
+  };
+}
+
 /** Generate a short-lived presigned GET URL. */
 export async function presignUrl(key: string, expiresInSeconds = 3600): Promise<string> {
   const cmd = new GetObjectCommand({ Bucket: BUCKET, Key: key });

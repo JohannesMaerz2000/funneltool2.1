@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { listAllObjects, presignUrl, PREFIX } from "../s3.js";
+import { listAllObjects, presignUrl, getObjectStream, PREFIX } from "../s3.js";
 import { groupBySubmission, buildSummary, buildDetail } from "../parser.js";
 import type { SubmissionSummary } from "../types.js";
 
@@ -125,6 +125,46 @@ submissionsRouter.get("/:id", async (req, res) => {
   } catch (err) {
     console.error("[submissions] detail error:", err);
     res.status(500).json({ error: "Failed to load submission", detail: String(err) });
+  }
+});
+
+/**
+ * GET /api/submissions/:id/download?key=<s3key>
+ * Proxies the S3 object to the browser with Content-Disposition: attachment.
+ */
+submissionsRouter.get("/:id/download", async (req, res) => {
+  try {
+    const key = req.query.key as string;
+    if (!key) { res.status(400).json({ error: "key param required" }); return; }
+    const { id } = req.params;
+    if (!key.startsWith(`${PREFIX}${id}/`)) {
+      res.status(403).json({ error: "Key does not belong to this submission" });
+      return;
+    }
+    const { body, contentType, contentLength } = await getObjectStream(key);
+    if (!body) { res.status(404).json({ error: "Object not found" }); return; }
+
+    const filename = key.split("/").pop() ?? "download";
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    if (contentType) res.setHeader("Content-Type", contentType);
+    if (contentLength) res.setHeader("Content-Length", String(contentLength));
+
+    // Pipe the S3 readable stream to the response
+    const webStream = body.transformToWebStream() as ReadableStream<Uint8Array>;
+    const reader = webStream.getReader();
+    const pump = async () => {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) { res.end(); return; }
+        if (!res.write(value)) {
+          await new Promise<void>((resolve) => res.once("drain", resolve));
+        }
+      }
+    };
+    await pump();
+  } catch (err) {
+    console.error("[submissions] download error:", err);
+    if (!res.headersSent) res.status(500).json({ error: "Download failed", detail: String(err) });
   }
 });
 
