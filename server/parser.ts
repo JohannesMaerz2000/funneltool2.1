@@ -5,6 +5,16 @@ import { getJsonObject, PREFIX } from "./s3.js";
 const IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".heif"]);
 const DOC_EXTS = new Set([".pdf", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".txt"]);
 
+export function isRawImagesKey(key: string): boolean {
+  return key
+    .split("/")
+    .some((segment) => segment.toLowerCase() === "raw_images");
+}
+
+function visibleAssetObjects(objects: _Object[]): _Object[] {
+  return objects.filter((o) => o.Key && !o.Key.endsWith("/") && !isRawImagesKey(o.Key));
+}
+
 function extOf(key: string): string {
   const dot = key.lastIndexOf(".");
   return dot === -1 ? "" : key.slice(dot).toLowerCase();
@@ -18,12 +28,24 @@ function assetType(key: string): Asset["type"] {
 }
 
 function pickThumbnailKey(objects: _Object[]): string | undefined {
-  const imageKeys = objects
-    .map((o) => o.Key)
-    .filter((key): key is string => Boolean(key && !key.endsWith("/") && assetType(key) === "image"));
+  const imageObjects = visibleAssetObjects(objects).filter(
+    (o): o is _Object & { Key: string } => Boolean(o.Key && assetType(o.Key) === "image")
+  );
+  if (imageObjects.length === 0) return undefined;
 
-  const firstExterior = imageKeys.find((key) => key.toLowerCase().includes("exterior"));
-  return firstExterior ?? imageKeys[0];
+  const bySmallestSize = (a: _Object, b: _Object) => (a.Size ?? Number.MAX_SAFE_INTEGER) - (b.Size ?? Number.MAX_SAFE_INTEGER);
+
+  const thumbNamed = imageObjects
+    .filter((o) => /(?:thumb|thumbnail|preview)/i.test(o.Key))
+    .sort(bySmallestSize);
+  if (thumbNamed[0]?.Key) return thumbNamed[0].Key;
+
+  const exterior = imageObjects
+    .filter((o) => o.Key.toLowerCase().includes("exterior"))
+    .sort(bySmallestSize);
+  if (exterior[0]?.Key) return exterior[0].Key;
+
+  return imageObjects.sort(bySmallestSize)[0]?.Key;
 }
 
 /** Derive the submission ID from an S3 key under advance/ */
@@ -105,22 +127,33 @@ function detectStage(
 /** Build a SubmissionSummary from grouped objects. */
 export async function buildSummary(
   id: string,
-  objects: _Object[]
+  objects: _Object[],
+  options: { includePayload?: boolean } = {}
 ): Promise<SubmissionSummary> {
-  const latestObj = objects
-    .filter((o) => o.LastModified)
-    .sort((a, b) => (b.LastModified!.getTime() - a.LastModified!.getTime()))[0];
+  const includePayload = options.includePayload ?? true;
+  let latestObj: _Object | undefined;
+  for (const obj of objects) {
+    if (!obj.LastModified) continue;
+    if (!latestObj || obj.LastModified.getTime() > latestObj.LastModified!.getTime()) {
+      latestObj = obj;
+    }
+  }
 
-  const payloadKey = pickPayloadKey(objects);
+  const stageFromKeys = detectStage(objects, null);
+  const shouldFetchPayload = includePayload || stageFromKeys === "unknown";
+  const payloadKey = shouldFetchPayload ? pickPayloadKey(objects) : null;
   const payload = payloadKey ? await getJsonObject<Record<string, unknown>>(payloadKey) : null;
+  const stage = payload ? detectStage(objects, payload) : stageFromKeys;
+
+  const visibleAssets = visibleAssetObjects(objects);
 
   return {
     id,
-    vin: payload ? extractVin(payload) : undefined,
-    stage: detectStage(objects, payload),
+    vin: includePayload && payload ? extractVin(payload) : undefined,
+    stage,
     updatedAt: latestObj?.LastModified?.toISOString() ?? new Date(0).toISOString(),
-    assetCount: objects.filter((o) => o.Key && !o.Key.endsWith("/")).length,
-    thumbnailKey: pickThumbnailKey(objects),
+    assetCount: visibleAssets.length,
+    thumbnailKey: pickThumbnailKey(visibleAssets),
   };
 }
 
@@ -133,24 +166,29 @@ export async function buildDetail(
   const payloadKey = pickPayloadKey(objects);
   const payload = payloadKey ? await getJsonObject<Record<string, unknown>>(payloadKey) : null;
 
-  const latestObj = objects
-    .filter((o) => o.LastModified)
-    .sort((a, b) => b.LastModified!.getTime() - a.LastModified!.getTime())[0];
+  let latestObj: _Object | undefined;
+  for (const obj of objects) {
+    if (!obj.LastModified) continue;
+    if (!latestObj || obj.LastModified.getTime() > latestObj.LastModified!.getTime()) {
+      latestObj = obj;
+    }
+  }
+
+  const visibleAssets = visibleAssetObjects(objects);
 
   const summary = {
     id,
     vin: payload ? extractVin(payload) : undefined,
     stage: detectStage(objects, payload),
     updatedAt: latestObj?.LastModified?.toISOString() ?? new Date(0).toISOString(),
-    assetCount: objects.filter((o) => o.Key && !o.Key.endsWith("/")).length,
-    thumbnailKey: pickThumbnailKey(objects),
+    assetCount: visibleAssets.length,
+    thumbnailKey: pickThumbnailKey(visibleAssets),
   };
 
   const vehicle = payload?.vehicle as Record<string, unknown> | undefined;
   const seller = payload?.seller as Record<string, unknown> | undefined;
 
-  const assets: Asset[] = objects
-    .filter((o) => o.Key && !o.Key.endsWith("/"))
+  const assets: Asset[] = visibleAssets
     .map((o) => ({
       key: o.Key!,
       type: assetType(o.Key!),

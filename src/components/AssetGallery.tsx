@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Asset } from "../types/submission";
 import { getAssetUrl, batchPresignUrls } from "../api/client";
@@ -408,9 +408,13 @@ export default function AssetGallery({
   const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null);
   const [pdfPopout, setPdfPopout] = useState<{ url: string; name: string } | null>(null);
   const categoryStats = buildCategoryStats(assets);
+  const previewAssets = useMemo(
+    () => assets.filter((a) => a.type === "image" || isPdf(a.key)),
+    [assets]
+  );
 
-  // Single batch request seeds the cache for all thumbnails
-  useBatchPrefetch(submissionId, assets);
+  // Single batch request seeds preview cache entries for image/PDF thumbnails.
+  useBatchPrefetch(submissionId, previewAssets);
 
   const images = assets.filter((a) => a.type === "image");
   const pdfs = assets.filter((a) => isPdf(a.key));

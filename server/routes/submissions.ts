@@ -2,39 +2,49 @@ import { Router } from "express";
 import { Readable } from "node:stream";
 import archiver from "archiver";
 import { listAllObjects, presignUrl, getObjectStream, PREFIX } from "../s3.js";
-import { groupBySubmission, buildSummary, buildDetail } from "../parser.js";
+import { groupBySubmission, buildSummary, buildDetail, isRawImagesKey } from "../parser.js";
 import type { SubmissionSummary } from "../types.js";
 
 export const submissionsRouter = Router();
 
 // Cache raw object list and parsed summaries to avoid hammering S3
 let objectCache: { ts: number; data: Awaited<ReturnType<typeof listAllObjects>> } | null = null;
-let summaryCache: { objectTs: number; data: SubmissionSummary[] } | null = null;
+let summaryCacheLite: { objectTs: number; data: SubmissionSummary[] } | null = null;
+let summaryCacheWithPayload: { objectTs: number; data: SubmissionSummary[] } | null = null;
 const CACHE_TTL_MS = 5 * 60_000; // 5 minutes
 
 async function getCachedObjects() {
   const now = Date.now();
   if (objectCache && now - objectCache.ts < CACHE_TTL_MS) return objectCache.data;
   const data = await listAllObjects(PREFIX);
+  // Keep full object set for grouping/detail lookup; raw_images are excluded
+  // later in parser-level asset selection.
   objectCache = { ts: now, data };
   return data;
 }
 
-async function getCachedSummaries(): Promise<SubmissionSummary[]> {
+async function getCachedSummaries(includePayload: boolean): Promise<SubmissionSummary[]> {
   const objects = await getCachedObjects();
+  const cache = includePayload ? summaryCacheWithPayload : summaryCacheLite;
   // Reuse summaries if built from the same object fetch
-  if (summaryCache && summaryCache.objectTs === objectCache!.ts) return summaryCache.data;
+  if (cache && cache.objectTs === objectCache!.ts) return cache.data;
 
   const groups = groupBySubmission(objects);
   const entries = [...groups.entries()];
-  const BATCH = 50;
+  const BATCH = includePayload ? 20 : 100;
   const summaries: SubmissionSummary[] = [];
   for (let i = 0; i < entries.length; i += BATCH) {
     const batch = entries.slice(i, i + BATCH);
-    const results = await Promise.all(batch.map(([id, objs]) => buildSummary(id, objs)));
+    const results = await Promise.all(
+      batch.map(([id, objs]) => buildSummary(id, objs, { includePayload }))
+    );
     summaries.push(...results);
   }
-  summaryCache = { objectTs: objectCache!.ts, data: summaries };
+  if (includePayload) {
+    summaryCacheWithPayload = { objectTs: objectCache!.ts, data: summaries };
+  } else {
+    summaryCacheLite = { objectTs: objectCache!.ts, data: summaries };
+  }
   return summaries;
 }
 
@@ -51,7 +61,9 @@ submissionsRouter.post("/presign-batch", async (req, res) => {
     }
     const results = await Promise.all(
       items.map(async ({ id, key }) => {
-        if (!key || !key.startsWith(`${PREFIX}${id}/`)) return { key, url: null };
+        if (!key || !key.startsWith(`${PREFIX}${id}/`) || isRawImagesKey(key)) {
+          return { key, url: null };
+        }
         const url = await presignUrl(key);
         return { key, url };
       })
@@ -69,11 +81,11 @@ submissionsRouter.post("/presign-batch", async (req, res) => {
  */
 submissionsRouter.get("/", async (req, res) => {
   try {
-    const summaries = await getCachedSummaries();
-
-    let filtered = summaries.slice(); // work on a copy
-
     const { query, stage, from, to } = req.query as Record<string, string>;
+    // Hot path optimization: list view without search query does not need
+    // payload JSON fetches for every submission.
+    const summaries = await getCachedSummaries(Boolean(query));
+    let filtered = summaries.slice(); // work on a copy
 
     if (query) {
       const q = query.toLowerCase();
@@ -146,6 +158,7 @@ submissionsRouter.get("/:id/download-all", async (req, res) => {
     const imageKeys = objs
       .filter((o) => {
         const key = o.Key ?? "";
+        if (!key || key.endsWith("/") || isRawImagesKey(key)) return false;
         const ext = key.slice(key.lastIndexOf(".")).toLowerCase();
         return imageExts.has(ext);
       })
@@ -190,6 +203,10 @@ submissionsRouter.get("/:id/download", async (req, res) => {
       res.status(403).json({ error: "Key does not belong to this submission" });
       return;
     }
+    if (isRawImagesKey(key)) {
+      res.status(403).json({ error: "raw_images assets are excluded" });
+      return;
+    }
     const { body, contentType, contentLength } = await getObjectStream(key);
     if (!body) { res.status(404).json({ error: "Object not found" }); return; }
 
@@ -232,6 +249,10 @@ submissionsRouter.get("/:id/asset-url", async (req, res) => {
     const { id } = req.params;
     if (!key.startsWith(`${PREFIX}${id}/`)) {
       res.status(403).json({ error: "Key does not belong to this submission" });
+      return;
+    }
+    if (isRawImagesKey(key)) {
+      res.status(403).json({ error: "raw_images assets are excluded" });
       return;
     }
     const url = await presignUrl(key);
