@@ -7,8 +7,9 @@ import type { SubmissionSummary } from "../types.js";
 
 export const submissionsRouter = Router();
 
-// Cache raw object list and parsed summaries to avoid hammering S3
+// Cache raw object list, grouped map, and parsed summaries to avoid hammering S3
 let objectCache: { ts: number; data: Awaited<ReturnType<typeof listAllObjects>> } | null = null;
+let groupCache: { objectTs: number; data: ReturnType<typeof groupBySubmission> } | null = null;
 let summaryCacheLite: { objectTs: number; data: SubmissionSummary[] } | null = null;
 let summaryCacheWithPayload: { objectTs: number; data: SubmissionSummary[] } | null = null;
 const CACHE_TTL_MS = 5 * 60_000; // 5 minutes
@@ -17,9 +18,15 @@ async function getCachedObjects() {
   const now = Date.now();
   if (objectCache && now - objectCache.ts < CACHE_TTL_MS) return objectCache.data;
   const data = await listAllObjects(PREFIX);
-  // Keep full object set for grouping/detail lookup; raw_images are excluded
-  // later in parser-level asset selection.
   objectCache = { ts: now, data };
+  groupCache = null; // invalidate derived cache
+  return data;
+}
+
+function getCachedGroups(objects: Awaited<ReturnType<typeof listAllObjects>>) {
+  if (groupCache && groupCache.objectTs === objectCache!.ts) return groupCache.data;
+  const data = groupBySubmission(objects);
+  groupCache = { objectTs: objectCache!.ts, data };
   return data;
 }
 
@@ -29,7 +36,7 @@ async function getCachedSummaries(includePayload: boolean): Promise<SubmissionSu
   // Reuse summaries if built from the same object fetch
   if (cache && cache.objectTs === objectCache!.ts) return cache.data;
 
-  const groups = groupBySubmission(objects);
+  const groups = getCachedGroups(objects);
   const entries = [...groups.entries()];
   const BATCH = includePayload ? 20 : 100;
   const summaries: SubmissionSummary[] = [];
@@ -59,15 +66,22 @@ submissionsRouter.post("/presign-batch", async (req, res) => {
       res.status(400).json({ error: "Expected array of up to 200 items" });
       return;
     }
-    const results = await Promise.all(
-      items.map(async ({ id, key }) => {
-        if (!key || !key.startsWith(`${PREFIX}${id}/`) || isRawImagesKey(key)) {
-          return { key, url: null };
-        }
-        const url = await presignUrl(key);
-        return { key, url };
-      })
-    );
+    // Process in batches of 20 to avoid overwhelming the S3 presigner
+    const CONCURRENCY = 20;
+    const results: Array<{ key: string; url: string | null }> = [];
+    for (let i = 0; i < items.length; i += CONCURRENCY) {
+      const batch = items.slice(i, i + CONCURRENCY);
+      const batchResults = await Promise.all(
+        batch.map(async ({ id, key }) => {
+          if (!key || !key.startsWith(`${PREFIX}${id}/`) || isRawImagesKey(key)) {
+            return { key, url: null };
+          }
+          const url = await presignUrl(key);
+          return { key, url };
+        })
+      );
+      results.push(...batchResults);
+    }
     res.json(results);
   } catch (err) {
     console.error("[submissions] presign-batch error:", err);
@@ -128,7 +142,7 @@ submissionsRouter.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const objects = await getCachedObjects();
-    const groups = groupBySubmission(objects);
+    const groups = getCachedGroups(objects);
     const objs = groups.get(id);
     if (!objs) {
       res.status(404).json({ error: "Submission not found" });
@@ -150,7 +164,7 @@ submissionsRouter.get("/:id/download-all", async (req, res) => {
   try {
     const { id } = req.params;
     const objects = await getCachedObjects();
-    const groups = groupBySubmission(objects);
+    const groups = getCachedGroups(objects);
     const objs = groups.get(id);
     if (!objs) { res.status(404).json({ error: "Submission not found" }); return; }
 

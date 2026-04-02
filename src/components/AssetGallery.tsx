@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { Asset } from "../types/submission";
-import { getAssetUrl, batchPresignUrls } from "../api/client";
+import { batchPresignUrls } from "../api/client";
 
 function fileName(key: string) {
   return key.split("/").pop() ?? key;
@@ -148,37 +148,30 @@ function PdfIcon() {
 function ImageThumb({
   asset,
   submissionId,
+  url,
   onClick,
 }: {
   asset: Asset;
   submissionId: string;
+  url?: string;
   onClick: (url: string, name: string) => void;
 }) {
-  // Batch prefetch seeds this cache entry — don't fetch individually to avoid
-  // duplicate presign calls (each returns a different URL, causing img flicker).
-  const { data } = useQuery({
-    queryKey: ["asset-url", submissionId, asset.key],
-    queryFn: () => getAssetUrl(submissionId, asset.key),
-    enabled: false,
-    staleTime: 50 * 60 * 1000,
-  });
-
   const name = fileName(asset.key);
 
   return (
     <div
       className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-sm transition hover:border-emerald-300 hover:shadow"
-      onClick={() => data?.url && onClick(data.url, name)}
+      onClick={() => url && onClick(url, name)}
     >
-      {!data?.url && (
+      {!url && (
         <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
           Loading…
         </div>
       )}
-      {data?.url && (
+      {url && (
         <>
           <img
-            src={data.url}
+            src={url}
             alt={name}
             loading="lazy"
             decoding="async"
@@ -202,32 +195,24 @@ function ImageThumb({
 
 function PdfThumb({
   asset,
-  submissionId,
+  url,
   onClick,
 }: {
   asset: Asset;
-  submissionId: string;
+  url?: string;
   onClick: (url: string, name: string) => void;
 }) {
-  // Batch prefetch seeds this cache entry — don't fetch individually.
-  const { data } = useQuery({
-    queryKey: ["asset-url", submissionId, asset.key],
-    queryFn: () => getAssetUrl(submissionId, asset.key),
-    enabled: false,
-    staleTime: 50 * 60 * 1000,
-  });
-
   const name = fileName(asset.key);
 
   return (
     <button
       className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-emerald-300 hover:shadow cursor-pointer disabled:cursor-wait disabled:opacity-60 text-left w-full"
-      onClick={() => data?.url && onClick(data.url, name)}
-      disabled={!data?.url}
+      onClick={() => url && onClick(url, name)}
+      disabled={!url}
       title={name}
     >
       <div className="flex items-center justify-center w-full py-2">
-        {!data?.url ? (
+        {!url ? (
           <div className="w-10 h-10 rounded bg-gray-100 animate-pulse" />
         ) : (
           <PdfIcon />
@@ -243,19 +228,11 @@ function PdfThumb({
 
 function AssetItem({
   asset,
-  submissionId,
+  url,
 }: {
   asset: Asset;
-  submissionId: string;
+  url?: string;
 }) {
-  const [fetch, setFetch] = useState(false);
-  const { data, isLoading } = useQuery({
-    queryKey: ["asset-url", submissionId, asset.key],
-    queryFn: () => getAssetUrl(submissionId, asset.key),
-    enabled: fetch,
-    staleTime: 50 * 60 * 1000,
-  });
-
   const icon = asset.type === "document" ? "📄" : "📎";
 
   return (
@@ -267,9 +244,9 @@ function AssetItem({
           <p className="text-xs text-gray-400">{formatSize(asset.size)}</p>
         )}
       </div>
-      {data?.url ? (
+      {url ? (
         <a
-          href={data.url}
+          href={url}
           target="_blank"
           rel="noopener noreferrer"
           className="shrink-0 text-xs font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
@@ -277,13 +254,7 @@ function AssetItem({
           Open ↗
         </a>
       ) : (
-        <button
-          onClick={() => setFetch(true)}
-          disabled={isLoading}
-          className="shrink-0 text-xs font-medium text-emerald-700 hover:text-emerald-800 hover:underline disabled:opacity-40"
-        >
-          {isLoading ? "Loading…" : "Get link"}
-        </button>
+        <span className="shrink-0 text-xs text-gray-400">Loading…</span>
       )}
     </div>
   );
@@ -363,41 +334,6 @@ function Lightbox({ url, name, onClose }: { url: string; name: string; onClose: 
   );
 }
 
-/**
- * Batch-prefetch all presigned URLs for a submission's assets and seed
- * the individual query cache entries so ImageThumb / PdfThumb pick them up
- * without firing separate requests.
- */
-function useBatchPrefetch(submissionId: string, assets: Asset[]) {
-  const queryClient = useQueryClient();
-  const fetchedRef = useRef<string | null>(null);
-
-  // Stable fingerprint so the effect doesn't re-run when the assets array
-  // reference changes but the actual keys haven't.
-  const assetKeysFingerprint = assets.map((a) => a.key).join("\n");
-
-  useEffect(() => {
-    if (assets.length === 0) return;
-    // Already fetched for this exact submission + asset set
-    if (fetchedRef.current === `${submissionId}\0${assetKeysFingerprint}`) return;
-
-    const items = assets.map((a) => ({ id: submissionId, key: a.key }));
-    let cancelled = false;
-
-    batchPresignUrls(items).then((results) => {
-      if (cancelled) return;
-      fetchedRef.current = `${submissionId}\0${assetKeysFingerprint}`;
-      for (const { key, url } of results) {
-        if (url) {
-          queryClient.setQueryData(["asset-url", submissionId, key], { url });
-        }
-      }
-    });
-
-    return () => { cancelled = true; };
-  }, [submissionId, assetKeysFingerprint, assets, queryClient]);
-}
-
 export default function AssetGallery({
   assets,
   submissionId,
@@ -407,19 +343,52 @@ export default function AssetGallery({
 }) {
   const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null);
   const [pdfPopout, setPdfPopout] = useState<{ url: string; name: string } | null>(null);
-  const categoryStats = buildCategoryStats(assets);
-  const previewAssets = useMemo(
-    () => assets.filter((a) => a.type === "image" || isPdf(a.key)),
-    [assets]
+
+  // Memoize all derived lists in a single pass
+  const { images, pdfs, docs, others, categoryStats } = useMemo(() => {
+    const imgs: Asset[] = [];
+    const pdfList: Asset[] = [];
+    const docList: Asset[] = [];
+    const otherList: Asset[] = [];
+    for (const a of assets) {
+      if (a.type === "image") imgs.push(a);
+      else if (isPdf(a.key)) pdfList.push(a);
+      else if (a.type === "document") docList.push(a);
+      else otherList.push(a);
+    }
+    return {
+      images: imgs,
+      pdfs: pdfList,
+      docs: docList,
+      others: otherList,
+      categoryStats: buildCategoryStats(assets),
+    };
+  }, [assets]);
+
+  // Stable query key based on asset keys, not array reference
+  const batchItems = useMemo(
+    () => assets.map((a) => ({ id: submissionId, key: a.key })),
+    [assets, submissionId]
   );
 
-  // Single batch request seeds preview cache entries for image/PDF thumbnails.
-  useBatchPrefetch(submissionId, previewAssets);
+  // Single batch request for ALL asset presigned URLs
+  const { data: batchResults } = useQuery({
+    queryKey: ["asset-urls-batch", submissionId, batchItems.map((i) => i.key)],
+    queryFn: () => batchPresignUrls(batchItems),
+    enabled: batchItems.length > 0,
+    staleTime: 50 * 60 * 1000,
+  });
 
-  const images = assets.filter((a) => a.type === "image");
-  const pdfs = assets.filter((a) => isPdf(a.key));
-  const docs = assets.filter((a) => a.type === "document" && !isPdf(a.key));
-  const others = assets.filter((a) => a.type === "other");
+  // Build a lookup map: S3 key → presigned URL
+  const urlMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (batchResults) {
+      for (const { key, url } of batchResults) {
+        if (url) map.set(key, url);
+      }
+    }
+    return map;
+  }, [batchResults]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -464,6 +433,7 @@ export default function AssetGallery({
                 key={a.key}
                 asset={a}
                 submissionId={submissionId}
+                url={urlMap.get(a.key)}
                 onClick={(url, name) => setLightbox({ url, name })}
               />
             ))}
@@ -479,7 +449,7 @@ export default function AssetGallery({
               <PdfThumb
                 key={a.key}
                 asset={a}
-                submissionId={submissionId}
+                url={urlMap.get(a.key)}
                 onClick={(url, name) => setPdfPopout({ url, name })}
               />
             ))}
@@ -492,7 +462,7 @@ export default function AssetGallery({
           <h4 className="mb-2 text-xs uppercase tracking-[0.14em] text-gray-500">Documents</h4>
           <div className="flex flex-col gap-1">
             {docs.map((a) => (
-              <AssetItem key={a.key} asset={a} submissionId={submissionId} />
+              <AssetItem key={a.key} asset={a} url={urlMap.get(a.key)} />
             ))}
           </div>
         </div>
@@ -503,7 +473,7 @@ export default function AssetGallery({
           <h4 className="mb-2 text-xs uppercase tracking-[0.14em] text-gray-500">Other files</h4>
           <div className="flex flex-col gap-1">
             {others.map((a) => (
-              <AssetItem key={a.key} asset={a} submissionId={submissionId} />
+              <AssetItem key={a.key} asset={a} url={urlMap.get(a.key)} />
             ))}
           </div>
         </div>
