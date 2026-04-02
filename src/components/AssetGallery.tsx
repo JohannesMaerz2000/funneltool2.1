@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Asset } from "../types/submission";
 import { getAssetUrl, batchPresignUrls } from "../api/client";
@@ -154,9 +154,12 @@ function ImageThumb({
   submissionId: string;
   onClick: (url: string, name: string) => void;
 }) {
-  const { data, isLoading } = useQuery({
+  // Batch prefetch seeds this cache entry — don't fetch individually to avoid
+  // duplicate presign calls (each returns a different URL, causing img flicker).
+  const { data } = useQuery({
     queryKey: ["asset-url", submissionId, asset.key],
     queryFn: () => getAssetUrl(submissionId, asset.key),
+    enabled: false,
     staleTime: 50 * 60 * 1000,
   });
 
@@ -167,7 +170,7 @@ function ImageThumb({
       className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-sm transition hover:border-emerald-300 hover:shadow"
       onClick={() => data?.url && onClick(data.url, name)}
     >
-      {isLoading && (
+      {!data?.url && (
         <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
           Loading…
         </div>
@@ -206,9 +209,11 @@ function PdfThumb({
   submissionId: string;
   onClick: (url: string, name: string) => void;
 }) {
-  const { data, isLoading } = useQuery({
+  // Batch prefetch seeds this cache entry — don't fetch individually.
+  const { data } = useQuery({
     queryKey: ["asset-url", submissionId, asset.key],
     queryFn: () => getAssetUrl(submissionId, asset.key),
+    enabled: false,
     staleTime: 50 * 60 * 1000,
   });
 
@@ -218,11 +223,11 @@ function PdfThumb({
     <button
       className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-emerald-300 hover:shadow cursor-pointer disabled:cursor-wait disabled:opacity-60 text-left w-full"
       onClick={() => data?.url && onClick(data.url, name)}
-      disabled={isLoading || !data?.url}
+      disabled={!data?.url}
       title={name}
     >
       <div className="flex items-center justify-center w-full py-2">
-        {isLoading ? (
+        {!data?.url ? (
           <div className="w-10 h-10 rounded bg-gray-100 animate-pulse" />
         ) : (
           <PdfIcon />
@@ -365,15 +370,23 @@ function Lightbox({ url, name, onClose }: { url: string; name: string; onClose: 
  */
 function useBatchPrefetch(submissionId: string, assets: Asset[]) {
   const queryClient = useQueryClient();
+  const fetchedRef = useRef<string | null>(null);
+
+  // Stable fingerprint so the effect doesn't re-run when the assets array
+  // reference changes but the actual keys haven't.
+  const assetKeysFingerprint = assets.map((a) => a.key).join("\n");
 
   useEffect(() => {
     if (assets.length === 0) return;
+    // Already fetched for this exact submission + asset set
+    if (fetchedRef.current === `${submissionId}\0${assetKeysFingerprint}`) return;
 
     const items = assets.map((a) => ({ id: submissionId, key: a.key }));
     let cancelled = false;
 
     batchPresignUrls(items).then((results) => {
       if (cancelled) return;
+      fetchedRef.current = `${submissionId}\0${assetKeysFingerprint}`;
       for (const { key, url } of results) {
         if (url) {
           queryClient.setQueryData(["asset-url", submissionId, key], { url });
@@ -382,7 +395,7 @@ function useBatchPrefetch(submissionId: string, assets: Asset[]) {
     });
 
     return () => { cancelled = true; };
-  }, [submissionId, assets, queryClient]);
+  }, [submissionId, assetKeysFingerprint, assets, queryClient]);
 }
 
 export default function AssetGallery({
