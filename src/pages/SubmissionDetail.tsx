@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { getSubmission } from "../api/client";
 import DataSection from "../components/DataSection";
 import AssetGallery from "../components/AssetGallery";
@@ -52,24 +53,68 @@ function SyncBadge({ status }: { status?: string | null }) {
   );
 }
 
-function JsonArraySection({
-  title,
-  items,
-}: {
-  title: string;
-  items: Array<Record<string, unknown>>;
-}) {
-  if (items.length === 0) return null;
+function getImageJobStatus(jobs: Array<Record<string, unknown>>) {
+  if (jobs.length === 0) return { label: "unknown", isCompleted: false };
+
+  const latestJob = jobs[0];
+  const rawStatus = latestJob.status;
+  const status = typeof rawStatus === "string" && rawStatus.trim() ? rawStatus : "unknown";
+
+  const result =
+    latestJob.result && typeof latestJob.result === "object"
+      ? (latestJob.result as Record<string, unknown>)
+      : undefined;
+  const failed = typeof result?.failed === "number" ? result.failed : undefined;
+
+  const isCompleted = status.toLowerCase() === "completed" && failed === 0;
+  return { label: isCompleted ? "completed" : status, isCompleted };
+}
+
+function ImageProcessingJobsSection({ jobs }: { jobs: Array<Record<string, unknown>> }) {
+  const [showRawJson, setShowRawJson] = useState(false);
+  if (jobs.length === 0) return null;
+
+  const { label, isCompleted } = getImageJobStatus(jobs);
+  const badgeClass =
+    isCompleted
+      ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90"
+      : "bg-red-100 text-red-800 ring-1 ring-red-200/90";
+
   return (
     <div>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
-        {title}
-      </h3>
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-        <pre className="whitespace-pre-wrap text-xs text-gray-800">
-          {JSON.stringify(items, null, 2)}
-        </pre>
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <table className="min-w-full text-sm">
+          <tbody className="divide-y divide-gray-100">
+            <tr className="even:bg-emerald-50/30">
+              <td className="w-1/3 whitespace-nowrap px-3 py-2 font-medium text-gray-600">
+                Image Processing Job
+              </td>
+              <td className="px-3 py-2 text-gray-800">
+                <span
+                  className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass}`}
+                >
+                  {label}
+                </span>
+              </td>
+              <td className="w-1 whitespace-nowrap px-3 py-2 text-right">
+                <button
+                  type="button"
+                  onClick={() => setShowRawJson((prev) => !prev)}
+                  className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
+                >
+                  {showRawJson ? "Hide raw JSON" : "Show raw JSON"}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+
+      {showRawJson ? (
+        <pre className="mt-2 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs leading-relaxed text-gray-700">
+          {JSON.stringify(jobs, null, 2)}
+        </pre>
+      ) : null}
     </div>
   );
 }
@@ -161,14 +206,15 @@ export default function SubmissionDetail() {
       </div>
 
       <div className="flex flex-col gap-6">
-        <DataSection title="Submission (DB)" data={data.submission} />
+        <DataSection
+          title="Submission (DB)"
+          data={data.submission}
+          excludeKeys={["submission_data"]}
+        />
         <DataSection title="Submission Data (JSONB)" data={data.submissionData ?? undefined} />
         <DataSection title="DAT Information" data={data.datInformation ?? undefined} />
         <DataSection title="VIN History" data={data.vinHistory ?? undefined} />
-        <JsonArraySection
-          title={`Image Processing Jobs (${data.imageProcessingJobs.length})`}
-          items={data.imageProcessingJobs}
-        />
+        <ImageProcessingJobsSection jobs={data.imageProcessingJobs} />
         {!data.submissionData &&
           !data.datInformation &&
           !data.vinHistory &&
