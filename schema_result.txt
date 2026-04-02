@@ -1,0 +1,80 @@
+      table_name       |             column_name             |        data_type         | character_maximum_length | is_nullable |                  column_default                  
+-----------------------+-------------------------------------+--------------------------+--------------------------+-------------+--------------------------------------------------
+ dat_information       | id                                  | character varying        |                      255 | NO          | 
+ dat_information       | created_at                          | timestamp with time zone |                          | NO          | 
+ dat_information       | updated_at                          | timestamp with time zone |                          | NO          | 
+ dat_information       | vin                                 | character varying        |                      255 | NO          | 
+ dat_information       | first_registration                  | date                     |                          | NO          | 
+ dat_information       | dat_ecode                           | character varying        |                      255 | NO          | 
+ dat_information       | container                           | character varying        |                      255 | YES         | 
+ dat_information       | description                         | character varying        |                      255 | YES         | 
+ dat_information       | make                                | character varying        |                      255 | NO          | 
+ dat_information       | model                               | character varying        |                      255 | NO          | 
+ dat_information       | variant                             | character varying        |                      255 | YES         | 
+ dat_information       | is_confirmed                        | boolean                  |                          | NO          | false
+ dat_information       | construction_time                   | integer                  |                          | NO          | 
+ dat_information       | container_description               | character varying        |                      255 | YES         | 
+ dat_information       | kba_number                          | ARRAY                    |                          | YES         | 
+ dat_information       | construction_time_from              | character varying        |                      255 | YES         | 
+ dat_information       | construction_time_to                | character varying        |                      255 | YES         | 
+ dat_information       | identification_source               | character varying        |                      255 | YES         | 
+ dat_information       | country                             | character varying        |                      255 | YES         | 
+ dat_information       | list_price_with_options             | integer                  |                          | YES         | 
+ dat_information       | list_price_without_options          | integer                  |                          | YES         | 
+ dat_information       | special_equipment_price             | integer                  |                          | YES         | 
+ dat_information       | power_kw                            | integer                  |                          | YES         | 
+ dat_information       | capacity                            | integer                  |                          | YES         | 
+ dat_information       | fuel_method                         | character varying        |                      255 | YES         | 
+ dat_information       | drive_type                          | character varying        |                      255 | YES         | 
+ dat_information       | special_equipments                  | jsonb                    |                          | YES         | 
+ dat_information       | email                               | character varying        |                      255 | YES         | 
+ dat_information       | is_dat_confirmed_optional_equipment | boolean                  |                          | YES         | 
+ dat_information       | is_dat_confirmed_vehicle_selection  | boolean                  |                          | YES         | 
+ dat_information       | standard_equipments                 | jsonb                    |                          | YES         | 
+ dat_information       | extra_equipments                    | jsonb                    |                          | YES         | 
+ dat_information       | registration_country                | text                     |                          | YES         | 
+ dat_information       | vehicle_type                        | character varying        |                      255 | YES         | 
+ dat_information       | mileage                             | integer                  |                          | YES         | 
+ equipment-translation | id                                  | character varying        |                      255 | NO          | 
+ equipment-translation | created_at                          | timestamp with time zone |                          | NO          | 
+ equipment-translation | updated_at                          | timestamp with time zone |                          | NO          | 
+ equipment-translation | dat_equipment_id                    | character varying        |                      255 | NO          | 
+ equipment-translation | description_de                      | character varying        |                      255 | NO          | 
+ equipment-translation | description_en                      | character varying        |                      255 | NO          | 
+ equipment-translation | description_se                      | character varying        |                      255 | NO          | 
+ image_processing_job  | id                                  | character varying        |                      255 | NO          | 
+ image_processing_job  | created_at                          | timestamp with time zone |                          | NO          | 
+ image_processing_job  | updated_at                          | timestamp with time zone |                          | NO          | 
+ image_processing_job  | deal_id                             | character varying        |                      255 | NO          | 
+ image_processing_job  | status                              | text                     |                          | NO          | 'processing'::text
+ image_processing_job  | source                              | character varying        |                      255 | NO          | 
+ image_processing_job  | save_local                          | boolean                  |                          | NO          | 
+ image_processing_job  | result                              | jsonb                    |                          | YES         | 
+ image_processing_job  | error                               | text                     |                          | YES         | 
+ image_processing_job  | completed_at                        | timestamp with time zone |                          | YES         | 
+ image_processing_job  | vin                                 | character varying        |                      255 | YES         | 
+ mikro_orm_migrations  | id                                  | integer                  |                          | NO          | nextval('mikro_orm_migrations_id_seq'::regclass)
+ mikro_orm_migrations  | name                                | character varying        |                      255 | YES         | 
+ mikro_orm_migrations  | executed_at                         | timestamp with time zone |                          | YES         | CURRENT_TIMESTAMP
+ submission            | id                                  | character varying        |                      255 | NO          | 
+ submission            | created_at                          | timestamp with time zone |                          | NO          | 
+ submission            | updated_at                          | timestamp with time zone |                          | NO          | 
+ submission            | session_id                          | character varying        |                      255 | NO          | 
+ submission            | vin                                 | character varying        |                      255 | NO          | 
+ submission            | pipedrive_deal_id                   | character varying        |                      255 | YES         | 
+ submission            | last_synced_at                      | timestamp with time zone |                          | YES         | 
+ submission            | form_intake                         | text                     |                          | NO          | 
+ submission            | pipedrive_sync_status               | text                     |                          | NO          | 'pending'::text
+ submission            | identifier_information_id           | character varying        |                      255 | YES         | 
+ submission            | submission_data                     | jsonb                    |                          | YES         | 
+ submission            | submission_source                   | text                     |                          | NO          | 
+ submission            | form_id                             | character varying        |                      255 | NO          | 
+ submission            | registration_country                | text                     |                          | YES         | 
+ submission            | idempotency_key                     | character varying        |                      255 | YES         | 
+ vin_history           | id                                  | character varying        |                      255 | NO          | 
+ vin_history           | created_at                          | timestamp with time zone |                          | NO          | 
+ vin_history           | updated_at                          | timestamp with time zone |                          | NO          | 
+ vin_history           | vin                                 | character varying        |                      255 | NO          | 
+ vin_history           | first_registration                  | date                     |                          | NO          | 
+ vin_history           | match_count                         | integer                  |                          | NO          | 
+ vin_history           | number_of_request                   | integer                  |                          | NO          | 1
