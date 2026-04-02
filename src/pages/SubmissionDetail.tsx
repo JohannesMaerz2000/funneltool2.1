@@ -22,9 +22,15 @@ function IntakeBadge({ intake }: { intake?: string | null }) {
       : normalized === "initial"
         ? "bg-teal-100 text-teal-800 ring-1 ring-teal-200/90"
         : "bg-gray-100 text-gray-600 ring-1 ring-gray-200/90";
+  const label =
+    normalized === "advance"
+      ? "M1.5"
+      : normalized === "initial"
+        ? "M1"
+        : intake ?? "unknown";
   return (
     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${style}`}>
-      {intake ?? "unknown"}
+      {label}
     </span>
   );
 }
