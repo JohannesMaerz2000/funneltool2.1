@@ -1,0 +1,382 @@
+{
+    "submission": {
+        "id": "0231a273-2912-4011-84f4-d2b3218fb8b0",
+        "created_at": "2026-04-02T15:30:30.120Z",
+        "updated_at": "2026-04-02T15:30:30.120Z",
+        "session_id": "f058ae63-9f3a-4ece-8beb-ee1978d56e8a",
+        "vin": "XP7YGCEK4PB097NH5",
+        "pipedrive_deal_id": "20284",
+        "last_synced_at": "2026-04-02T15:30:30.118Z",
+        "form_intake": "advance",
+        "pipedrive_sync_status": "pending",
+        "identifier_information_id": "fe13a57f-9fa3-4ccd-bdcd-7aef19191157",
+        "submission_data": null,
+        "submission_source": "internal_form",
+        "form_id": "advance-intake-v1",
+        "registration_country": "de",
+        "idempotency_key": null
+    },
+    "dat_information": {
+        "id": "fe13a57f-9fa3-4ccd-bdcd-7aef19191157",
+        "vin": "XP7YGCEK4PB097NH5",
+        "make": "Tesla",
+        "model": "Model Y",
+        "variant": "Long Range Dual AWD",
+        "first_registration": "2023-05-09",
+        "dat_ecode": "018530050050001",
+        "container": "DE001",
+        "container_description": "DE - SUV5 Dual, Maximale Reichweite Dual AWD, 2021 - 2025",
+        "description": "Model Y Dual Maximale Reichweite Dual AWD",
+        "is_confirmed": true,
+        "construction_time": 9999,
+        "construction_time_from": "01/2021",
+        "construction_time_to": "06/2025",
+        "identification_source": "IDENTIFICATIONSOURCE_DAT_VIN",
+        "country": "de",
+        "registration_country": "de",
+        "vehicle_type": "1",
+        "mileage": 14000,
+        "power_kw": 378,
+        "capacity": 75,
+        "fuel_method": "Elektro",
+        "drive_type": "awd",
+        "list_price_with_options": null,
+        "list_price_without_options": null,
+        "special_equipment_price": null,
+        "kba_number": [
+            "1480/ABD",
+            "1480/ABE",
+            "1480/ABV"
+        ],
+        "email": null,
+        "is_dat_confirmed_optional_equipment": null,
+        "is_dat_confirmed_vehicle_selection": null,
+        "special_equipments": [
+            {
+                "isSelected": true,
+                "description": "Anhängerkupplung",
+                "originalPrice": 1135,
+                "datEquipmentId": "14200",
+                "equipmentClass": "EXTERIOR",
+                "equipmentGroup": "AHK"
+            },
+            {
+                "isSelected": false,
+                "description": "Fahrassistenz-System: Autonomes Fahren (Volles Potenzial)",
+                "originalPrice": 6303,
+                "datEquipmentId": "70527",
+                "equipmentClass": "GENERAL",
+                "equipmentGroup": null
+            },
+            {
+                "isSelected": false,
+                "description": "Fahrassistenz-System: Autopilot (erweiterter Umfang)",
+                "originalPrice": 3193,
+                "datEquipmentId": "41183",
+                "equipmentClass": "GENERAL",
+                "equipmentGroup": "FA26"
+            }
+        ],
+        "standard_equipments": [
+            {
+                "description": "14 Lautsprecher",
+                "datEquipmentId": "24598",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Airbag Fahrer-/Beifahrerseite",
+                "datEquipmentId": "26803",
+                "equipmentClass": null,
+                "equipmentGroup": "AIR1"
+            },
+            {
+                "description": "Akustischer Fußgängerschutz (Warnlautsprecher)",
+                "datEquipmentId": "38937",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Anti-Blockier-System (ABS)",
+                "datEquipmentId": "40000",
+                "equipmentClass": null,
+                "equipmentGroup": "ABS"
+            },
+            {
+                "description": "Antriebsart: Allradantrieb",
+                "datEquipmentId": "70420",
+                "equipmentClass": "4",
+                "equipmentGroup": "4WD"
+            },
+            {
+                "description": "Außenspiegel elektr. heiz- und anklappbar",
+                "datEquipmentId": "15202",
+                "equipmentClass": null,
+                "equipmentGroup": "AUSP"
+            },
+            {
+                "description": "Elektromotor 378 kW (cont. 153 kW)",
+                "datEquipmentId": "79660",
+                "equipmentClass": "1",
+                "equipmentGroup": null
+            },
+            {
+                "description": "Elektron. Stabilitäts-Programm (ESP)",
+                "datEquipmentId": "70308",
+                "equipmentClass": null,
+                "equipmentGroup": "ESP"
+            },
+            {
+                "description": "Fahrassistenz-System: Automatische Distanzregelung (ACC)",
+                "datEquipmentId": "26704",
+                "equipmentClass": null,
+                "equipmentGroup": "ABRG"
+            },
+            {
+                "description": "Fahrassistenz-System: Autopilot Generation 1.0",
+                "datEquipmentId": "41176",
+                "equipmentClass": null,
+                "equipmentGroup": "FA26"
+            },
+            {
+                "description": "Freisprecheinrichtung Bluetooth",
+                "datEquipmentId": "24808",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Getriebe für Elektrofahrzeug",
+                "datEquipmentId": "76400",
+                "equipmentClass": "11",
+                "equipmentGroup": "AG1"
+            },
+            {
+                "description": "Heizungs-/Klimaanlage: Wärmepumpe (Supermanifold)",
+                "datEquipmentId": "29299",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "HV-Batterie 75 kWh",
+                "datEquipmentId": "72708",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Innenausstattung: schwarz",
+                "datEquipmentId": "31195",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Karosserie: 5-türig",
+                "datEquipmentId": "10005",
+                "equipmentClass": "2",
+                "equipmentGroup": null
+            },
+            {
+                "description": "Knieairbag Fahrer-/Beifahrerseite",
+                "datEquipmentId": "26695",
+                "equipmentClass": null,
+                "equipmentGroup": "AIR5"
+            },
+            {
+                "description": "Kopf-Airbag-System (Windowbag) vorn + hinten",
+                "datEquipmentId": "26808",
+                "equipmentClass": null,
+                "equipmentGroup": "AIR4"
+            },
+            {
+                "description": "Lenkrad mit Multifunktion",
+                "datEquipmentId": "69000",
+                "equipmentClass": null,
+                "equipmentGroup": "LEN5"
+            },
+            {
+                "description": "Leuchtweitenregelung elektrisch",
+                "datEquipmentId": "18206",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "LM-Felgen",
+                "datEquipmentId": "49403",
+                "equipmentClass": null,
+                "equipmentGroup": "ALU"
+            },
+            {
+                "description": "Mittelarmlehne vorn mit Ablagefach",
+                "datEquipmentId": "27204",
+                "equipmentClass": null,
+                "equipmentGroup": "MALV"
+            },
+            {
+                "description": "Multimedia-Schnittstelle 2 x USB (Typ C) vorn und 2 x USB-Ladeanschluß (Typ C) Mittelkonsole hinten",
+                "datEquipmentId": "25043",
+                "equipmentClass": null,
+                "equipmentGroup": "MP3A"
+            },
+            {
+                "description": "Navigationssystem mit Kartendarstellung",
+                "datEquipmentId": "25753",
+                "equipmentClass": null,
+                "equipmentGroup": "GPS"
+            },
+            {
+                "description": "Nebelscheinwerfer LED",
+                "datEquipmentId": "18313",
+                "equipmentClass": null,
+                "equipmentGroup": "BEL"
+            },
+            {
+                "description": "Panorama-Glasdach (vollverglaste Dachfläche)",
+                "datEquipmentId": "17102",
+                "equipmentClass": null,
+                "equipmentGroup": "SD2"
+            },
+            {
+                "description": "Radioempfang digital (DAB+)",
+                "datEquipmentId": "24052",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Radstand 2890 mm",
+                "datEquipmentId": "71631",
+                "equipmentClass": "3",
+                "equipmentGroup": null
+            },
+            {
+                "description": "Regensensor",
+                "datEquipmentId": "19101",
+                "equipmentClass": null,
+                "equipmentGroup": "SWRE"
+            },
+            {
+                "description": "Reifendruck-Kontrollsystem",
+                "datEquipmentId": "25903",
+                "equipmentClass": null,
+                "equipmentGroup": "RDK"
+            },
+            {
+                "description": "Rückfahrkamera HD",
+                "datEquipmentId": "39804",
+                "equipmentClass": null,
+                "equipmentGroup": "FA25"
+            },
+            {
+                "description": "Rücksitzlehne geteilt/klappbar (60:40)",
+                "datEquipmentId": "33519",
+                "equipmentClass": null,
+                "equipmentGroup": "SITH"
+            },
+            {
+                "description": "Scheibenwaschdüsen heizbar",
+                "datEquipmentId": "19102",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Scheinwerfer LED",
+                "datEquipmentId": "18020",
+                "equipmentClass": null,
+                "equipmentGroup": "LED"
+            },
+            {
+                "description": "Seitenairbag vorn",
+                "datEquipmentId": "26903",
+                "equipmentClass": null,
+                "equipmentGroup": "AIR3"
+            },
+            {
+                "description": "Sensor Temperatur-/Scheibenbeschlagerkennung",
+                "datEquipmentId": "38905",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Sitze vorn elektr. verstellbar",
+                "datEquipmentId": "32607",
+                "equipmentClass": null,
+                "equipmentGroup": "SITE"
+            },
+            {
+                "description": "Sitzheizung hinten",
+                "datEquipmentId": "29503",
+                "equipmentClass": null,
+                "equipmentGroup": "SITV"
+            },
+            {
+                "description": "Sitzheizung vorn",
+                "datEquipmentId": "29500",
+                "equipmentClass": null,
+                "equipmentGroup": "SITB"
+            },
+            {
+                "description": "Sonderlackierung Perl-Weiß",
+                "datEquipmentId": "11247",
+                "equipmentClass": null,
+                "equipmentGroup": "SONL"
+            },
+            {
+                "description": "Sound-System Premium",
+                "datEquipmentId": "24622",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Sprachsteuerungs-System",
+                "datEquipmentId": "24709",
+                "equipmentClass": null,
+                "equipmentGroup": "TEL4"
+            },
+            {
+                "description": "Subwoofer",
+                "datEquipmentId": "24595",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Tagfahrlicht LED",
+                "datEquipmentId": "18913",
+                "equipmentClass": null,
+                "equipmentGroup": "TFAL"
+            },
+            {
+                "description": "Tempomat",
+                "datEquipmentId": "26708",
+                "equipmentClass": null,
+                "equipmentGroup": "TEMP"
+            },
+            {
+                "description": "Touchscreen-Farbdisplay (15,0 Zoll)",
+                "datEquipmentId": "24959",
+                "equipmentClass": null,
+                "equipmentGroup": "MONM"
+            },
+            {
+                "description": "Wi-Fi on Board",
+                "datEquipmentId": "24840",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Zentralverriegelung / Startanlage Keyless-Entry",
+                "datEquipmentId": "35510",
+                "equipmentClass": null,
+                "equipmentGroup": "KEYL"
+            }
+        ],
+        "extra_equipments": []
+    },
+    "image_processing_jobs": [],
+    "vin_history": {
+        "id": "a4290e7e-40bc-4b87-8520-b206136bd486",
+        "vin": "XP7YGCEK4PB097NH5",
+        "first_registration": "2023-05-09",
+        "match_count": 2,
+        "number_of_request": 1,
+        "created_at": "2026-04-02T15:29:47.786Z",
+        "updated_at": "2026-04-02T15:29:47.786Z"
+    }
+}

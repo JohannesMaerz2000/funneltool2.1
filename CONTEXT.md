@@ -1,7 +1,11 @@
 # Funnel Tool 2.1 — Project Context
 
 ## What this is
-Internal tool for inspecting seller funnel submissions stored in S3. Shows a searchable list of submissions and a detail view with form data, vehicle/seller info, and file assets.
+Internal inspection tool for seller funnel submissions.
+
+Current architecture is hybrid:
+- Submission metadata and enrichment data come from Seller Funnel backend API (DB-backed).
+- File assets (images/documents) still come from S3 and are enriched into list/detail responses.
 
 ## Tech stack
 - **Frontend:** Vite 5, React 18, TypeScript, Tailwind CSS 3, TanStack Query v5, React Router v6
@@ -15,69 +19,104 @@ npm run server     # server only
 npm run build      # production build
 ```
 
+## Configuration
+### AWS / S3
+- `.env.aws` is loaded by `server/index.ts` before route code executes.
+- Required:
+  - `AWS_ACCESS_KEY_ID`
+  - `AWS_SECRET_ACCESS_KEY`
+  - `AWS_REGION` or `AWS_DEFAULT_REGION` (default: `eu-central-1`)
+  - `S3_BUCKET` (default: `seller-funnel-development`)
+
+### Seller API (DB source)
+- Base URL default: `https://api-dev.release.seller.aampere.com/api/v1`
+- API key env override options:
+  - `SELLER_API_KEY`
+  - `FUNNELTOOL_SELLER_API_KEY`
+- Base URL env override:
+  - `SELLER_API_BASE_URL`
+
+Implementation is in `server/sellerApi.ts`.
+
 ## Project structure
 ```
 funneltool2.1/
-├── .env.aws                  # AWS credentials — never commit, never expose to client
-├── IMPLEMENTATION_PLAN.md
-├── CONTEXT.md                # this file
-├── endpoint_request.md       # spec for future Seller Funnel BE endpoints
-├── schema_result.txt         # DB schema reference
-├── vite.config.ts            # proxies /api/* → http://localhost:3001
-├── tailwind.config.js
-├── postcss.config.js
-├── tsconfig.json             # base TS config
-├── tsconfig.app.json         # frontend typecheck
-├── tsconfig.server.json      # server typecheck
-│
+├── .env.aws
+├── CONTEXT.md
+├── endpoint_request.md
+├── schema_result.txt
 ├── server/
-│   ├── index.ts              # Express entry point; loads .env.aws before anything else
-│   ├── s3.ts                 # S3 client (lazy singleton), list/get/presign helpers
-│   ├── parser.ts             # groups S3 objects by submission, extracts VIN/stage/assets
-│   ├── types.ts              # SubmissionSummary, SubmissionDetail, Asset, Stage
+│   ├── index.ts               # Express entry; loads .env.aws
+│   ├── s3.ts                  # S3 client + list/get/presign helpers
+│   ├── sellerApi.ts           # External Seller BE client (list/detail)
+│   ├── parser.ts              # S3 asset parsing helpers (asset type/count/thumbnail)
+│   ├── types.ts               # Server response models
 │   └── routes/
-│       └── submissions.ts    # GET/POST endpoints: list, detail, presign-batch, download, download-all
-│
+│       └── submissions.ts     # API routes; DB + S3 enrichment
 └── src/
-    ├── main.tsx              # React entry, QueryClient, BrowserRouter
-    ├── App.tsx               # shell layout + routes
-    ├── index.css             # Tailwind directives
-    ├── api/
-    │   └── client.ts         # fetch wrappers: listSubmissions, getSubmission, getAssetUrl, batchPresignUrls
-    ├── types/
-    │   └── submission.ts     # mirrors server/types.ts (kept in sync manually)
-    ├── pages/
-    │   ├── SubmissionList.tsx  # table, search/filter/pagination, thumbnail batch-presign
-    │   └── SubmissionDetail.tsx # header + DataSection + AssetGallery
+    ├── api/client.ts          # frontend fetch wrappers
+    ├── types/submission.ts    # mirrors server/types.ts
+    ├── pages/SubmissionList.tsx
+    ├── pages/SubmissionDetail.tsx
     └── components/
-        ├── StageBadge.tsx    # coloured badge for M1 / M1.5 / unknown
-        ├── AssetGallery.tsx  # image/PDF/doc gallery; batch-presigns all URLs in one request
-        └── DataSection.tsx   # renders Record<string,unknown> as key/value table
+        ├── AssetGallery.tsx
+        └── DataSection.tsx
 ```
 
-## S3 data model
+## Data sources and mapping
+### Seller backend API
+- `GET /api/v1/submissions`
+  - Params: `page`, `pageSize`, `vin`, `from`, `to`
+- `GET /api/v1/submissions/:id`
+  - Returns `submission`, `dat_information`, `vin_history`, `image_processing_jobs`
+
+### S3
 - Bucket: `seller-funnel-development`
 - Prefix: `advance/`
-- Structure: `advance/<submission-id>/<files…>`
-- The largest `.json` file in a submission folder is treated as the form payload
-- VIN extracted from common field names: `vin`, `VIN`, `vehicleIdentificationNumber`, `vehicle.vin`
-- Stage detected from payload fields (`stage`, `step`) or key path patterns (`m1`, `m1.5`)
+- Real-world structure is typically `advance/<vin>/<files...>` (not submission UUID).
 
-## API endpoints
+Because DB record IDs and S3 folder keys can differ, server enrichment resolves S3 data by:
+1. submission id
+2. vin (fallback)
+3. case-insensitive matching
+
+This logic lives in `server/routes/submissions.ts`.
+
+## Internal API endpoints (Express)
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/health` | liveness check |
-| GET | `/api/submissions` | list with filters: `query`, `stage`, `from`, `to`, `page`, `pageSize` |
-| GET | `/api/submissions/:id` | full detail including assets |
-| GET | `/api/submissions/:id/asset-url?key=` | returns presigned S3 URL (1 h TTL) |
-| POST | `/api/submissions/presign-batch` | batch-presign up to 200 keys; body: `[{id, key}]` |
-| GET | `/api/submissions/:id/download?key=` | proxies S3 object as attachment download |
-| GET | `/api/submissions/:id/download-all` | streams zip of all images for a submission |
+| GET | `/api/submissions` | DB-backed list (`vin`, `from`, `to`, `page`, `pageSize`) + S3 `assetCount`/`thumbnailKey` enrichment |
+| GET | `/api/submissions/:id` | DB-backed detail + S3 `assets` enrichment |
+| POST | `/api/submissions/presign-batch` | batch presign for S3 keys (max 200 items) |
+| GET | `/api/submissions/:id/asset-url?key=` | presigned S3 URL |
+| GET | `/api/submissions/:id/download?key=` | proxy S3 file download |
+| GET | `/api/submissions/:id/download-all` | zip all image assets for the submission |
+
+## Frontend behavior
+- **List page**
+  - Filters: VIN, from date, to date, page size
+  - Shows DB fields (form intake, sync status, deal ID, timestamps)
+  - Shows S3 thumbnail and `assetCount` from enrichment
+- **Detail page**
+  - Shows normalized DB sections:
+    - `submission`
+    - `submission_data`
+    - `dat_information`
+    - `vin_history`
+    - `image_processing_jobs`
+  - Shows S3 asset gallery (images, PDFs, docs) via batch presigned URLs
 
 ## Key design decisions
-- **Credentials stay server-side.** `.env.aws` is loaded in `server/index.ts` body; S3 client is a lazy singleton so it reads env vars only after they are populated (avoids ES module hoisting issue).
-- **No auth layer yet.** Tool is internal/local only.
-- **5 min object-list cache** in `submissions.ts` (plus cached `groupBySubmission` and summary caches) to avoid hammering S3 on every request.
-- **Types duplicated** between `server/types.ts` and `src/types/submission.ts` — keep them in sync when changing the data model.
-- **Batch presigned URLs** — list view and detail view both use a single batch-presign request instead of per-asset fetches. Server processes presigns in batches of 20 for concurrency control.
-- **raw_images excluded** — S3 keys containing a `raw_images` path segment are filtered out at both the parser and API level.
+- Credentials and API keys stay server-side only.
+- No auth layer in this internal local tool yet.
+- S3 listing/grouping is cached in-memory for 5 minutes.
+- `raw_images` path segments are excluded from visible assets and presign/download flows.
+- Server and client types are intentionally duplicated (`server/types.ts` and `src/types/submission.ts`) and must be kept in sync.
+
+## Recent migration notes (2026-04-02)
+- Completed full transition from S3-derived submission metadata to DB-backed submission metadata.
+- Kept S3 assets as enrichment for thumbnails/gallery/downloads.
+- Fixed post-migration image regression:
+  - Root cause: S3 keys are VIN-based while DB detail route uses submission UUID.
+  - Fix: resolve assets by `id OR vin`, case-insensitive, and validate S3 key by allowed prefix (`advance/`) rather than strict `advance/<submission-id>/...`.

@@ -4,8 +4,7 @@ import type {
 } from "../types/submission";
 
 export interface ListParams {
-  query?: string;
-  stage?: string;
+  vin?: string;
   from?: string;
   to?: string;
   page?: number;
@@ -23,8 +22,7 @@ async function apiFetch<T>(path: string): Promise<T> {
 
 export function listSubmissions(params: ListParams = {}): Promise<SubmissionListResponse> {
   const qs = new URLSearchParams();
-  if (params.query) qs.set("query", params.query);
-  if (params.stage && params.stage !== "all") qs.set("stage", params.stage);
+  if (params.vin) qs.set("vin", params.vin);
   if (params.from) qs.set("from", params.from);
   if (params.to) qs.set("to", params.to);
   if (params.page) qs.set("page", String(params.page));

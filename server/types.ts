@@ -1,10 +1,15 @@
-export type Stage = "M1" | "M1.5" | "unknown";
-
 export interface SubmissionSummary {
   id: string;
-  vin?: string;
-  stage: Stage;
+  createdAt: string;
   updatedAt: string;
+  vin?: string;
+  sessionId?: string;
+  formIntake?: string;
+  formId?: string;
+  pipedriveDealId?: string | null;
+  pipedriveSyncStatus?: string | null;
+  submissionSource?: string | null;
+  registrationCountry?: string | null;
   assetCount: number;
   thumbnailKey?: string;
 }
@@ -18,8 +23,13 @@ export interface Asset {
 }
 
 export interface SubmissionDetail extends SubmissionSummary {
-  vehicle?: Record<string, unknown>;
-  seller?: Record<string, unknown>;
-  formData?: Record<string, unknown>;
+  lastSyncedAt?: string | null;
+  identifierInformationId?: string | null;
+  idempotencyKey?: string | null;
+  submission: Record<string, unknown>;
+  submissionData?: Record<string, unknown> | null;
+  datInformation?: Record<string, unknown> | null;
+  vinHistory?: Record<string, unknown> | null;
+  imageProcessingJobs: Array<Record<string, unknown>>;
   assets: Asset[];
 }
