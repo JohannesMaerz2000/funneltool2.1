@@ -166,6 +166,144 @@ function ImageProcessingJobsSection({ jobs }: { jobs: Array<Record<string, unkno
   return <StatusRow label="Image Processing" badgeText={rawStatus} badgeClass={badgeClass} />;
 }
 
+function ComparisonBadge({
+  label,
+  userValue,
+  datValue,
+}: {
+  label: string;
+  userValue: string;
+  datValue: string;
+}) {
+  const match = userValue.toLowerCase() === datValue.toLowerCase();
+  const colorClass = match
+    ? "bg-emerald-50 text-emerald-800 ring-emerald-200/80"
+    : "bg-red-50 text-red-800 ring-red-200/80";
+
+  return (
+    <div className={`flex items-center justify-between rounded-xl px-4 py-3 ring-1 shadow-sm ${colorClass}`}>
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-wider opacity-60 mb-1">{label}</p>
+        <div className="flex items-center gap-2">
+          {match ? (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] text-white">
+              ✓
+            </span>
+          ) : (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+              !
+            </span>
+          )}
+          <span className="text-sm font-semibold">{match ? "Data Match" : "Data Mismatch"}</span>
+        </div>
+      </div>
+      <div className="flex gap-4 items-center">
+        <div className="text-right">
+          <p className="text-[10px] opacity-60 uppercase font-bold">User</p>
+          <p className="text-sm font-bold">{userValue}</p>
+        </div>
+        <div className="text-right border-l pl-4 border-current/20">
+          <p className="text-[10px] opacity-60 uppercase font-bold">DAT</p>
+          <p className="text-sm font-bold">{datValue}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DataAuditSection({
+  submissionData,
+  dat,
+  vinHistory,
+}: {
+  submissionData: Record<string, unknown> | null;
+  dat: Record<string, unknown> | null;
+  vinHistory: Record<string, unknown> | null;
+}) {
+  if (!submissionData || !dat) return null;
+
+  const hasEq = (ids: string[]) => {
+    const std = Array.isArray(dat.standard_equipments) ? dat.standard_equipments : [];
+    const spc = Array.isArray(dat.special_equipments) ? dat.special_equipments : [];
+    const ext = Array.isArray(dat.extra_equipments) ? dat.extra_equipments : [];
+
+    const check = (list: any[]) => list.some((e) => ids.includes(String(e.datEquipmentId)));
+    
+    // For standard/extra, existence is enough. For special, it must be selected.
+    const inStd = check(std);
+    const inSpc = spc.some((e) => ids.includes(String(e.datEquipmentId)) && e.isSelected === true);
+    const inExt = check(ext);
+
+    return inStd || inSpc || inExt;
+  };
+
+  const auditItems: Array<{ label: string; userValue: string; datValue: string }> = [];
+
+  // 1. Trailer Hitch
+  auditItems.push({
+    label: "Trailer Hitch",
+    userValue: submissionData.hasTrailerHitch === true ? "Yes" : "No",
+    datValue: hasEq(["14200"]) ? "Yes" : "No",
+  });
+
+  // 2. Charging Cables (if applicable)
+  const chargingCable = isRecord(submissionData.chargingCable) ? submissionData.chargingCable : null;
+  if (chargingCable) {
+    // Type 2
+    auditItems.push({
+      label: "Charging Cable (Type 2)",
+      userValue: chargingCable.typ2 === true ? "Yes" : "No",
+      datValue: hasEq(["73223", "73221", "73226"]) ? "Yes" : "No", // Common Type 2 IDs
+    });
+    // Schuko
+    auditItems.push({
+      label: "Charging Cable (Schuko)",
+      userValue: chargingCable.schuko === true ? "Yes" : "No",
+      datValue: hasEq(["73204", "73210"]) ? "Yes" : "No", // Common Schuko IDs
+    });
+  }
+
+  // 3. Alloy Rims
+  const tyreDetails = isRecord(submissionData.tyreDetails) ? submissionData.tyreDetails : {};
+  const userHasAlloys = Object.values(tyreDetails).some(
+    (d: any) => isRecord(d) && d.rimType === "leichtmetall"
+  );
+  auditItems.push({
+    label: "Alloy Rims (LM-Felgen)",
+    userValue: userHasAlloys ? "Yes" : "No",
+    datValue: hasEq(["50140", "50168", "49403", "50120", "50130"]) ? "Yes" : "No",
+  });
+
+  // 4. First Registration
+  const datFirstReg = asString(dat.first_registration);
+  const histFirstReg = vinHistory ? asString(vinHistory.first_registration) : null;
+  if (datFirstReg && histFirstReg) {
+    auditItems.push({
+      label: "First Registration",
+      userValue: histFirstReg,
+      datValue: datFirstReg,
+    });
+  }
+
+  return (
+    <div className="mb-6">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
+        Data Audit & Comparison
+      </h3>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {auditItems.map((item) => (
+          <ComparisonBadge
+            key={item.label}
+            label={item.label}
+            userValue={item.userValue}
+            datValue={item.datValue}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 function VinHistoryRow({ vinHistory }: { vinHistory?: Record<string, unknown> | null }) {
   if (!vinHistory) return null;
@@ -273,8 +411,6 @@ function VehicleCard({ dat }: { dat: Record<string, unknown> }) {
 
   const specs: Array<{ label: string; value: string }> = [];
   if (firstReg) specs.push({ label: "First registration", value: firstReg });
-  if (mileage !== undefined)
-    specs.push({ label: "Mileage", value: `${mileage.toLocaleString()} km` });
   if (powerKw !== undefined) specs.push({ label: "Power", value: `${powerKw} kW` });
   if (fuel) specs.push({ label: "Fuel", value: fuel });
   if (drive) specs.push({ label: "Drive", value: drive.toUpperCase() });
@@ -755,6 +891,12 @@ export default function SubmissionDetail() {
       </div>
 
       <div className="flex flex-col gap-6">
+        <DataAuditSection
+          submissionData={vehicleConditionData}
+          dat={caseDat}
+          vinHistory={caseVinHistory}
+        />
+
         {caseDat && <VehicleCard dat={caseDat} />}
 
         {hasM1 ? (
