@@ -53,18 +53,18 @@ export default function DataSection({
 
   return (
     <div>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
+      <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-slate-700 pb-3">
         {title}
       </h3>
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-lg border border-slate-700 bg-slate-800/50 shadow-lg">
         <table className="min-w-full text-sm">
-          <tbody className="divide-y divide-gray-100">
-            {rows.map((row) => (
-              <tr key={row.key} className="even:bg-emerald-50/30">
-                <td className="w-1/3 whitespace-nowrap px-3 py-2 font-medium text-gray-600">
+          <tbody className="divide-y divide-slate-700">
+            {rows.map((row, idx) => (
+              <tr key={row.key} className={idx % 2 === 0 ? "bg-slate-800/30" : "bg-slate-800/50"}>
+                <td className="w-1/3 whitespace-nowrap px-4 py-3 font-semibold text-slate-300">
                   {row.key}
                 </td>
-                <td className="break-all px-3 py-2 text-gray-800">
+                <td className="break-all px-4 py-3 text-slate-100">
                   {row.value}
                 </td>
               </tr>

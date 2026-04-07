@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import { batchPresignUrls, getSubmission, listSubmissions } from "../api/client";
 import type { Asset, SubmissionDetail as SubmissionDetailType } from "../types/submission";
 import AssetGallery from "../components/AssetGallery";
@@ -25,10 +25,10 @@ function IntakeBadge({ intake }: { intake?: string | null }) {
   const normalized = intake?.toLowerCase();
   const style =
     normalized === "advance"
-      ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90"
+      ? "bg-emerald-500/30 text-emerald-300 ring-1 ring-emerald-400/50 border border-emerald-400/30"
       : normalized === "initial"
-        ? "bg-teal-100 text-teal-800 ring-1 ring-teal-200/90"
-        : "bg-gray-100 text-gray-600 ring-1 ring-gray-200/90";
+        ? "bg-cyan-500/30 text-cyan-300 ring-1 ring-cyan-400/50 border border-cyan-400/30"
+        : "bg-slate-600/40 text-slate-300 ring-1 ring-slate-500/50 border border-slate-500/30";
   const label =
     normalized === "advance"
       ? "M1.5"
@@ -36,7 +36,7 @@ function IntakeBadge({ intake }: { intake?: string | null }) {
         ? "M1"
         : intake ?? "unknown";
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${style}`}>
+    <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-bold ${style}`}>
       {label}
     </span>
   );
@@ -46,51 +46,19 @@ function SyncBadge({ status }: { status?: string | null }) {
   const normalized = status?.toLowerCase();
   const style =
     normalized === "completed"
-      ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90"
+      ? "bg-emerald-500/30 text-emerald-300 ring-1 ring-emerald-400/50 border border-emerald-400/30"
       : normalized === "pending"
-        ? "bg-amber-100 text-amber-800 ring-1 ring-amber-200/90"
+        ? "bg-amber-500/30 text-amber-300 ring-1 ring-amber-400/50 border border-amber-400/30"
         : normalized === "failed"
-          ? "bg-red-100 text-red-800 ring-1 ring-red-200/90"
-          : "bg-gray-100 text-gray-600 ring-1 ring-gray-200/90";
+          ? "bg-red-500/30 text-red-300 ring-1 ring-red-400/50 border border-red-400/30"
+          : "bg-slate-600/40 text-slate-300 ring-1 ring-slate-500/50 border border-slate-500/30";
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${style}`}>
+    <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-bold ${style}`}>
       {status ?? "unknown"}
     </span>
   );
 }
 
-function StatusRow({
-  label,
-  badgeText,
-  badgeClass,
-  children,
-}: {
-  label: string;
-  badgeText: string;
-  badgeClass: string;
-  children?: ReactNode;
-}) {
-  return (
-    <div>
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-        <table className="min-w-full text-sm">
-          <tbody>
-            <tr>
-              <td className="w-1/3 whitespace-nowrap px-3 py-2 font-medium text-gray-600">{label}</td>
-              <td className="px-3 py-2 text-gray-800">
-                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass}`}>
-                  {badgeText}
-                </span>
-              </td>
-              <td />
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      {children}
-    </div>
-  );
-}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -152,19 +120,6 @@ function resolveAssetForFragment(fragment: string, assets: Asset[]): Asset | und
   });
 }
 
-function ImageProcessingJobsSection({ jobs }: { jobs: Array<Record<string, unknown>> }) {
-  if (jobs.length === 0) return null;
-
-  const latestJob = jobs[0];
-  const rawStatus = asString(latestJob.status) ?? "unknown";
-
-  const completed = rawStatus.toLowerCase() === "completed";
-  const badgeClass = completed
-    ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90"
-    : "bg-amber-100 text-amber-800 ring-1 ring-amber-200/90";
-
-  return <StatusRow label="Image Processing" badgeText={rawStatus} badgeClass={badgeClass} />;
-}
 
 function ComparisonBadge({
   label,
@@ -177,34 +132,34 @@ function ComparisonBadge({
 }) {
   const match = userValue.toLowerCase() === datValue.toLowerCase();
   const colorClass = match
-    ? "bg-emerald-50 text-emerald-800 ring-emerald-200/80"
-    : "bg-red-50 text-red-800 ring-red-200/80";
+    ? "bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 ring-emerald-400/30"
+    : "bg-red-500/20 text-red-200 border border-red-500/40 ring-red-400/30";
 
   return (
-    <div className={`flex items-center justify-between rounded-xl px-4 py-3 ring-1 shadow-sm ${colorClass}`}>
+    <div className={`flex items-center justify-between rounded-lg px-5 py-4 ring-1 shadow-md ${colorClass}`}>
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider opacity-60 mb-1">{label}</p>
-        <div className="flex items-center gap-2">
+        <p className="text-xs font-bold uppercase tracking-wider opacity-70 mb-2">{label}</p>
+        <div className="flex items-center gap-3">
           {match ? (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] text-white">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs text-white font-bold">
               ✓
             </span>
           ) : (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white font-bold">
               !
             </span>
           )}
-          <span className="text-sm font-semibold">{match ? "Data Match" : "Data Mismatch"}</span>
+          <span className="text-base font-bold">{match ? "Data Match" : "Data Mismatch"}</span>
         </div>
       </div>
-      <div className="flex gap-4 items-center">
+      <div className="flex gap-5 items-center">
         <div className="text-right">
-          <p className="text-[10px] opacity-60 uppercase font-bold">User</p>
-          <p className="text-sm font-bold">{userValue}</p>
+          <p className="text-xs opacity-70 uppercase font-bold">User</p>
+          <p className="text-base font-bold text-slate-100">{userValue}</p>
         </div>
-        <div className="text-right border-l pl-4 border-current/20">
-          <p className="text-[10px] opacity-60 uppercase font-bold">DAT</p>
-          <p className="text-sm font-bold">{datValue}</p>
+        <div className="text-right border-l border-current/20 pl-5">
+          <p className="text-xs opacity-70 uppercase font-bold">DAT</p>
+          <p className="text-base font-bold text-slate-100">{datValue}</p>
         </div>
       </div>
     </div>
@@ -286,11 +241,11 @@ function DataAuditSection({
   }
 
   return (
-    <div className="mb-6">
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
+    <div className="mb-8">
+      <h3 className="mb-5 text-lg font-bold uppercase tracking-wider text-slate-200 border-b border-slate-700 pb-3">
         Data Audit & Comparison
       </h3>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {auditItems.map((item) => (
           <ComparisonBadge
             key={item.label}
@@ -305,25 +260,6 @@ function DataAuditSection({
 }
 
 
-function VinHistoryRow({ vinHistory }: { vinHistory?: Record<string, unknown> | null }) {
-  if (!vinHistory) return null;
-  const matchCount =
-    typeof vinHistory.match_count === "number" ? vinHistory.match_count : undefined;
-  if (matchCount === undefined) return null;
-
-  const badgeClass =
-    matchCount > 0
-      ? "bg-amber-100 text-amber-800 ring-1 ring-amber-200/90"
-      : "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90";
-
-  return (
-    <StatusRow
-      label="VIN History"
-      badgeText={`${matchCount} match${matchCount !== 1 ? "es" : ""}`}
-      badgeClass={badgeClass}
-    />
-  );
-}
 
 function EquipmentList({
   title,
@@ -346,17 +282,17 @@ function EquipmentList({
       <button
         type="button"
         onClick={() => setExpanded((p) => !p)}
-        className="flex w-full items-center gap-2 text-left text-sm text-gray-600 hover:text-gray-900"
+        className="flex w-full items-center gap-2 text-left text-sm font-semibold text-slate-300 hover:text-slate-100 transition"
       >
-        <span className="text-xs text-gray-400">{expanded ? "▼" : "▶"}</span>
-        <span className="font-medium">{title}</span>
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+        <span className="text-xs text-slate-500">{expanded ? "▼" : "▶"}</span>
+        <span>{title}</span>
+        <span className="rounded-full bg-slate-700/50 px-3 py-1 text-xs text-slate-400 border border-slate-600">
           {items.length}
           {showSelection ? ` (${selectedCount} selected)` : ""}
         </span>
       </button>
       {expanded && (
-        <ul className="mt-1 ml-5 space-y-1 text-sm">
+        <ul className="mt-3 ml-6 space-y-2 text-sm">
           {items.map((eq) => {
             const label = String(eq.description ?? "—");
             const key = String(eq.datEquipmentId ?? label);
@@ -364,7 +300,7 @@ function EquipmentList({
 
             if (!showSelection) {
               return (
-                <li key={key} className="list-disc text-gray-700">
+                <li key={key} className="list-disc text-slate-300">
                   {label}
                 </li>
               );
@@ -373,10 +309,10 @@ function EquipmentList({
             return (
               <li
                 key={key}
-                className={`rounded-md px-2 py-1 ${
+                className={`rounded-md px-3 py-2 text-sm transition ${
                   isSelected
-                    ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80"
-                    : "bg-gray-50 text-gray-500 ring-1 ring-gray-200"
+                    ? "bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/40 border border-emerald-500/30"
+                    : "bg-slate-700/30 text-slate-400 ring-1 ring-slate-600 border border-slate-600"
                 }`}
               >
                 <span className="mr-2 text-xs">{isSelected ? "✓" : "○"}</span>
@@ -418,45 +354,48 @@ function VehicleCard({ dat }: { dat: Record<string, unknown> }) {
   if (country) specs.push({ label: "Country", value: country.toUpperCase() });
 
   return (
-    <div>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
-        Vehicle Information
-      </h3>
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-100 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <span className="text-base font-semibold text-gray-900">{vehicleName}</span>
-            <span
-              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-                isConfirmed
-                  ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90"
-                  : "bg-red-100 text-red-800 ring-1 ring-red-200/90"
-              }`}
-            >
-              DAT {isConfirmed ? "confirmed" : "unconfirmed"}
-            </span>
+    <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg overflow-hidden">
+      {/* Header with badge */}
+      <div className="border-l-4 border-l-indigo-500 bg-gradient-to-r from-indigo-900/30 to-slate-800 px-6 py-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Vehicle</p>
+            <p className="text-2xl font-bold text-white">{vehicleName}</p>
           </div>
+          <span
+            className={`shrink-0 inline-flex rounded-full px-3 py-1.5 text-sm font-bold ${
+              isConfirmed
+                ? "bg-emerald-500/30 text-emerald-300 ring-1 ring-emerald-400/50 border border-emerald-400/30"
+                : "bg-red-500/30 text-red-300 ring-1 ring-red-400/50 border border-red-400/30"
+            }`}
+          >
+            DAT {isConfirmed ? "✓" : "✗"}
+          </span>
         </div>
+      </div>
 
-        <div className="grid grid-cols-2 gap-x-8 gap-y-2 px-4 py-3 text-sm sm:grid-cols-3 md:grid-cols-4">
+      {/* Specs grid */}
+      {specs.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 px-6 py-5 border-b border-slate-700">
           {specs.map((s) => (
             <div key={s.label}>
-              <span className="text-xs text-gray-500">{s.label}</span>
-              <p className="font-medium text-gray-800">{s.value}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">{s.label}</p>
+              <p className="text-lg font-bold text-slate-100">{s.value}</p>
             </div>
           ))}
         </div>
+      )}
 
-        {(specialEquipments.length > 0 ||
-          standardEquipments.length > 0 ||
-          extraEquipments.length > 0) && (
-          <div className="space-y-2 border-t border-gray-100 px-4 py-3">
-            <EquipmentList title="Special equipment" items={specialEquipments} showSelection />
-            <EquipmentList title="Standard equipment" items={standardEquipments} />
-            <EquipmentList title="Extra equipment" items={extraEquipments} />
-          </div>
-        )}
-      </div>
+      {/* Equipment lists */}
+      {(specialEquipments.length > 0 ||
+        standardEquipments.length > 0 ||
+        extraEquipments.length > 0) && (
+        <div className="space-y-4 px-6 py-5">
+          <EquipmentList title="Special equipment" items={specialEquipments} showSelection />
+          <EquipmentList title="Standard equipment" items={standardEquipments} />
+          <EquipmentList title="Extra equipment" items={extraEquipments} />
+        </div>
+      )}
     </div>
   );
 }
@@ -464,35 +403,43 @@ function VehicleCard({ dat }: { dat: Record<string, unknown> }) {
 function SellerCard({ submissionData }: { submissionData: Record<string, unknown> | null }) {
   if (!submissionData) return null;
 
-  const rows = [
-    { label: "First name", value: asString(submissionData.firstName) ?? "N/A" },
-    { label: "Last name", value: asString(submissionData.lastName) ?? "N/A" },
-    { label: "Email", value: asString(submissionData.email) ?? "N/A" },
-    { label: "Phone", value: asString(submissionData.phone) ?? "N/A" },
-    {
-      label: "Mileage",
-      value:
-        typeof submissionData.mileage === "number"
-          ? `${submissionData.mileage.toLocaleString()} km`
-          : "N/A",
-    },
-    { label: "Seller type", value: asString(submissionData.sellerType) ?? "N/A" },
-  ];
+  const firstName = asString(submissionData.firstName) ?? "N/A";
+  const lastName = asString(submissionData.lastName) ?? "N/A";
+  const email = asString(submissionData.email) ?? "N/A";
+  const phone = asString(submissionData.phone) ?? "N/A";
+  const mileage = typeof submissionData.mileage === "number"
+    ? `${submissionData.mileage.toLocaleString()} km`
+    : "N/A";
+  const sellerType = asString(submissionData.sellerType) ?? "N/A";
 
   return (
-    <div>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Seller</h3>
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-        <table className="min-w-full text-sm">
-          <tbody className="divide-y divide-gray-100">
-            {rows.map((row) => (
-              <tr key={row.label}>
-                <td className="w-1/3 whitespace-nowrap px-3 py-2 font-medium text-gray-600">{row.label}</td>
-                <td className="px-3 py-2 text-gray-800">{row.value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg overflow-hidden">
+      <div className="border-l-4 border-l-amber-500 bg-gradient-to-r from-amber-900/30 to-slate-800 px-6 py-5">
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Seller Information</p>
+      </div>
+      <div className="space-y-5 px-6 py-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Name</p>
+          <p className="text-lg font-bold text-white">{firstName} {lastName}</p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Email</p>
+          <p className="text-base text-slate-300 break-all">{email}</p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Phone</p>
+          <p className="text-base text-slate-300">{phone}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-5 pt-2 border-t border-slate-700">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Type</p>
+            <p className="text-base font-semibold text-slate-100">{sellerType}</p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Mileage</p>
+            <p className="text-base font-semibold text-slate-100">{mileage}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -567,11 +514,11 @@ function VehicleConditionCard({
 
   if (!submissionData) {
     return (
-      <div>
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
-          Vehicle Condition
-        </h3>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg overflow-hidden">
+        <div className="border-l-4 border-l-cyan-500 bg-gradient-to-r from-cyan-900/30 to-slate-800 px-6 py-5">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Vehicle Condition</p>
+        </div>
+        <div className="rounded-lg border border-amber-600/40 bg-amber-900/20 p-5 m-5 text-base text-amber-300">
           Advance form not yet completed.
         </div>
       </div>
@@ -579,52 +526,52 @@ function VehicleConditionCard({
   }
 
   return (
-    <div>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
-        Vehicle Condition
-      </h3>
-      <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg overflow-hidden">
+      <div className="border-l-4 border-l-cyan-500 bg-gradient-to-r from-cyan-900/30 to-slate-800 px-6 py-5">
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Vehicle Condition</p>
+      </div>
+      <div className="space-y-6 px-6 py-5">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p className="text-xs text-gray-500">Mileage</p>
-            <p className="font-medium text-gray-800">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Mileage</p>
+            <p className="text-lg font-bold text-slate-100">
               {typeof submissionData.mileage === "number"
                 ? `${submissionData.mileage.toLocaleString()} km`
                 : "N/A"}
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500">TUV until</p>
-            <p className="font-medium text-gray-800">{asString(submissionData.tuvUntil) ?? "N/A"}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">TUV until</p>
+            <p className="text-lg font-bold text-slate-100">{asString(submissionData.tuvUntil) ?? "N/A"}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500">Number of owners</p>
-            <p className="font-medium text-gray-800">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Number of owners</p>
+            <p className="text-lg font-bold text-slate-100">
               {typeof submissionData.numberOfOwners === "number" ? submissionData.numberOfOwners : "N/A"}
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500">Number of keys</p>
-            <p className="font-medium text-gray-800">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Number of keys</p>
+            <p className="text-lg font-bold text-slate-100">
               {typeof submissionData.numberOfKeys === "number" ? submissionData.numberOfKeys : "N/A"}
             </p>
           </div>
         </div>
 
         <div>
-          <p className="mb-2 text-sm font-medium text-gray-700">Tyres</p>
+          <p className="mb-4 text-base font-bold text-slate-100">Tyres</p>
           {tyreTypes.length === 0 ? (
-            <p className="text-sm text-gray-500">No tyre information.</p>
+            <p className="text-base text-slate-400">No tyre information.</p>
           ) : (
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               {tyreTypes.map((type) => {
                 const details = isRecord(tyreDetails[type]) ? tyreDetails[type] : {};
                 return (
-                  <div key={type} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                    <p className="font-medium text-gray-800">{type}</p>
-                    <p className="text-xs text-gray-600">Rim size: {asString(details.rimSize) ?? "N/A"}</p>
-                    <p className="text-xs text-gray-600">Rim type: {asString(details.rimType) ?? "N/A"}</p>
-                    <p className="text-xs text-gray-600">
+                  <div key={type} className="rounded-lg border border-slate-600 bg-slate-700/40 p-4">
+                    <p className="font-bold text-slate-100 mb-3">{type}</p>
+                    <p className="text-sm text-slate-300">Rim size: {asString(details.rimSize) ?? "N/A"}</p>
+                    <p className="text-sm text-slate-300">Rim type: {asString(details.rimType) ?? "N/A"}</p>
+                    <p className="text-sm text-slate-300">
                       Tread condition: {asString(details.treadCondition) ?? "N/A"}
                     </p>
                   </div>
@@ -635,11 +582,11 @@ function VehicleConditionCard({
         </div>
 
         <div>
-          <p className="mb-2 text-sm font-medium text-gray-700">Defects</p>
+          <p className="mb-4 text-base font-bold text-slate-100">Defects</p>
           {vehicleDefects.length === 0 ? (
-            <p className="text-sm text-gray-500">No defects reported.</p>
+            <p className="text-base text-slate-400">No defects reported.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {vehicleDefects.map((defect, idx) => {
                 const photos = Array.isArray(defect.photos)
                   ? defect.photos.filter((photo): photo is string => typeof photo === "string")
@@ -650,19 +597,19 @@ function VehicleConditionCard({
                   .filter((key): key is string => !!key);
 
                 return (
-                  <div key={`${String(defect.type ?? "defect")}-${idx}`} className="rounded-lg border border-gray-200 p-3">
-                    <p className="text-sm font-medium text-gray-800">{asString(defect.type) ?? "Defect"}</p>
-                    <p className="text-sm text-gray-600">{asString(defect.description) ?? "No description"}</p>
+                  <div key={`${String(defect.type ?? "defect")}-${idx}`} className="rounded-lg border border-slate-600 bg-slate-700/40 p-4">
+                    <p className="text-base font-bold text-slate-100 mb-2">{asString(defect.type) ?? "Defect"}</p>
+                    <p className="text-sm text-slate-300">{asString(defect.description) ?? "No description"}</p>
 
                     {matchedAssetKeys.length > 0 ? (
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <div className="mt-4 flex flex-wrap gap-3">
                         {matchedAssetKeys.map((key) => {
                           const url = defectUrlMap.get(key);
                           if (!url) {
                             return (
                               <div
                                 key={key}
-                                className="flex h-20 w-20 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 text-[10px] text-gray-500"
+                                className="flex h-24 w-24 items-center justify-center rounded-lg border border-slate-600 bg-slate-700/50 text-xs text-slate-500"
                               >
                                 Loading...
                               </div>
@@ -676,12 +623,12 @@ function VehicleConditionCard({
                               target="_blank"
                               rel="noopener noreferrer"
                               title={getFileName(key)}
-                              className="block overflow-hidden rounded-lg border border-gray-200 hover:border-emerald-300"
+                              className="block overflow-hidden rounded-lg border border-slate-600 hover:border-emerald-400 transition"
                             >
                               <img
                                 src={url}
                                 alt={getFileName(key)}
-                                className="h-20 w-20 object-cover"
+                                className="h-24 w-24 object-cover"
                                 loading="lazy"
                               />
                             </a>
@@ -689,7 +636,7 @@ function VehicleConditionCard({
                         })}
                       </div>
                     ) : (
-                      <p className="mt-1 text-xs text-gray-500">No linked defect photos found in assets.</p>
+                      <p className="mt-2 text-xs text-slate-500">No linked defect photos found in assets.</p>
                     )}
                   </div>
                 );
@@ -698,18 +645,18 @@ function VehicleConditionCard({
           )}
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <p className="mb-1 text-sm font-medium text-gray-700">Charging cable</p>
-            <p className="text-sm text-gray-600">Type 2: {formatBool(chargingCable.typ2)}</p>
-            <p className="text-sm text-gray-600">Schuko: {formatBool(chargingCable.schuko)}</p>
+            <p className="mb-3 text-base font-bold text-slate-100">Charging cable</p>
+            <p className="text-base text-slate-300">Type 2: {formatBool(chargingCable.typ2)}</p>
+            <p className="text-base text-slate-300">Schuko: {formatBool(chargingCable.schuko)}</p>
           </div>
           <div>
-            <p className="mb-1 text-sm font-medium text-gray-700">Vehicle documents</p>
+            <p className="mb-3 text-base font-bold text-slate-100">Vehicle documents</p>
             {vehicleDocuments.length === 0 ? (
-              <p className="text-sm text-gray-500">No documents listed.</p>
+              <p className="text-base text-slate-400">No documents listed.</p>
             ) : (
-              <ul className="list-disc pl-5 text-sm text-gray-600">
+              <ul className="list-disc pl-6 text-base text-slate-300 space-y-1">
                 {vehicleDocuments.map((doc) => (
                   <li key={doc}>{doc}</li>
                 ))}
@@ -719,15 +666,74 @@ function VehicleConditionCard({
         </div>
 
         <div>
-          <p className="mb-2 text-sm font-medium text-gray-700">Boolean flags</p>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {boolFlags.map((item) => (
-              <div key={item.label} className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-sm">
-                <span className="text-gray-500">{item.label}: </span>
-                <span className="font-medium text-gray-800">{formatBool(item.value)}</span>
-              </div>
-            ))}
+          <p className="mb-4 text-base font-bold text-slate-100">Status & Agreements</p>
+          <div className="flex flex-wrap gap-3">
+            {boolFlags.map((item) => {
+              const isTrue = item.value === true;
+              return (
+                <span
+                  key={item.label}
+                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                    isTrue
+                      ? "bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/40 border border-emerald-500/30"
+                      : "bg-slate-700/40 text-slate-300 ring-1 ring-slate-600 border border-slate-600"
+                  }`}
+                >
+                  <span>{isTrue ? "✓" : "○"}</span>
+                  {item.label}
+                </span>
+              );
+            })}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SubmissionMetaCard({ data, m15Detail }: { data: SubmissionDetailType; m15Detail?: SubmissionDetailType | undefined }) {
+  return (
+    <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg overflow-hidden">
+      <div className="border-l-4 border-l-violet-500 bg-gradient-to-r from-violet-900/30 to-slate-800 px-6 py-5">
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Submission Details</p>
+      </div>
+      <div className="space-y-5 px-6 py-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">ID</p>
+          <p className="text-sm font-mono text-slate-300 break-all">{data.id}</p>
+          {data.vin && <p className="text-sm text-slate-400 mt-3">VIN: <span className="font-mono font-semibold text-slate-100">{data.vin}</span></p>}
+        </div>
+        <div className="grid grid-cols-2 gap-5 pt-2 border-t border-slate-700">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Form</p>
+            <p className="text-base font-bold text-slate-100">{data.formIntake?.toUpperCase() ?? "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Sync</p>
+            <div className="inline-block">
+              <SyncBadge status={m15Detail?.pipedriveSyncStatus ?? data.pipedriveSyncStatus} />
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-slate-700 pt-5">
+          <div className="grid grid-cols-2 gap-5 text-sm">
+            <div>
+              <p className="font-semibold text-slate-400 mb-2 uppercase text-xs tracking-wider">Created</p>
+              <p className="text-slate-300">{formatDate(data.createdAt)}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-slate-400 mb-2 uppercase text-xs tracking-wider">Updated</p>
+              <p className="text-slate-300">{formatDate(data.updatedAt)}</p>
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-slate-700 pt-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Last Synced</p>
+          <p className="text-sm text-slate-300">{formatDate(data.lastSyncedAt)}</p>
+        </div>
+        <div className="border-t border-slate-700 pt-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Deal ID</p>
+          <p className="text-base font-bold text-slate-100">{data.pipedriveDealId ?? "N/A"}</p>
         </div>
       </div>
     </div>
@@ -830,121 +836,193 @@ export default function SubmissionDetail() {
   const effectiveAssetCount = caseAssets.length;
 
   return (
-    <div>
-      <Link
-        to="/submissions"
-        className="text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
-      >
-        ← Back to list
-      </Link>
-
-      <div className="mb-6 mt-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <IntakeBadge intake={hasM1 && hasM15 ? "M1 + M1.5" : data.formIntake} />
-          {hasM1 && hasM15 ? (
-            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200/90">
-              Linked case by VIN
-            </span>
-          ) : null}
-          {isFetchingLinked ? (
-            <span className="text-xs text-gray-400">Checking linked case...</span>
-          ) : null}
-        </div>
-
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">Submission ID</p>
-            <p className="font-mono text-sm font-semibold break-all">{data.id}</p>
-            {linkedSubmission ? (
-              <p className="mt-1 text-xs text-gray-500">Linked ID: {linkedSubmission.id}</p>
+    <div className="min-h-screen bg-slate-950">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        {/* Back button and header */}
+        <div className="flex items-center justify-between">
+          <Link
+            to="/submissions"
+            className="inline-flex items-center gap-2 text-base font-semibold text-emerald-400 hover:text-emerald-300 transition"
+          >
+            ← Back to list
+          </Link>
+          <div className="flex gap-3 flex-wrap">
+            <IntakeBadge intake={hasM1 && hasM15 ? "M1 + M1.5" : data.formIntake} />
+            {hasM1 && hasM15 ? (
+              <span className="rounded-lg bg-emerald-500/20 px-4 py-2 text-sm font-bold text-emerald-300 ring-1 ring-emerald-400/50 border border-emerald-400/30">
+                Linked case by VIN
+              </span>
+            ) : null}
+            {isFetchingLinked ? (
+              <span className="text-sm text-slate-500">Checking linked...</span>
             ) : null}
           </div>
-          <div>
-            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">VIN</p>
-            <p className="font-mono text-lg font-semibold">{data.vin ?? "N/A"}</p>
-          </div>
-          <div>
-            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">Sync status</p>
-            <SyncBadge status={m15Detail?.pipedriveSyncStatus ?? data.pipedriveSyncStatus} />
-          </div>
-          <div>
-            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">Updated</p>
-            <p className="text-sm text-gray-700">{formatDate(data.updatedAt)}</p>
-          </div>
-          <div>
-            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">Created</p>
-            <p className="text-sm text-gray-700">{formatDate(data.createdAt)}</p>
-          </div>
-          <div>
-            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">Last synced</p>
-            <p className="text-sm text-gray-700">{formatDate(data.lastSyncedAt)}</p>
-          </div>
-          <div>
-            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">Deal ID</p>
-            <p className="text-sm text-gray-700">{effectiveDealId ?? "N/A"}</p>
-          </div>
-          <div>
-            <p className="mb-1 text-xs uppercase tracking-[0.14em] text-gray-500">Assets</p>
-            <p className="text-sm text-gray-700">{effectiveAssetCount}</p>
+        </div>
+
+        {/* Hero section */}
+        <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-8 py-8">
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                {caseDat && (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Vehicle</p>
+                    <p className="text-4xl font-bold text-white mb-2">
+                      {asString(caseDat.make)} {asString(caseDat.model)}
+                    </p>
+                    <p className="text-lg text-slate-300">
+                      {asString(caseDat.variant)} · {asString(caseDat.description)}
+                    </p>
+                  </div>
+                )}
+                {!caseDat && (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">VIN</p>
+                    <p className="text-2xl font-mono font-bold text-white">{data.vin ?? "N/A"}</p>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-4 flex-wrap justify-end">
+                {caseDat && (
+                  <span
+                    className={`shrink-0 inline-flex rounded-lg px-4 py-2 text-sm font-bold border ${
+                      caseDat.is_confirmed === true
+                        ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/50 border-emerald-400/30"
+                        : "bg-red-500/20 text-red-300 ring-1 ring-red-400/50 border-red-400/30"
+                    }`}
+                  >
+                    DAT {caseDat.is_confirmed === true ? "✓" : "✗"}
+                  </span>
+                )}
+                <SyncBadge status={m15Detail?.pipedriveSyncStatus ?? data.pipedriveSyncStatus} />
+                {effectiveDealId && (
+                  <span className="shrink-0 inline-flex items-center gap-2 rounded-lg bg-blue-500/20 text-blue-300 px-4 py-2 text-sm font-bold ring-1 ring-blue-400/50 border border-blue-400/30">
+                    Deal #{effectiveDealId}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex flex-col gap-6">
-        <DataAuditSection
-          submissionData={vehicleConditionData}
-          dat={caseDat}
-          vinHistory={caseVinHistory}
-        />
+        {/* Main 2-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left column (2/3) */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Data Audit Section */}
+            {vehicleConditionData && caseDat && (
+              <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg overflow-hidden">
+                <div className="border-l-4 border-l-rose-500 bg-gradient-to-r from-rose-900/30 to-slate-800 px-6 py-5">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Data Audit & Comparison</p>
+                </div>
+                <div className="px-6 py-5">
+                  <DataAuditSection
+                    submissionData={vehicleConditionData}
+                    dat={caseDat}
+                    vinHistory={caseVinHistory}
+                  />
+                </div>
+              </div>
+            )}
 
-        {caseDat && <VehicleCard dat={caseDat} />}
+            {/* Vehicle Card */}
+            {caseDat && <VehicleCard dat={caseDat} />}
 
-        {hasM1 ? (
-          sellerSubmissionData ? (
-            <SellerCard submissionData={sellerSubmissionData} />
-          ) : (
-             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-               M1 submission found but submission data is missing.
-             </div>
-          )
-        ) : (hasM15 && !isFetchingLinked) ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            Initial M1 form is not linked yet for this VIN.
+            {/* Vehicle Condition Card */}
+            {hasM15 ? (
+              <VehicleConditionCard
+                submissionData={vehicleConditionData}
+                assets={caseAssets}
+                assetSubmissionId={m15Detail?.id ?? data.id}
+              />
+            ) : (
+              <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg p-6">
+                <p className="text-base text-slate-400">No M1.5 submission linked yet.</p>
+              </div>
+            )}
+
+            {/* Assets */}
+            <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg overflow-hidden">
+              <div className="border-l-4 border-l-emerald-500 bg-gradient-to-r from-emerald-900/30 to-slate-800 px-6 py-5">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Assets ({caseAssets.length})</p>
+              </div>
+              <div className="px-6 py-5">
+                {caseAssets.length === 0 ? (
+                  <p className="text-base text-slate-400">No assets available.</p>
+                ) : (
+                  <AssetGallery assets={caseAssets} submissionId={m15Detail?.id ?? data.id} />
+                )}
+              </div>
+            </div>
           </div>
-        ) : null}
 
-        {hasM15 ? (
-          <VehicleConditionCard
-            submissionData={vehicleConditionData}
-            assets={caseAssets}
-            assetSubmissionId={m15Detail?.id ?? data.id}
-          />
-        ) : (
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
-            No M1.5 submission linked yet.
+          {/* Right column (1/3) - Sidebar */}
+          <div className="space-y-8">
+            {/* Submission Meta */}
+            <SubmissionMetaCard data={data} m15Detail={m15Detail} />
+
+            {/* Seller Card */}
+            {hasM1 ? (
+              sellerSubmissionData ? (
+                <SellerCard submissionData={sellerSubmissionData} />
+              ) : (
+                <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg p-6">
+                  <p className="text-base text-amber-400">M1 submission found but data is missing.</p>
+                </div>
+              )
+            ) : (hasM15 && !isFetchingLinked) ? (
+              <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg p-6">
+                <p className="text-base text-slate-400">M1 form not linked yet.</p>
+              </div>
+            ) : null}
+
+            {/* Checks & Status */}
+            <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg overflow-hidden">
+              <div className="border-l-4 border-l-teal-500 bg-gradient-to-r from-teal-900/30 to-slate-800 px-6 py-5">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Checks & Status</p>
+              </div>
+              <div className="space-y-5 px-6 py-5">
+                {/* VIN History */}
+                {caseVinHistory && typeof caseVinHistory.match_count === "number" && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">VIN History</p>
+                    <span
+                      className={`inline-flex rounded-lg px-4 py-2 text-sm font-bold border ${
+                        caseVinHistory.match_count > 0
+                          ? "bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/50 border-amber-400/30"
+                          : "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/50 border-emerald-400/30"
+                      }`}
+                    >
+                      {caseVinHistory.match_count} match{caseVinHistory.match_count !== 1 ? "es" : ""}
+                    </span>
+                  </div>
+                )}
+
+                {/* Image Processing Jobs */}
+                {caseImageJobs.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Image Processing</p>
+                    {(() => {
+                      const latestJob = caseImageJobs[0];
+                      const rawStatus = asString(latestJob.status) ?? "unknown";
+                      const completed = rawStatus.toLowerCase() === "completed";
+                      return (
+                        <span
+                          className={`inline-flex rounded-lg px-4 py-2 text-sm font-bold border ${
+                            completed
+                              ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/50 border-emerald-400/30"
+                              : "bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/50 border-amber-400/30"
+                          }`}
+                        >
+                          {rawStatus}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        )}
-
-        <VinHistoryRow vinHistory={caseVinHistory} />
-        <ImageProcessingJobsSection jobs={caseImageJobs} />
-
-        {!caseDat &&
-          !sellerSubmissionData &&
-          !vehicleConditionData &&
-          !caseVinHistory &&
-          caseImageJobs.length === 0 && (
-            <div className="text-sm italic text-gray-400">No enrichment data available.</div>
-          )}
-
-        <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
-            Assets ({caseAssets.length})
-          </h3>
-          {caseAssets.length === 0 ? (
-            <p className="text-sm italic text-gray-400">No assets.</p>
-          ) : (
-            <AssetGallery assets={caseAssets} submissionId={m15Detail?.id ?? data.id} />
-          )}
         </div>
       </div>
     </div>

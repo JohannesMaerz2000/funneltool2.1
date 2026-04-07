@@ -4,19 +4,21 @@ import SubmissionDetail from "./pages/SubmissionDetail";
 
 export default function App() {
   return (
-    <div className="min-h-screen text-gray-900">
-      <header className="sticky top-0 z-20 border-b border-emerald-100/80 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-4 py-4 sm:px-6">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-sm font-bold text-emerald-700">
+    <div className="min-h-screen bg-slate-950 text-slate-50">
+      <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-900/95 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-full items-center gap-4 px-6 py-5">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 text-lg font-bold text-white shadow-lg">
             F
           </span>
-          <span className="text-xl font-semibold tracking-tight">Funnel Tool</span>
-          <span className="ml-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-            Internal
-          </span>
+          <div>
+            <span className="text-2xl font-bold tracking-tight text-white">Funnel Tool</span>
+            <span className="ml-3 rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-400 border border-slate-700">
+              Internal
+            </span>
+          </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto w-full max-w-7xl px-6 py-8">
         <Routes>
           <Route path="/" element={<Navigate to="/submissions" replace />} />
           <Route path="/submissions" element={<SubmissionList />} />

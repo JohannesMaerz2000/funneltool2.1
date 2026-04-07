@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "concurrently -n server,vite -c cyan,green \"npm run server\" \"vite\"",
     "server": "tsx watch server/index.ts",
-    "build": "tsc -b && vite build",
+    "build": "rm -rf dist && tsc -p tsconfig.server.json && vite build",
+    "start": "NODE_ENV=production node dist/server/index.js",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },

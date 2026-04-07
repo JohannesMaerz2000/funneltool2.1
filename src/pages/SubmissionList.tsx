@@ -27,13 +27,13 @@ function toEndOfDayIso(date: string): string | undefined {
 
 function SubmissionThumbnail({ url }: { url?: string }) {
   if (!url) {
-    return <div className="h-14 w-14 rounded-lg border border-gray-200 bg-gray-100" />;
+    return <div className="h-16 w-16 rounded-lg border border-slate-600 bg-slate-700/50" />;
   }
   return (
     <img
       src={url}
       alt="Submission thumbnail"
-      className="h-14 w-14 rounded-lg border border-gray-200 object-cover"
+      className="h-16 w-16 rounded-lg border border-slate-600 object-cover"
       loading="lazy"
     />
   );
@@ -43,14 +43,14 @@ function SyncBadge({ status }: { status?: string | null }) {
   const normalized = status?.toLowerCase();
   const style =
     normalized === "completed"
-      ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90"
+      ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/50 border border-emerald-400/30"
       : normalized === "pending"
-        ? "bg-amber-100 text-amber-800 ring-1 ring-amber-200/90"
+        ? "bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/50 border border-amber-400/30"
         : normalized === "failed"
-          ? "bg-red-100 text-red-800 ring-1 ring-red-200/90"
-          : "bg-gray-100 text-gray-600 ring-1 ring-gray-200/90";
+          ? "bg-red-500/20 text-red-300 ring-1 ring-red-400/50 border border-red-400/30"
+          : "bg-slate-600/40 text-slate-300 ring-1 ring-slate-500/50 border border-slate-500/30";
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${style}`}>
+    <span className={`inline-flex rounded-lg px-3 py-1.5 text-sm font-bold ${style}`}>
       {status ?? "unknown"}
     </span>
   );
@@ -61,7 +61,7 @@ function SyncBadge({ status }: { status?: string | null }) {
 function CaseIntakeBadge({ hasM1, hasM15 }: { hasM1: boolean; hasM15: boolean }) {
   if (hasM1 && hasM15) {
     return (
-      <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200/90">
+      <span className="inline-flex rounded-lg bg-emerald-500/20 px-3 py-1.5 text-sm font-bold text-emerald-300 ring-1 ring-emerald-400/50 border border-emerald-400/30">
         M1 + M1.5
       </span>
     );
@@ -69,7 +69,7 @@ function CaseIntakeBadge({ hasM1, hasM15 }: { hasM1: boolean; hasM15: boolean })
 
   if (hasM15) {
     return (
-      <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200/90">
+      <span className="inline-flex rounded-lg bg-emerald-500/20 px-3 py-1.5 text-sm font-bold text-emerald-300 ring-1 ring-emerald-400/50 border border-emerald-400/30">
         M1.5
       </span>
     );
@@ -77,14 +77,14 @@ function CaseIntakeBadge({ hasM1, hasM15 }: { hasM1: boolean; hasM15: boolean })
 
   if (hasM1) {
     return (
-      <span className="inline-flex rounded-full bg-teal-100 px-2.5 py-1 text-xs font-semibold text-teal-800 ring-1 ring-teal-200/90">
+      <span className="inline-flex rounded-lg bg-cyan-500/20 px-3 py-1.5 text-sm font-bold text-cyan-300 ring-1 ring-cyan-400/50 border border-cyan-400/30">
         M1
       </span>
     );
   }
 
   return (
-    <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 ring-1 ring-gray-200/90">
+    <span className="inline-flex rounded-lg bg-slate-600/40 px-3 py-1.5 text-sm font-bold text-slate-300 ring-1 ring-slate-500/50 border border-slate-500/30">
       unknown
     </span>
   );
@@ -170,20 +170,20 @@ export default function SubmissionList() {
 
   return (
     <div>
-      <div className="mb-5 flex items-end justify-between gap-3">
+      <div className="mb-8 flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Submissions</h1>
-          <p className="mt-1 text-sm text-gray-500">VIN-grouped cases (M1 + M1.5)</p>
+          <h1 className="text-4xl font-bold tracking-tight text-white">Submissions</h1>
+          <p className="mt-2 text-lg text-slate-400">VIN-grouped cases (M1 + M1.5)</p>
         </div>
         {data && (
-          <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 shadow-sm">
+          <span className="rounded-lg border border-emerald-400/30 bg-emerald-500/20 px-4 py-2 text-base font-bold text-emerald-300 shadow-lg">
             {data.total} cases found
           </span>
         )}
       </div>
 
-      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+      <div className="mb-6 flex flex-wrap items-end gap-4 rounded-lg border border-slate-700 bg-slate-800/40 p-6 shadow-lg">
+        <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
           Search (VIN or Deal ID)
           <input
             type="search"
@@ -193,11 +193,11 @@ export default function SubmissionList() {
               setSearch(e.target.value);
               handleFilterChange();
             }}
-            className="w-64 rounded-xl border border-gray-300 px-3 py-2 text-sm normal-case tracking-normal transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+            className="w-72 rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2.5 text-base normal-case tracking-normal text-slate-100 placeholder-slate-500 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+        <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
           From
           <input
             type="date"
@@ -206,11 +206,11 @@ export default function SubmissionList() {
               setFromDate(e.target.value);
               handleFilterChange();
             }}
-            className="rounded-xl border border-gray-300 px-3 py-2 text-sm normal-case tracking-normal transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+            className="rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2.5 text-base normal-case tracking-normal text-slate-100 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+        <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
           To
           <input
             type="date"
@@ -219,11 +219,11 @@ export default function SubmissionList() {
               setToDate(e.target.value);
               handleFilterChange();
             }}
-            className="rounded-xl border border-gray-300 px-3 py-2 text-sm normal-case tracking-normal transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+            className="rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2.5 text-base normal-case tracking-normal text-slate-100 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+        <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
           Page size
           <select
             value={pageSize}
@@ -231,7 +231,7 @@ export default function SubmissionList() {
               setPageSize(Number(e.target.value));
               handleFilterChange();
             }}
-            className="rounded-xl border border-gray-300 px-3 py-2 text-sm normal-case tracking-normal transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+            className="rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2.5 text-base normal-case tracking-normal text-slate-100 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
           >
             <option value={20}>20</option>
             <option value={50}>50</option>
@@ -242,7 +242,7 @@ export default function SubmissionList() {
         {(search || fromDate || toDate || pageSize !== 20) && (
           <button
             onClick={clearFilters}
-            className="mb-0.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
+            className="mb-1 text-base font-bold text-emerald-400 hover:text-emerald-300 transition"
           >
             Clear
           </button>
@@ -250,46 +250,46 @@ export default function SubmissionList() {
       </div>
 
       {isLoading && (
-        <div className="flex items-center gap-2 py-10 text-gray-500">
-          <span className="animate-spin text-lg">⟳</span> Loading submissions...
+        <div className="flex items-center gap-2 py-12 text-slate-400">
+          <span className="animate-spin text-2xl">⟳</span> Loading submissions...
         </div>
       )}
 
       {isError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        <div className="rounded-lg border border-red-600/40 bg-red-900/20 p-6 text-base text-red-300">
           <strong>Error loading submissions:</strong>{" "}
           {error instanceof Error ? error.message : "Unknown error"}
         </div>
       )}
 
       {data && caseRows.length === 0 && !isLoading && (
-        <p className="py-10 text-center text-gray-500">No submissions match your filters.</p>
+        <p className="py-12 text-center text-lg text-slate-400">No submissions match your filters.</p>
       )}
 
       {data && caseRows.length > 0 && (
         <div className="relative">
           {isFetching && !isLoading && (
-            <div className="absolute right-0 top-0 py-1 text-xs text-gray-400">refreshing...</div>
+            <div className="absolute right-0 top-0 py-2 text-sm text-slate-500">refreshing...</div>
           )}
-          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <table className="min-w-full text-sm">
-              <thead className="border-b border-gray-200 bg-emerald-50/60">
+          <div className="overflow-x-auto rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg">
+            <table className="min-w-full text-base">
+              <thead className="border-b border-slate-700 bg-slate-800/60">
                 <tr>
-                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Thumbnail</th>
-                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Case ID</th>
-                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">VIN</th>
-                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Forms</th>
-                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Sync</th>
-                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Updated</th>
-                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Deal</th>
-                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Assets</th>
+                  <th className="px-6 py-4 text-left font-bold text-slate-300">Thumbnail</th>
+                  <th className="px-6 py-4 text-left font-bold text-slate-300">Case ID</th>
+                  <th className="px-6 py-4 text-left font-bold text-slate-300">VIN</th>
+                  <th className="px-6 py-4 text-left font-bold text-slate-300">Forms</th>
+                  <th className="px-6 py-4 text-left font-bold text-slate-300">Sync</th>
+                  <th className="px-6 py-4 text-left font-bold text-slate-300">Updated</th>
+                  <th className="px-6 py-4 text-left font-bold text-slate-300">Deal</th>
+                  <th className="px-6 py-4 text-left font-bold text-slate-300">Assets</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {caseRows.map((row) => (
+              <tbody className="divide-y divide-slate-700">
+                {caseRows.map((row, idx) => (
                   <tr
                     key={row.caseKey}
-                    className="cursor-pointer transition hover:bg-emerald-50/40"
+                    className={`cursor-pointer transition hover:bg-slate-700/40 ${idx % 2 === 0 ? "bg-slate-800/20" : "bg-slate-800/40"}`}
                     onClick={() => navigate(`/submissions/${encodeURIComponent(row.openId)}`)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
@@ -299,24 +299,24 @@ export default function SubmissionList() {
                     }}
                     tabIndex={0}
                   >
-                    <td className="px-4 py-2">
+                    <td className="px-6 py-4">
                       <SubmissionThumbnail url={thumbnailUrlMap.get(row.openId)} />
                     </td>
-                    <td className="px-4 py-2">
-                      <span className="font-mono text-xs font-semibold text-emerald-700">
+                    <td className="px-6 py-4">
+                      <span className="font-mono text-sm font-bold text-emerald-400">
                         {row.openId}
                       </span>
                     </td>
-                    <td className="px-4 py-2 font-mono text-xs text-gray-700">{row.vin ?? "N/A"}</td>
-                    <td className="px-4 py-2">
+                    <td className="px-6 py-4 font-mono text-sm text-slate-300">{row.vin ?? "N/A"}</td>
+                    <td className="px-6 py-4">
                       <CaseIntakeBadge hasM1={!!row.m1} hasM15={!!row.m15} />
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-6 py-4">
                       <SyncBadge status={row.pipedriveSyncStatus} />
                     </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-gray-600">{formatDate(row.updatedAt)}</td>
-                    <td className="px-4 py-2 text-gray-600">{row.pipedriveDealId ?? "N/A"}</td>
-                    <td className="px-4 py-2 text-gray-600">{row.assetCount}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-slate-300">{formatDate(row.updatedAt)}</td>
+                    <td className="px-6 py-4 text-slate-300">{row.pipedriveDealId ?? "N/A"}</td>
+                    <td className="px-6 py-4 text-slate-300 font-semibold">{row.assetCount}</td>
                   </tr>
                 ))}
               </tbody>
@@ -324,22 +324,22 @@ export default function SubmissionList() {
           </div>
 
           {totalPages > 1 && (
-            <div className="mt-3 flex items-center justify-between text-sm">
-              <span className="text-gray-500">
-                Page {page} of {totalPages}
+            <div className="mt-6 flex items-center justify-between text-base">
+              <span className="text-slate-400">
+                Page <span className="font-bold text-white">{page}</span> of <span className="font-bold text-white">{totalPages}</span>
               </span>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="rounded-xl border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-700 transition hover:border-emerald-300 hover:bg-emerald-50 disabled:opacity-40"
+                  className="rounded-lg border border-slate-600 bg-slate-800/50 px-4 py-2.5 font-bold text-slate-300 transition hover:border-emerald-400 hover:bg-slate-700 hover:text-slate-100 disabled:opacity-40"
                 >
                   ← Prev
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="rounded-xl border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-700 transition hover:border-emerald-300 hover:bg-emerald-50 disabled:opacity-40"
+                  className="rounded-lg border border-slate-600 bg-slate-800/50 px-4 py-2.5 font-bold text-slate-300 transition hover:border-emerald-400 hover:bg-slate-700 hover:text-slate-100 disabled:opacity-40"
                 >
                   Next →
                 </button>

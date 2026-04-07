@@ -23,14 +23,27 @@ if (existsSync(envAwsPath)) {
 const app = express();
 const PORT = process.env.PORT ?? 3001;
 
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors());
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", ts: new Date().toISOString() });
 });
 
+// API Routes
 app.use("/api/submissions", submissionsRouter);
+
+// Serve static frontend files in production
+const isProd = process.env.NODE_ENV === "production";
+if (isProd) {
+  const distPath = resolve(process.cwd(), "dist/client");
+  app.use(express.static(distPath));
+
+  // Serve the frontend for all other routes (SPA fallback)
+  app.get("*", (_req, res) => {
+    res.sendFile(resolve(distPath, "index.html"));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`[server] listening on http://localhost:${PORT}`);
