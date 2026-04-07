@@ -15,13 +15,6 @@ function formatDate(iso?: string | null) {
   });
 }
 
-function formatBytes(bytes?: number) {
-  if (bytes === undefined || !Number.isFinite(bytes)) return "N/A";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
-
 function formatBool(value: unknown): string {
   if (value === true) return "Yes";
   if (value === false) return "No";
@@ -164,53 +157,15 @@ function ImageProcessingJobsSection({ jobs }: { jobs: Array<Record<string, unkno
 
   const latestJob = jobs[0];
   const rawStatus = asString(latestJob.status) ?? "unknown";
-  const result = isRecord(latestJob.result) ? latestJob.result : null;
-
-  const succeeded = typeof result?.succeeded === "number" ? result.succeeded : undefined;
-  const failed = typeof result?.failed === "number" ? result.failed : undefined;
-  const totalImages = typeof result?.totalImages === "number" ? result.totalImages : undefined;
-  const totalOriginalSize =
-    typeof result?.totalOriginalSize === "number" ? result.totalOriginalSize : undefined;
-  const totalProcessedSize =
-    typeof result?.totalProcessedSize === "number" ? result.totalProcessedSize : undefined;
-  const savedSize =
-    totalOriginalSize !== undefined && totalProcessedSize !== undefined
-      ? totalOriginalSize - totalProcessedSize
-      : undefined;
 
   const completed = rawStatus.toLowerCase() === "completed";
   const badgeClass = completed
     ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90"
     : "bg-amber-100 text-amber-800 ring-1 ring-amber-200/90";
 
-  return (
-    <div>
-      <StatusRow label="Image Processing" badgeText={rawStatus} badgeClass={badgeClass} />
-      <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-          <p className="text-xs text-gray-500">Succeeded</p>
-          <p className="text-lg font-semibold text-emerald-700">{succeeded ?? "N/A"}</p>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-          <p className="text-xs text-gray-500">Failed</p>
-          <p className="text-lg font-semibold text-red-700">{failed ?? "N/A"}</p>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-          <p className="text-xs text-gray-500">Total images</p>
-          <p className="text-lg font-semibold text-gray-900">{totalImages ?? "N/A"}</p>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-          <p className="text-xs text-gray-500">Original size</p>
-          <p className="text-lg font-semibold text-gray-900">{formatBytes(totalOriginalSize)}</p>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-emerald-50 p-3 shadow-sm">
-          <p className="text-xs text-emerald-700">Saved after processing</p>
-          <p className="text-lg font-semibold text-emerald-800">{formatBytes(savedSize)}</p>
-        </div>
-      </div>
-    </div>
-  );
+  return <StatusRow label="Image Processing" badgeText={rawStatus} badgeClass={badgeClass} />;
 }
+
 
 function VinHistoryRow({ vinHistory }: { vinHistory?: Record<string, unknown> | null }) {
   if (!vinHistory) return null;
