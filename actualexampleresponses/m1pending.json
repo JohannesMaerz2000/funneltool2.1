@@ -1,0 +1,677 @@
+{
+    "id": "d0509d64-17e0-4478-be8d-abc79ec1f57e",
+    "createdAt": "2026-04-05T13:23:03.449Z",
+    "updatedAt": "2026-04-05T13:23:03.450Z",
+    "vin": "WVWZZZE1ZLP012022",
+    "sessionId": "d37bacd4-9e75-4360-b817-0090f173a16d",
+    "formIntake": "initial",
+    "formId": "initial-intake-v1",
+    "pipedriveDealId": null,
+    "pipedriveSyncStatus": "pending",
+    "submissionSource": "internal_form",
+    "registrationCountry": "de",
+    "lastSyncedAt": null,
+    "identifierInformationId": "74d02a37-1ada-466c-84fb-f37f7ed49bfe",
+    "idempotencyKey": "df00afd8d65d5db23627014661c9b3a23f071f931b95bf32eaf9bb0cea4d70a1",
+    "submission": {
+        "id": "d0509d64-17e0-4478-be8d-abc79ec1f57e",
+        "created_at": "2026-04-05T13:23:03.449Z",
+        "updated_at": "2026-04-05T13:23:03.450Z",
+        "session_id": "d37bacd4-9e75-4360-b817-0090f173a16d",
+        "vin": "WVWZZZE1ZLP012022",
+        "pipedrive_deal_id": null,
+        "last_synced_at": null,
+        "form_intake": "initial",
+        "pipedrive_sync_status": "pending",
+        "identifier_information_id": "74d02a37-1ada-466c-84fb-f37f7ed49bfe",
+        "submission_data": {
+            "vin": "WVWZZZE1ZLP012022",
+            "email": "nikolaus.c.schmidt@gmail.com",
+            "gClId": null,
+            "phone": "+4917657670974",
+            "fbClId": null,
+            "mileage": 70000,
+            "utmTerm": null,
+            "lastName": "Schmidt",
+            "firstName": "Niko",
+            "utmMedium": null,
+            "utmSource": null,
+            "gaClientId": "GA1.1.810449925.1763125518",
+            "newsLetter": false,
+            "sellerType": "private",
+            "utmContent": null,
+            "utmCampaign": null,
+            "whatsappConsent": false,
+            "policyConfirmation": true
+        },
+        "submission_source": "internal_form",
+        "form_id": "initial-intake-v1",
+        "registration_country": "de",
+        "idempotency_key": "df00afd8d65d5db23627014661c9b3a23f071f931b95bf32eaf9bb0cea4d70a1"
+    },
+    "submissionData": {
+        "vin": "WVWZZZE1ZLP012022",
+        "email": "nikolaus.c.schmidt@gmail.com",
+        "gClId": null,
+        "phone": "+4917657670974",
+        "fbClId": null,
+        "mileage": 70000,
+        "utmTerm": null,
+        "lastName": "Schmidt",
+        "firstName": "Niko",
+        "utmMedium": null,
+        "utmSource": null,
+        "gaClientId": "GA1.1.810449925.1763125518",
+        "newsLetter": false,
+        "sellerType": "private",
+        "utmContent": null,
+        "utmCampaign": null,
+        "whatsappConsent": false,
+        "policyConfirmation": true
+    },
+    "datInformation": {
+        "id": "74d02a37-1ada-466c-84fb-f37f7ed49bfe",
+        "vin": "WVWZZZE1ZLP012022",
+        "make": "Volkswagen",
+        "model": "ID.3",
+        "variant": "Pro Performance 150 kW 1st Max",
+        "first_registration": "2020-11-01",
+        "dat_ecode": "019051530090001",
+        "container": "DE001",
+        "container_description": "DE - LimS5 Pro Performance, 1st Max, 2020 - 2021",
+        "description": "ID.3 Pro Performance 1st Max",
+        "is_confirmed": true,
+        "construction_time": 6102,
+        "construction_time_from": "06/2020",
+        "construction_time_to": "06/2021",
+        "identification_source": "IDENTIFICATIONSOURCE_VIN",
+        "country": "de",
+        "registration_country": "de",
+        "vehicle_type": "1",
+        "mileage": 70000,
+        "power_kw": 150,
+        "capacity": 58,
+        "fuel_method": "Elektro",
+        "drive_type": "rwd",
+        "list_price_with_options": null,
+        "list_price_without_options": null,
+        "special_equipment_price": null,
+        "kba_number": [
+            "0603/CKV"
+        ],
+        "email": null,
+        "is_dat_confirmed_optional_equipment": null,
+        "is_dat_confirmed_vehicle_selection": null,
+        "special_equipments": {},
+        "standard_equipments": [
+            {
+                "description": "Ablagefach Mittelkonsole mit Rollo",
+                "datEquipmentId": "27007",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Airbag Fahrer-/Beifahrerseite, Beifahrerairbag abschaltbar",
+                "datEquipmentId": "26816",
+                "equipmentClass": null,
+                "equipmentGroup": "AIR1"
+            },
+            {
+                "description": "Akustischer Fußgängerschutz, Außensound (e-sound)",
+                "datEquipmentId": "38937",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Ambiente-Beleuchtung (30 Farben)",
+                "datEquipmentId": "37581",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Antennen-Diversity",
+                "datEquipmentId": "14805",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Anti-Blockier-System (ABS)",
+                "datEquipmentId": "40000",
+                "equipmentClass": null,
+                "equipmentGroup": "ABS"
+            },
+            {
+                "description": "Antriebsart: Heckantrieb",
+                "datEquipmentId": "70601",
+                "equipmentClass": "4",
+                "equipmentGroup": "HIAN"
+            },
+            {
+                "description": "App-Connect inkl. App-Connect Wireless (Apple CarPlay, Android Auto)",
+                "datEquipmentId": "25074",
+                "equipmentClass": null,
+                "equipmentGroup": "MP3A"
+            },
+            {
+                "description": "Armlehnen für Fahrer- und Beifahrersitz",
+                "datEquipmentId": "33406",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Audiosystem Ready 2 Discover (inkl. Streaming & Internet, Touchscreen, Bluetooth)",
+                "datEquipmentId": "24253",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Außenspiegel andersfarbig lackiert / Kontrastfarbe",
+                "datEquipmentId": "15825",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Außenspiegel asphärisch, links",
+                "datEquipmentId": "15804",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Außenspiegel elektr. verstell-, heiz- und anklappbar mit Spiegelabsenkung rechts",
+                "datEquipmentId": "15321",
+                "equipmentClass": null,
+                "equipmentGroup": "AUSP"
+            },
+            {
+                "description": "Außenspiegel konvex, rechts",
+                "datEquipmentId": "15702",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Außenspiegel mit Umfeldleuchte und Projektionsfunktion",
+                "datEquipmentId": "15482",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Bremsassistent",
+                "datEquipmentId": "40801",
+                "equipmentClass": null,
+                "equipmentGroup": "FA01"
+            },
+            {
+                "description": "Dach in Kontrastfarbe",
+                "datEquipmentId": "11408",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Diebstahlsicherung für Räder (Felgenschlösser)",
+                "datEquipmentId": "51299",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Einparkhilfe vorn und hinten",
+                "datEquipmentId": "25800",
+                "equipmentClass": null,
+                "equipmentGroup": "PDC3"
+            },
+            {
+                "description": "Elektromotor 150 kW (cont. 70 kW)",
+                "datEquipmentId": "97194",
+                "equipmentClass": "1",
+                "equipmentGroup": null
+            },
+            {
+                "description": "Elektron. Stabilitäts-Programm (ESP) Bremsassistent, ASR/ABS, EDS",
+                "datEquipmentId": "70311",
+                "equipmentClass": null,
+                "equipmentGroup": "ESP"
+            },
+            {
+                "description": "Elektron. Stabilitäts-Programm (ESP) mit Bremskraftverstärker elektro-mechanisch",
+                "datEquipmentId": "70318",
+                "equipmentClass": null,
+                "equipmentGroup": "ESP"
+            },
+            {
+                "description": "Exterieur-Styling-Paket silber",
+                "datEquipmentId": "4324",
+                "equipmentClass": null,
+                "equipmentGroup": null,
+                "containedEquipments": [
+                    {
+                        "description": "Dachzierleiste und C-Säule silber, Lufteinlässe vorn und Seitenschweller Grau-Metallic",
+                        "datEquipmentId": "16221",
+                        "equipmentClass": null,
+                        "equipmentGroup": null
+                    }
+                ]
+            },
+            {
+                "description": "Fahrassistenz-Paket: Travel Assist, Emergency Assist und Lane Assist",
+                "datEquipmentId": "4367",
+                "equipmentClass": null,
+                "equipmentGroup": null,
+                "containedEquipments": [
+                    {
+                        "description": "Fahrassistenz-System: Spurhalteassistent (Lane Assist)",
+                        "datEquipmentId": "42907",
+                        "equipmentClass": null,
+                        "equipmentGroup": "FA49"
+                    }
+                ]
+            },
+            {
+                "description": "Fahrassistenz-System: Abbiegebremsfunktion und Ausweichunterstützung",
+                "datEquipmentId": "40912",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Fahrassistenz-System: Autom. Distanzregelung (ACC inkl. Stop&Go-Funktion)",
+                "datEquipmentId": "41149",
+                "equipmentClass": null,
+                "equipmentGroup": "ABRG",
+                "containedEquipments": [
+                    {
+                        "description": "Geschwindigkeits-Begrenzeranlage",
+                        "datEquipmentId": "26712",
+                        "equipmentClass": null,
+                        "equipmentGroup": "LIMI"
+                    }
+                ]
+            },
+            {
+                "description": "Fahrassistenz-System: Dynamische Fernlichtregulierung (Dynamic Light Assist)",
+                "datEquipmentId": "18650",
+                "equipmentClass": null,
+                "equipmentGroup": "FA30"
+            },
+            {
+                "description": "Fahrassistenz-System: Fahrprofilauswahl",
+                "datEquipmentId": "70517",
+                "equipmentClass": null,
+                "equipmentGroup": "FA22"
+            },
+            {
+                "description": "Fahrassistenz-System: Müdigkeitserkennung",
+                "datEquipmentId": "42926",
+                "equipmentClass": null,
+                "equipmentGroup": "FA41"
+            },
+            {
+                "description": "Fahrassistenz-System: Spurwechselassistent (Side Assist)",
+                "datEquipmentId": "15499",
+                "equipmentClass": null,
+                "equipmentGroup": "FA50"
+            },
+            {
+                "description": "Fahrassistenz-System: Umfeldbeobachtungssystem (Front assist) mit City-Notbremsfunktion",
+                "datEquipmentId": "40957",
+                "equipmentClass": null,
+                "equipmentGroup": "FA05"
+            },
+            {
+                "description": "Fahrassistenz-System: Verkehrszeichenerkennung",
+                "datEquipmentId": "18680",
+                "equipmentClass": null,
+                "equipmentGroup": "FA28"
+            },
+            {
+                "description": "Frontscheibe Verbundglas getönt",
+                "datEquipmentId": "22508",
+                "equipmentClass": null,
+                "equipmentGroup": "WDG"
+            },
+            {
+                "description": "Fußmatten Textil",
+                "datEquipmentId": "39303",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Gepäckraumboden höhenverstellbar",
+                "datEquipmentId": "39688",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Getriebe für Elektrofahrzeug",
+                "datEquipmentId": "76400",
+                "equipmentClass": "11",
+                "equipmentGroup": "AG1"
+            },
+            {
+                "description": "Getränkehalter hinten",
+                "datEquipmentId": "39402",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Getränkehalter vorn",
+                "datEquipmentId": "39003",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Head-up-Display mit Augmented Reality",
+                "datEquipmentId": "25226",
+                "equipmentClass": null,
+                "equipmentGroup": "HUD"
+            },
+            {
+                "description": "Heckleuchten LED, Blinkleuchten dynamisch",
+                "datEquipmentId": "18818",
+                "equipmentClass": null,
+                "equipmentGroup": "LEDH"
+            },
+            {
+                "description": "Heizungs-/Klimaanlage: Wärmepumpe",
+                "datEquipmentId": "29299",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "HV-Batterie 62 kWh brutto / 58 kWh netto",
+                "datEquipmentId": "72704",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Innenraumfilter: Aktiv Kombifilter",
+                "datEquipmentId": "29112",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Innenspiegel mit Abblendautomatik",
+                "datEquipmentId": "37901",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Insassen-Schutzsystem proaktiv",
+                "datEquipmentId": "37205",
+                "equipmentClass": null,
+                "equipmentGroup": "PRO"
+            },
+            {
+                "description": "Isofix-Aufnahmen für Kindersitz an Beifahrersitz und Rücksitz (inkl. i-Size-Kindersitze)",
+                "datEquipmentId": "39313",
+                "equipmentClass": null,
+                "equipmentGroup": "KISI"
+            },
+            {
+                "description": "Karosserie: 5-türig",
+                "datEquipmentId": "10005",
+                "equipmentClass": "2",
+                "equipmentGroup": null
+            },
+            {
+                "description": "Klimaanlage Climatronic 2-Zonen",
+                "datEquipmentId": "28916",
+                "equipmentClass": null,
+                "equipmentGroup": "KLI2"
+            },
+            {
+                "description": "Kopfstützen hinten (3-fach)",
+                "datEquipmentId": "34807",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Ladekabel mit Schukostecker",
+                "datEquipmentId": "73204",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Ladekabel mit Typ 2-Stecker (Mode 3, 16 A)",
+                "datEquipmentId": "73223",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Lautsprecher (7, vorn und hinten)",
+                "datEquipmentId": "24609",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "LED Lichtleiste zwischen Scheinwerfer und Türgriffschalen außen beleuchtet",
+                "datEquipmentId": "18058",
+                "equipmentClass": null,
+                "equipmentGroup": null,
+                "containedEquipments": [
+                    {
+                        "description": "Türgriffschalen außen beleuchtet",
+                        "datEquipmentId": "37595",
+                        "equipmentClass": null,
+                        "equipmentGroup": null
+                    }
+                ]
+            },
+            {
+                "description": "Lendenwirbelstützen vorn, elektr. verstellbar und Massagefunktion",
+                "datEquipmentId": "33318",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Lenkrad heizbar (Leder) mit Multifunktion",
+                "datEquipmentId": "69008",
+                "equipmentClass": null,
+                "equipmentGroup": "LEN2"
+            },
+            {
+                "description": "Lenksäule (Lenkrad) mechan. verstellbar, Höhen-/Längsverstellung",
+                "datEquipmentId": "69502",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "LM-Felgen",
+                "datEquipmentId": "50140",
+                "equipmentClass": null,
+                "equipmentGroup": "ALU"
+            },
+            {
+                "description": "Matrix-LED-Scheinwerfer (IQ.Light) inkl. autom. Fahrlichtschaltung, Schlechtwetter-Licht und Begrüßungsfunktion",
+                "datEquipmentId": "18048",
+                "equipmentClass": null,
+                "equipmentGroup": "LED"
+            },
+            {
+                "description": "Mobiltelefon Schnittstelle Comfort mit kabelloser Ladefunktion",
+                "datEquipmentId": "24772",
+                "equipmentClass": null,
+                "equipmentGroup": "TEL3"
+            },
+            {
+                "description": "Multimedia-Schnittstelle 2 x USB (Typ C) vorn und 2 x USB-Ladeanschluß (Typ C) Mittelkonsole hinten",
+                "datEquipmentId": "25043",
+                "equipmentClass": null,
+                "equipmentGroup": "MP3A"
+            },
+            {
+                "description": "Navigationsfunktion Discover Pro inkl. Streaming & Internet (Touchscreen-Farbdisplay)",
+                "datEquipmentId": "25814",
+                "equipmentClass": null,
+                "equipmentGroup": "GPS"
+            },
+            {
+                "description": "Notrufsystem",
+                "datEquipmentId": "24902",
+                "equipmentClass": null,
+                "equipmentGroup": "FA10"
+            },
+            {
+                "description": "Panoramadach fest (Glas)",
+                "datEquipmentId": "16302",
+                "equipmentClass": null,
+                "equipmentGroup": "SD2"
+            },
+            {
+                "description": "Pedale Edelstahl",
+                "datEquipmentId": "26598",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Performance Upgrade",
+                "datEquipmentId": "79639",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Radioempfang digital (DAB+)",
+                "datEquipmentId": "24052",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Reifenkontroll-Anzeige",
+                "datEquipmentId": "25906",
+                "equipmentClass": null,
+                "equipmentGroup": "RDK"
+            },
+            {
+                "description": "Rückfahrkamera (Rear View)",
+                "datEquipmentId": "39804",
+                "equipmentClass": null,
+                "equipmentGroup": "FA25"
+            },
+            {
+                "description": "Rücksitzlehne geteilt mit Mittelarmlehne und Durchladeeinrichtung",
+                "datEquipmentId": "33522",
+                "equipmentClass": null,
+                "equipmentGroup": "SITH"
+            },
+            {
+                "description": "Scheibenwischer mit Regensensor",
+                "datEquipmentId": "19101",
+                "equipmentClass": null,
+                "equipmentGroup": "SWRE"
+            },
+            {
+                "description": "Schließ-/Startsystem Keyless Access",
+                "datEquipmentId": "35508",
+                "equipmentClass": null,
+                "equipmentGroup": "KEYL"
+            },
+            {
+                "description": "Seitenairbag vorn mit Center-Airbag und Kopf-Airbag-Einheit",
+                "datEquipmentId": "26611",
+                "equipmentClass": null,
+                "equipmentGroup": "AIR3"
+            },
+            {
+                "description": "Seitenscheiben hinten und Heckscheibe abgedunkelt",
+                "datEquipmentId": "23103",
+                "equipmentClass": null,
+                "equipmentGroup": "SORO"
+            },
+            {
+                "description": "Servolenkung elektro-mechanisch und geschwindigkeitsabhängig",
+                "datEquipmentId": "69827",
+                "equipmentClass": null,
+                "equipmentGroup": "SL"
+            },
+            {
+                "description": "Sicherheitsgurte vorn mit Gurtstraffer",
+                "datEquipmentId": "37301",
+                "equipmentClass": null,
+                "equipmentGroup": "GUST"
+            },
+            {
+                "description": "Sitzausstattung: 5-Sitzer",
+                "datEquipmentId": "34106",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Sitzbezug / Polsterung: Stoff Flow",
+                "datEquipmentId": "30497",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Sitze vorn ErgoActive (elektr. verstellbar, Oberschenkelauflage verschiebbar)",
+                "datEquipmentId": "32053",
+                "equipmentClass": null,
+                "equipmentGroup": "SITE"
+            },
+            {
+                "description": "Sitzheizung vorn",
+                "datEquipmentId": "29500",
+                "equipmentClass": null,
+                "equipmentGroup": "SITB"
+            },
+            {
+                "description": "Sonnenblenden mit Spiegel (beleuchtet)",
+                "datEquipmentId": "37905",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Sprachsteuerungs-System",
+                "datEquipmentId": "24709",
+                "equipmentClass": null,
+                "equipmentGroup": "TEL4"
+            },
+            {
+                "description": "Türverkleidung Kunstleder",
+                "datEquipmentId": "36807",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Verbandkasten und Warndreieck",
+                "datEquipmentId": "39531",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Warnanlage für Sicherheitsgurte vorn und hinten",
+                "datEquipmentId": "37114",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Wegfahrsperre (elektronisch)",
+                "datEquipmentId": "38106",
+                "equipmentClass": null,
+                "equipmentGroup": "WFS"
+            },
+            {
+                "description": "Zentralverriegelung",
+                "datEquipmentId": "35300",
+                "equipmentClass": null,
+                "equipmentGroup": "ZV"
+            }
+        ],
+        "extra_equipments": [
+            {
+                "description": "Sonderlackierung Makena-Türkis Metallic",
+                "datEquipmentId": "11762",
+                "equipmentClass": null,
+                "equipmentGroup": "SONL"
+            }
+        ]
+    },
+    "vinHistory": {
+        "id": "1cc7967f-6037-414d-85c1-d2f272d2389f",
+        "vin": "WVWZZZE1ZLP012022",
+        "first_registration": "2020-11-01",
+        "match_count": 1,
+        "number_of_request": 1,
+        "created_at": "2026-04-05T13:22:34.802Z",
+        "updated_at": "2026-04-05T13:22:34.802Z"
+    },
+    "imageProcessingJobs": [],
+    "assetCount": 0,
+    "assets": []
+}
