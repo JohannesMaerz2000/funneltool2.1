@@ -14,6 +14,20 @@ export interface SubmissionSummary {
   thumbnailKey?: string;
 }
 
+export interface CaseSummary {
+  caseKey: string;
+  vin?: string;
+  m1?: SubmissionSummary;
+  m15?: SubmissionSummary;
+  openId: string;
+  updatedAt: string;
+  pipedriveSyncStatus?: string | null;
+  pipedriveDealId?: string | null;
+  assetCount: number;
+  thumbnailKey?: string;
+}
+
+
 export interface Asset {
   key: string;
   type: "image" | "document" | "other";

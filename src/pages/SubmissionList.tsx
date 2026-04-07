@@ -2,7 +2,7 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { batchPresignUrls, listSubmissions } from "../api/client";
-import type { SubmissionSummary } from "../types/submission";
+import type { CaseSummary } from "../types/submission";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -56,57 +56,7 @@ function SyncBadge({ status }: { status?: string | null }) {
   );
 }
 
-type CaseRow = {
-  caseKey: string;
-  vin?: string;
-  m1?: SubmissionSummary;
-  m15?: SubmissionSummary;
-  openId: string;
-  updatedAt: string;
-  pipedriveSyncStatus?: string | null;
-  pipedriveDealId?: string | null;
-  assetCount: number;
-  thumbnailKey?: string;
-};
-
-function groupByCase(submissions: SubmissionSummary[]): CaseRow[] {
-  const grouped = new Map<string, SubmissionSummary[]>();
-
-  submissions.forEach((submission) => {
-    const key = submission.vin?.toUpperCase().trim() || `NO_VIN:${submission.id}`;
-    const list = grouped.get(key) ?? [];
-    list.push(submission);
-    grouped.set(key, list);
-  });
-
-  const cases: CaseRow[] = [];
-
-  grouped.forEach((items, caseKey) => {
-    const sorted = [...items].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-    const m1 = sorted.find((item) => item.formIntake?.toLowerCase() === "initial");
-    const m15 = sorted.find((item) => item.formIntake?.toLowerCase() === "advance");
-    const primary = m15 ?? m1 ?? sorted[0];
-
-    const updatedAt = [m1?.updatedAt, m15?.updatedAt, primary.updatedAt]
-      .filter((value): value is string => !!value)
-      .sort((a, b) => Date.parse(b) - Date.parse(a))[0];
-
-    cases.push({
-      caseKey,
-      vin: primary.vin,
-      m1,
-      m15,
-      openId: (m15 ?? m1 ?? primary).id,
-      updatedAt,
-      pipedriveSyncStatus: m15?.pipedriveSyncStatus ?? m1?.pipedriveSyncStatus ?? primary.pipedriveSyncStatus,
-      pipedriveDealId: m15?.pipedriveDealId ?? m1?.pipedriveDealId ?? primary.pipedriveDealId,
-      assetCount: Math.max(m15?.assetCount ?? 0, m1?.assetCount ?? 0, primary.assetCount ?? 0),
-      thumbnailKey: m15?.thumbnailKey ?? m1?.thumbnailKey ?? primary.thumbnailKey,
-    });
-  });
-
-  return cases.sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-}
+// CaseRow from the server is now used directly as CaseSummary
 
 function CaseIntakeBadge({ hasM1, hasM15 }: { hasM1: boolean; hasM15: boolean }) {
   if (hasM1 && hasM15) {
@@ -167,11 +117,11 @@ export default function SubmissionList() {
   });
 
   const caseRows = useMemo(() => {
-    const grouped = groupByCase(data?.data ?? []);
+    const grouped = data?.data ?? [];
     if (!deferredSearch.trim()) return grouped;
 
     const searchLower = deferredSearch.toLowerCase().trim();
-    return grouped.filter((row) => {
+    return grouped.filter((row: CaseSummary) => {
       const vinMatch = row.vin?.toLowerCase().includes(searchLower);
       const dealIdMatch = row.pipedriveDealId?.toLowerCase().includes(searchLower);
       return vinMatch || dealIdMatch;
@@ -227,7 +177,7 @@ export default function SubmissionList() {
         </div>
         {data && (
           <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 shadow-sm">
-            {data.total} submissions / {caseRows.length} cases on page
+            {data.total} cases found
           </span>
         )}
       </div>

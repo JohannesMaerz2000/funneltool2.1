@@ -9,8 +9,9 @@ import {
   fetchSubmissionList,
   SellerApiError,
   type SellerSubmissionListItem,
+  type SellerSubmissionListResponse,
 } from "../sellerApi.js";
-import type { SubmissionDetail, SubmissionSummary } from "../types.js";
+import type { CaseSummary, SubmissionDetail, SubmissionSummary } from "../types.js";
 
 export const submissionsRouter = Router();
 
@@ -143,6 +144,45 @@ async function getAssetEnrichment(
   return map;
 }
 
+function groupIntoCases(submissions: SubmissionSummary[]): CaseSummary[] {
+  const grouped = new Map<string, SubmissionSummary[]>();
+
+  submissions.forEach((submission) => {
+    const key = submission.vin?.toUpperCase().trim() || `NO_VIN:${submission.id}`;
+    const list = grouped.get(key) ?? [];
+    list.push(submission);
+    grouped.set(key, list);
+  });
+
+  const cases: CaseSummary[] = [];
+
+  grouped.forEach((items, caseKey) => {
+    const sorted = [...items].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+    const m1 = sorted.find((item) => item.formIntake?.toLowerCase() === "initial");
+    const m15 = sorted.find((item) => item.formIntake?.toLowerCase() === "advance");
+    const primary = m15 ?? m1 ?? sorted[0];
+
+    const updatedAt = [m1?.updatedAt, m15?.updatedAt, primary.updatedAt]
+      .filter((value): value is string => !!value)
+      .sort((a, b) => Date.parse(b) - Date.parse(a))[0];
+
+    cases.push({
+      caseKey,
+      vin: primary.vin,
+      m1,
+      m15,
+      openId: (m15 ?? m1 ?? primary).id,
+      updatedAt,
+      pipedriveSyncStatus: m15?.pipedriveSyncStatus ?? m1?.pipedriveSyncStatus ?? primary.pipedriveSyncStatus,
+      pipedriveDealId: m15?.pipedriveDealId ?? m1?.pipedriveDealId ?? primary.pipedriveDealId,
+      assetCount: Math.max(m15?.assetCount ?? 0, m1?.assetCount ?? 0, primary.assetCount ?? 0),
+      thumbnailKey: m15?.thumbnailKey ?? m1?.thumbnailKey ?? primary.thumbnailKey,
+    });
+  });
+
+  return cases.sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+}
+
 function handleSellerApiError(res: Response, err: unknown) {
   if (!(err instanceof SellerApiError)) return false;
   if (err.status === 404) {
@@ -214,24 +254,41 @@ submissionsRouter.get("/", async (req, res) => {
     const page = parseBoundedInt(req.query.page, { fallback: 1, min: 1, max: 10_000 });
     const pageSize = parseBoundedInt(req.query.pageSize, { fallback: 20, min: 1, max: 100 });
 
-    const upstream = await fetchSubmissionList({ page, pageSize, vin, from, to });
+    // To properly group by VIN and paginate, we need all submissions
+    // since the upstream API doesn't support grouping. We fetch pages of 100 (upstream limit)
+    // until we have them all.
+    const allItems: SellerSubmissionListItem[] = [];
+    let currentPage = 1;
+    let totalAvailable = 0;
 
-    // Client-side filter by deal ID if provided
-    let filtered = upstream.items;
-    if (pipedriveDealId) {
-      filtered = filtered.filter((item) => item.pipedrive_deal_id === pipedriveDealId);
-    }
+    do {
+      const upstream = await fetchSubmissionList({ page: currentPage, pageSize: 100, vin, from, to });
+      allItems.push(...upstream.items);
+      totalAvailable = upstream.total;
+      if (allItems.length >= totalAvailable || currentPage >= 10) break; // limit to 1000 items total for safety
+      currentPage++;
+    } while (true);
 
     const enrichmentById = await getAssetEnrichment(
-      filtered.map((item) => ({ id: item.id, vin: item.vin }))
+      allItems.map((item) => ({ id: item.id, vin: item.vin }))
     );
-    const data = filtered.map((item) => normalizeSummary(item, enrichmentById.get(item.id)));
+    const submissions = allItems.map((item) => normalizeSummary(item, enrichmentById.get(item.id)));
+    
+    let cases = groupIntoCases(submissions);
+
+    // Client-side filter by deal ID if provided
+    if (pipedriveDealId) {
+      cases = cases.filter((c: CaseSummary) => c.pipedriveDealId === pipedriveDealId);
+    }
+
+    const total = cases.length;
+    const paginatedData = cases.slice((page - 1) * pageSize, page * pageSize);
 
     res.json({
-      total: filtered.length,
-      page: 1,
-      pageSize: filtered.length || pageSize,
-      data,
+      total,
+      page,
+      pageSize,
+      data: paginatedData,
     });
   } catch (err) {
     if (handleSellerApiError(res, err)) return;

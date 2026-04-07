@@ -669,13 +669,18 @@ export default function SubmissionDetail() {
       const targetIntake = currentIntake === "advance" ? "initial" : "advance";
 
       const related = await listSubmissions({ vin: data.vin, page: 1, pageSize: 50 });
-      const candidates = related.data
-        .filter((item) => item.id !== data.id)
-        .filter((item) => item.formIntake?.toLowerCase() === targetIntake)
-        .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+      
+      // related.data is CaseSummary[]. Since we filtered by VIN, we check all returned cases
+      // for the "target" submission summary that isn't the one we already have.
+      const targetCase = related.data.find(c => 
+        (targetIntake === "initial" && c.m1 && c.m1.id !== data.id) ||
+        (targetIntake === "advance" && c.m15 && c.m15.id !== data.id)
+      );
 
-      if (candidates.length === 0) return null;
-      return getSubmission(candidates[0].id);
+      const targetSummary = targetIntake === "initial" ? targetCase?.m1 : targetCase?.m15;
+
+      if (!targetSummary) return null;
+      return getSubmission(targetSummary.id);
     },
     staleTime: 2 * 60_000,
   });
@@ -797,9 +802,15 @@ export default function SubmissionDetail() {
       <div className="flex flex-col gap-6">
         {caseDat && <VehicleCard dat={caseDat} />}
 
-        {sellerSubmissionData ? (
-          <SellerCard submissionData={sellerSubmissionData} />
-        ) : hasM15 ? (
+        {hasM1 ? (
+          sellerSubmissionData ? (
+            <SellerCard submissionData={sellerSubmissionData} />
+          ) : (
+             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+               M1 submission found but submission data is missing.
+             </div>
+          )
+        ) : (hasM15 && !isFetchingLinked) ? (
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
             Initial M1 form is not linked yet for this VIN.
           </div>
