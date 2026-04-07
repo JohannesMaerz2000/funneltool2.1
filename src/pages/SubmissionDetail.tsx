@@ -70,51 +70,209 @@ function getImageJobStatus(jobs: Array<Record<string, unknown>>) {
   return { label: isCompleted ? "completed" : status, isCompleted };
 }
 
-function ImageProcessingJobsSection({ jobs }: { jobs: Array<Record<string, unknown>> }) {
-  const [showRawJson, setShowRawJson] = useState(false);
-  if (jobs.length === 0) return null;
-
-  const { label, isCompleted } = getImageJobStatus(jobs);
-  const badgeClass =
-    isCompleted
-      ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90"
-      : "bg-red-100 text-red-800 ring-1 ring-red-200/90";
-
+function StatusRow({
+  label,
+  badgeText,
+  badgeClass,
+  expandLabel,
+  children,
+}: {
+  label: string;
+  badgeText: string;
+  badgeClass: string;
+  expandLabel?: { collapsed: string; expanded: string };
+  children?: React.ReactNode;
+}) {
+  const [expanded, setExpanded] = useState(false);
   return (
     <div>
       <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
         <table className="min-w-full text-sm">
-          <tbody className="divide-y divide-gray-100">
-            <tr className="even:bg-emerald-50/30">
+          <tbody>
+            <tr>
               <td className="w-1/3 whitespace-nowrap px-3 py-2 font-medium text-gray-600">
-                Image Processing Job
+                {label}
               </td>
               <td className="px-3 py-2 text-gray-800">
                 <span
                   className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass}`}
                 >
-                  {label}
+                  {badgeText}
                 </span>
               </td>
-              <td className="w-1 whitespace-nowrap px-3 py-2 text-right">
-                <button
-                  type="button"
-                  onClick={() => setShowRawJson((prev) => !prev)}
-                  className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
-                >
-                  {showRawJson ? "Hide raw JSON" : "Show raw JSON"}
-                </button>
-              </td>
+              {expandLabel && children ? (
+                <td className="w-1 whitespace-nowrap px-3 py-2 text-right">
+                  <button
+                    type="button"
+                    onClick={() => setExpanded((p) => !p)}
+                    className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
+                  >
+                    {expanded ? expandLabel.expanded : expandLabel.collapsed}
+                  </button>
+                </td>
+              ) : (
+                <td />
+              )}
             </tr>
           </tbody>
         </table>
       </div>
+      {expanded && children ? children : null}
+    </div>
+  );
+}
 
-      {showRawJson ? (
-        <pre className="mt-2 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs leading-relaxed text-gray-700">
-          {JSON.stringify(jobs, null, 2)}
-        </pre>
-      ) : null}
+function ImageProcessingJobsSection({ jobs }: { jobs: Array<Record<string, unknown>> }) {
+  if (jobs.length === 0) return null;
+
+  const { label, isCompleted } = getImageJobStatus(jobs);
+  const badgeClass = isCompleted
+    ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90"
+    : "bg-red-100 text-red-800 ring-1 ring-red-200/90";
+
+  return (
+    <StatusRow
+      label="Image Processing"
+      badgeText={label}
+      badgeClass={badgeClass}
+      expandLabel={{ collapsed: "Show raw JSON", expanded: "Hide raw JSON" }}
+    >
+      <pre className="mt-2 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs leading-relaxed text-gray-700">
+        {JSON.stringify(jobs, null, 2)}
+      </pre>
+    </StatusRow>
+  );
+}
+
+function VinHistoryRow({ vinHistory }: { vinHistory?: Record<string, unknown> | null }) {
+  if (!vinHistory) return null;
+  const matchCount =
+    typeof vinHistory.match_count === "number" ? vinHistory.match_count : undefined;
+  if (matchCount === undefined) return null;
+
+  const badgeClass =
+    matchCount > 0
+      ? "bg-amber-100 text-amber-800 ring-1 ring-amber-200/90"
+      : "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90";
+
+  return (
+    <StatusRow
+      label="VIN History"
+      badgeText={`${matchCount} match${matchCount !== 1 ? "es" : ""}`}
+      badgeClass={badgeClass}
+    />
+  );
+}
+
+function str(val: unknown): string | undefined {
+  if (val === null || val === undefined || val === "") return undefined;
+  return String(val);
+}
+
+function EquipmentList({
+  title,
+  items,
+}: {
+  title: string;
+  items: Array<Record<string, unknown>>;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  if (items.length === 0) return null;
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded((p) => !p)}
+        className="flex w-full items-center gap-2 text-left text-sm text-gray-600 hover:text-gray-900"
+      >
+        <span className="text-xs text-gray-400">{expanded ? "▼" : "▶"}</span>
+        <span className="font-medium">{title}</span>
+        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+          {items.length}
+        </span>
+      </button>
+      {expanded && (
+        <ul className="mt-1 ml-5 list-disc space-y-0.5 text-sm text-gray-700">
+          {items.map((eq) => (
+            <li key={String(eq.datEquipmentId ?? eq.description)}>
+              {String(eq.description ?? "—")}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function VehicleCard({ dat }: { dat: Record<string, unknown> }) {
+  const make = str(dat.make);
+  const model = str(dat.model);
+  const variant = str(dat.variant);
+  const vehicleName = [make, model, variant].filter(Boolean).join(" ") || "Unknown vehicle";
+
+  const firstReg = str(dat.first_registration);
+  const mileage = typeof dat.mileage === "number" ? dat.mileage : undefined;
+  const powerKw = typeof dat.power_kw === "number" ? dat.power_kw : undefined;
+  const fuel = str(dat.fuel_method);
+  const drive = str(dat.drive_type);
+  const capacity = typeof dat.capacity === "number" ? dat.capacity : undefined;
+  const country = str(dat.country);
+  const isConfirmed = dat.is_confirmed === true;
+
+  const specialEquipments = Array.isArray(dat.special_equipments) ? dat.special_equipments : [];
+  const standardEquipments = Array.isArray(dat.standard_equipments) ? dat.standard_equipments : [];
+  const extraEquipments = Array.isArray(dat.extra_equipments) ? dat.extra_equipments : [];
+
+  const specs: Array<{ label: string; value: string }> = [];
+  if (firstReg) specs.push({ label: "First registration", value: firstReg });
+  if (mileage !== undefined)
+    specs.push({ label: "Mileage", value: `${mileage.toLocaleString()} km` });
+  if (powerKw !== undefined) specs.push({ label: "Power", value: `${powerKw} kW` });
+  if (fuel) specs.push({ label: "Fuel", value: fuel });
+  if (drive) specs.push({ label: "Drive", value: drive.toUpperCase() });
+  if (capacity !== undefined) specs.push({ label: "Battery", value: `${capacity} kWh` });
+  if (country) specs.push({ label: "Country", value: country.toUpperCase() });
+
+  return (
+    <div>
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
+        Vehicle Information
+      </h3>
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-100 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <span className="text-base font-semibold text-gray-900">{vehicleName}</span>
+            <span
+              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                isConfirmed
+                  ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90"
+                  : "bg-red-100 text-red-800 ring-1 ring-red-200/90"
+              }`}
+            >
+              DAT {isConfirmed ? "confirmed" : "unconfirmed"}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-x-8 gap-y-2 px-4 py-3 text-sm sm:grid-cols-3 md:grid-cols-4">
+          {specs.map((s) => (
+            <div key={s.label}>
+              <span className="text-xs text-gray-500">{s.label}</span>
+              <p className="font-medium text-gray-800">{s.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {(specialEquipments.length > 0 ||
+          standardEquipments.length > 0 ||
+          extraEquipments.length > 0) && (
+          <div className="space-y-2 border-t border-gray-100 px-4 py-3">
+            <EquipmentList title="Special equipment" items={specialEquipments} />
+            <EquipmentList title="Standard equipment" items={standardEquipments} />
+            <EquipmentList title="Extra equipment" items={extraEquipments} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -154,6 +312,8 @@ export default function SubmissionDetail() {
   }
 
   if (!data) return null;
+
+  const dat = data.datInformation as Record<string, unknown> | null | undefined;
 
   return (
     <div>
@@ -206,17 +366,15 @@ export default function SubmissionDetail() {
       </div>
 
       <div className="flex flex-col gap-6">
-        <DataSection
-          title="Submission (DB)"
-          data={data.submission}
-          excludeKeys={["submission_data"]}
-        />
+        {dat && <VehicleCard dat={dat} />}
+
         <DataSection title="Submission Data (JSONB)" data={data.submissionData ?? undefined} />
-        <DataSection title="DAT Information" data={data.datInformation ?? undefined} />
-        <DataSection title="VIN History" data={data.vinHistory ?? undefined} />
+
+        <VinHistoryRow vinHistory={data.vinHistory} />
         <ImageProcessingJobsSection jobs={data.imageProcessingJobs} />
-        {!data.submissionData &&
-          !data.datInformation &&
+
+        {!dat &&
+          !data.submissionData &&
           !data.vinHistory &&
           data.imageProcessingJobs.length === 0 && (
             <div className="text-sm italic text-gray-400">No enrichment data available.</div>
