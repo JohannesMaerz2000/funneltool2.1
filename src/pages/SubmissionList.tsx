@@ -2,6 +2,7 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { batchPresignUrls, listSubmissions } from "../api/client";
+import type { SubmissionSummary } from "../types/submission";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -38,27 +39,6 @@ function SubmissionThumbnail({ url }: { url?: string }) {
   );
 }
 
-function IntakeBadge({ intake }: { intake?: string | null }) {
-  const normalized = intake?.toLowerCase();
-  const style =
-    normalized === "advance"
-      ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90"
-      : normalized === "initial"
-        ? "bg-teal-100 text-teal-800 ring-1 ring-teal-200/90"
-        : "bg-gray-100 text-gray-600 ring-1 ring-gray-200/90";
-  const label =
-    normalized === "advance"
-      ? "M1.5"
-      : normalized === "initial"
-        ? "M1"
-        : intake ?? "unknown";
-  return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${style}`}>
-      {label}
-    </span>
-  );
-}
-
 function SyncBadge({ status }: { status?: string | null }) {
   const normalized = status?.toLowerCase();
   const style =
@@ -72,6 +52,90 @@ function SyncBadge({ status }: { status?: string | null }) {
   return (
     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${style}`}>
       {status ?? "unknown"}
+    </span>
+  );
+}
+
+type CaseRow = {
+  caseKey: string;
+  vin?: string;
+  m1?: SubmissionSummary;
+  m15?: SubmissionSummary;
+  openId: string;
+  updatedAt: string;
+  pipedriveSyncStatus?: string | null;
+  pipedriveDealId?: string | null;
+  assetCount: number;
+  thumbnailKey?: string;
+};
+
+function groupByCase(submissions: SubmissionSummary[]): CaseRow[] {
+  const grouped = new Map<string, SubmissionSummary[]>();
+
+  submissions.forEach((submission) => {
+    const key = submission.vin?.toUpperCase().trim() || `NO_VIN:${submission.id}`;
+    const list = grouped.get(key) ?? [];
+    list.push(submission);
+    grouped.set(key, list);
+  });
+
+  const cases: CaseRow[] = [];
+
+  grouped.forEach((items, caseKey) => {
+    const sorted = [...items].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+    const m1 = sorted.find((item) => item.formIntake?.toLowerCase() === "initial");
+    const m15 = sorted.find((item) => item.formIntake?.toLowerCase() === "advance");
+    const primary = m15 ?? m1 ?? sorted[0];
+
+    const updatedAt = [m1?.updatedAt, m15?.updatedAt, primary.updatedAt]
+      .filter((value): value is string => !!value)
+      .sort((a, b) => Date.parse(b) - Date.parse(a))[0];
+
+    cases.push({
+      caseKey,
+      vin: primary.vin,
+      m1,
+      m15,
+      openId: (m15 ?? m1 ?? primary).id,
+      updatedAt,
+      pipedriveSyncStatus: m15?.pipedriveSyncStatus ?? m1?.pipedriveSyncStatus ?? primary.pipedriveSyncStatus,
+      pipedriveDealId: m15?.pipedriveDealId ?? m1?.pipedriveDealId ?? primary.pipedriveDealId,
+      assetCount: Math.max(m15?.assetCount ?? 0, m1?.assetCount ?? 0, primary.assetCount ?? 0),
+      thumbnailKey: m15?.thumbnailKey ?? m1?.thumbnailKey ?? primary.thumbnailKey,
+    });
+  });
+
+  return cases.sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+}
+
+function CaseIntakeBadge({ hasM1, hasM15 }: { hasM1: boolean; hasM15: boolean }) {
+  if (hasM1 && hasM15) {
+    return (
+      <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200/90">
+        M1 + M1.5
+      </span>
+    );
+  }
+
+  if (hasM15) {
+    return (
+      <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200/90">
+        M1.5
+      </span>
+    );
+  }
+
+  if (hasM1) {
+    return (
+      <span className="inline-flex rounded-full bg-teal-100 px-2.5 py-1 text-xs font-semibold text-teal-800 ring-1 ring-teal-200/90">
+        M1
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 ring-1 ring-gray-200/90">
+      unknown
     </span>
   );
 }
@@ -103,19 +167,23 @@ export default function SubmissionList() {
     placeholderData: keepPreviousData,
   });
 
+  const caseRows = useMemo(() => groupByCase(data?.data ?? []), [data?.data]);
+
   const thumbnailItems = useMemo(
     () =>
-      (data?.data ?? [])
-        .filter((s) => s.thumbnailKey)
-        .map((s) => ({ id: s.id, key: s.thumbnailKey! })),
-    [data?.data]
+      caseRows
+        .filter((row) => row.thumbnailKey)
+        .map((row) => ({ id: row.openId, key: row.thumbnailKey! })),
+    [caseRows]
   );
+
   const { data: thumbnailResults } = useQuery({
     queryKey: ["list-thumbnails", thumbnailItems.map((i) => i.key)],
     queryFn: () => batchPresignUrls(thumbnailItems),
     enabled: thumbnailItems.length > 0,
     staleTime: 50 * 60 * 1000,
   });
+
   const thumbnailUrlMap = useMemo(() => {
     const map = new Map<string, string>();
     if (thumbnailResults) {
@@ -146,13 +214,11 @@ export default function SubmissionList() {
       <div className="mb-5 flex items-end justify-between gap-3">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Submissions</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            DB-backed list with S3 asset enrichment
-          </p>
+          <p className="mt-1 text-sm text-gray-500">VIN-grouped cases (M1 + M1.5)</p>
         </div>
         {data && (
           <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-sm font-medium text-gray-600 shadow-sm">
-            {data.total} total
+            {data.total} submissions / {caseRows.length} cases on page
           </span>
         )}
       </div>
@@ -237,11 +303,11 @@ export default function SubmissionList() {
         </div>
       )}
 
-      {data && data.data.length === 0 && !isLoading && (
+      {data && caseRows.length === 0 && !isLoading && (
         <p className="py-10 text-center text-gray-500">No submissions match your filters.</p>
       )}
 
-      {data && data.data.length > 0 && (
+      {data && caseRows.length > 0 && (
         <div className="relative">
           {isFetching && !isLoading && (
             <div className="absolute right-0 top-0 py-1 text-xs text-gray-400">refreshing...</div>
@@ -251,9 +317,9 @@ export default function SubmissionList() {
               <thead className="border-b border-gray-200 bg-emerald-50/60">
                 <tr>
                   <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Thumbnail</th>
-                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">ID</th>
+                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Case ID</th>
                   <th className="px-4 py-2.5 text-left font-semibold text-gray-600">VIN</th>
-                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Form</th>
+                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Forms</th>
                   <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Sync</th>
                   <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Updated</th>
                   <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Deal</th>
@@ -261,43 +327,37 @@ export default function SubmissionList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {data.data.map((s) => (
+                {caseRows.map((row) => (
                   <tr
-                    key={s.id}
+                    key={row.caseKey}
                     className="cursor-pointer transition hover:bg-emerald-50/40"
-                    onClick={() => navigate(`/submissions/${encodeURIComponent(s.id)}`)}
+                    onClick={() => navigate(`/submissions/${encodeURIComponent(row.openId)}`)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        navigate(`/submissions/${encodeURIComponent(s.id)}`);
+                        navigate(`/submissions/${encodeURIComponent(row.openId)}`);
                       }
                     }}
                     tabIndex={0}
                   >
                     <td className="px-4 py-2">
-                      <SubmissionThumbnail url={thumbnailUrlMap.get(s.id)} />
+                      <SubmissionThumbnail url={thumbnailUrlMap.get(row.openId)} />
                     </td>
                     <td className="px-4 py-2">
                       <span className="font-mono text-xs font-semibold text-emerald-700">
-                        {s.id}
+                        {row.openId}
                       </span>
                     </td>
-                    <td className="px-4 py-2 font-mono text-xs text-gray-700">
-                      {s.vin ?? "N/A"}
+                    <td className="px-4 py-2 font-mono text-xs text-gray-700">{row.vin ?? "N/A"}</td>
+                    <td className="px-4 py-2">
+                      <CaseIntakeBadge hasM1={!!row.m1} hasM15={!!row.m15} />
                     </td>
                     <td className="px-4 py-2">
-                      <IntakeBadge intake={s.formIntake} />
+                      <SyncBadge status={row.pipedriveSyncStatus} />
                     </td>
-                    <td className="px-4 py-2">
-                      <SyncBadge status={s.pipedriveSyncStatus} />
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-gray-600">
-                      {formatDate(s.updatedAt)}
-                    </td>
-                    <td className="px-4 py-2 text-gray-600">
-                      {s.pipedriveDealId ?? "N/A"}
-                    </td>
-                    <td className="px-4 py-2 text-gray-600">{s.assetCount}</td>
+                    <td className="px-4 py-2 whitespace-nowrap text-gray-600">{formatDate(row.updatedAt)}</td>
+                    <td className="px-4 py-2 text-gray-600">{row.pipedriveDealId ?? "N/A"}</td>
+                    <td className="px-4 py-2 text-gray-600">{row.assetCount}</td>
                   </tr>
                 ))}
               </tbody>
