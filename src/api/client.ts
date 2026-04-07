@@ -5,6 +5,7 @@ import type {
 
 export interface ListParams {
   vin?: string;
+  pipedriveDealId?: string;
   from?: string;
   to?: string;
   page?: number;
@@ -23,6 +24,7 @@ async function apiFetch<T>(path: string): Promise<T> {
 export function listSubmissions(params: ListParams = {}): Promise<SubmissionListResponse> {
   const qs = new URLSearchParams();
   if (params.vin) qs.set("vin", params.vin);
+  if (params.pipedriveDealId) qs.set("pipedrive_deal_id", params.pipedriveDealId);
   if (params.from) qs.set("from", params.from);
   if (params.to) qs.set("to", params.to);
   if (params.page) qs.set("page", String(params.page));

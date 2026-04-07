@@ -33,6 +33,7 @@ export interface SellerSubmissionListParams {
   page?: number;
   pageSize?: number;
   vin?: string;
+  pipedriveDealId?: string;
   from?: string;
   to?: string;
 }

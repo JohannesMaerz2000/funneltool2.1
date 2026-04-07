@@ -196,6 +196,7 @@ submissionsRouter.post("/presign-batch", async (req, res) => {
 submissionsRouter.get("/", async (req, res) => {
   try {
     const vin = parseOptionalString(req.query.vin) ?? parseOptionalString(req.query.query);
+    const pipedriveDealId = parseOptionalString(req.query.pipedrive_deal_id);
     const fromRaw = parseOptionalString(req.query.from);
     const toRaw = parseOptionalString(req.query.to);
     const from = normalizeIsoDate(fromRaw);
@@ -214,15 +215,22 @@ submissionsRouter.get("/", async (req, res) => {
     const pageSize = parseBoundedInt(req.query.pageSize, { fallback: 20, min: 1, max: 100 });
 
     const upstream = await fetchSubmissionList({ page, pageSize, vin, from, to });
+
+    // Client-side filter by deal ID if provided
+    let filtered = upstream.items;
+    if (pipedriveDealId) {
+      filtered = filtered.filter((item) => item.pipedrive_deal_id === pipedriveDealId);
+    }
+
     const enrichmentById = await getAssetEnrichment(
-      upstream.items.map((item) => ({ id: item.id, vin: item.vin }))
+      filtered.map((item) => ({ id: item.id, vin: item.vin }))
     );
-    const data = upstream.items.map((item) => normalizeSummary(item, enrichmentById.get(item.id)));
+    const data = filtered.map((item) => normalizeSummary(item, enrichmentById.get(item.id)));
 
     res.json({
-      total: upstream.total,
-      page: upstream.page,
-      pageSize: upstream.pageSize,
+      total: filtered.length,
+      page: 1,
+      pageSize: filtered.length || pageSize,
       data,
     });
   } catch (err) {

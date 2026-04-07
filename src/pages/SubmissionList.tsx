@@ -142,22 +142,21 @@ function CaseIntakeBadge({ hasM1, hasM15 }: { hasM1: boolean; hasM15: boolean })
 
 export default function SubmissionList() {
   const navigate = useNavigate();
-  const [vin, setVin] = useState("");
+  const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [pageSize, setPageSize] = useState(20);
   const [page, setPage] = useState(1);
-  const deferredVin = useDeferredValue(vin);
+  const deferredSearch = useDeferredValue(search);
 
   const params = useMemo(
     () => ({
-      vin: deferredVin.trim() || undefined,
       from: toStartOfDayIso(fromDate),
       to: toEndOfDayIso(toDate),
       page,
       pageSize,
     }),
-    [deferredVin, fromDate, toDate, page, pageSize]
+    [fromDate, toDate, page, pageSize]
   );
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
@@ -167,7 +166,17 @@ export default function SubmissionList() {
     placeholderData: keepPreviousData,
   });
 
-  const caseRows = useMemo(() => groupByCase(data?.data ?? []), [data?.data]);
+  const caseRows = useMemo(() => {
+    const grouped = groupByCase(data?.data ?? []);
+    if (!deferredSearch.trim()) return grouped;
+
+    const searchLower = deferredSearch.toLowerCase().trim();
+    return grouped.filter((row) => {
+      const vinMatch = row.vin?.toLowerCase().includes(searchLower);
+      const dealIdMatch = row.pipedriveDealId?.toLowerCase().includes(searchLower);
+      return vinMatch || dealIdMatch;
+    });
+  }, [data?.data, deferredSearch]);
 
   const thumbnailItems = useMemo(
     () =>
@@ -202,7 +211,7 @@ export default function SubmissionList() {
   }
 
   function clearFilters() {
-    setVin("");
+    setSearch("");
     setFromDate("");
     setToDate("");
     setPageSize(20);
@@ -225,13 +234,13 @@ export default function SubmissionList() {
 
       <div className="mb-4 flex flex-wrap items-end gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-gray-500">
-          VIN
+          Search (VIN or Deal ID)
           <input
             type="search"
-            placeholder="Filter by VIN..."
-            value={vin}
+            placeholder="Filter by VIN or Deal ID..."
+            value={search}
             onChange={(e) => {
-              setVin(e.target.value);
+              setSearch(e.target.value);
               handleFilterChange();
             }}
             className="w-64 rounded-xl border border-gray-300 px-3 py-2 text-sm normal-case tracking-normal transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
@@ -280,7 +289,7 @@ export default function SubmissionList() {
           </select>
         </label>
 
-        {(vin || fromDate || toDate || pageSize !== 20) && (
+        {(search || fromDate || toDate || pageSize !== 20) && (
           <button
             onClick={clearFilters}
             className="mb-0.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
