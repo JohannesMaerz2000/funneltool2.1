@@ -266,7 +266,7 @@ function EquipmentList({
         </span>
       </button>
       {expanded && (
-        <ul className="mt-3 ml-6 space-y-2 text-sm">
+        <ul className={`mt-3 ${showSelection ? "divide-y divide-zinc-700/50 rounded-lg border border-zinc-700 overflow-hidden" : "ml-6 space-y-2 list-disc"}`}>
           {items.map((eq) => {
             const label = String(eq.description ?? "—");
             const key = String(eq.datEquipmentId ?? label);
@@ -274,7 +274,7 @@ function EquipmentList({
 
             if (!showSelection) {
               return (
-                <li key={key} className="list-disc text-zinc-300">
+                <li key={key} className="text-sm text-zinc-300">
                   {label}
                 </li>
               );
@@ -283,14 +283,19 @@ function EquipmentList({
             return (
               <li
                 key={key}
-                className={`rounded-md px-3 py-2 text-sm transition ${
-                  isSelected
-                    ? "bg-zinc-700/20 text-zinc-100 ring-1 ring-zinc-600/40 border border-zinc-700/30"
-                    : "bg-zinc-700/30 text-zinc-400 ring-1 ring-zinc-600 border border-zinc-600"
-                }`}
+                className="flex items-center justify-between px-4 py-3 text-sm"
               >
-                <span className="mr-2 text-xs">{isSelected ? "✓" : "○"}</span>
-                {label}
+                <span className="text-zinc-300">{label}</span>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-semibold ${
+                    isSelected
+                      ? "bg-emerald-900/40 text-emerald-300 ring-1 ring-emerald-700/50"
+                      : "bg-zinc-700/40 text-zinc-400 ring-1 ring-zinc-600"
+                  }`}
+                >
+                  <span>{isSelected ? "✓" : "○"}</span>
+                  {isSelected ? "Yes" : "No"}
+                </span>
               </li>
             );
           })}
@@ -641,24 +646,29 @@ function VehicleConditionCard({
 
         <div>
           <p className="mb-4 text-base font-bold text-zinc-100">Status & Agreements</p>
-          <div className="flex flex-wrap gap-3">
+          <ul className="divide-y divide-zinc-700/50 rounded-lg border border-zinc-700 overflow-hidden">
             {boolFlags.map((item) => {
               const isTrue = item.value === true;
               return (
-                <span
+                <li
                   key={item.label}
-                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                    isTrue
-                      ? "bg-zinc-700/20 text-zinc-100 ring-1 ring-zinc-600/40 border border-zinc-700/30"
-                      : "bg-zinc-700/40 text-zinc-300 ring-1 ring-zinc-600 border border-zinc-600"
-                  }`}
+                  className="flex items-center justify-between px-4 py-3 text-sm"
                 >
-                  <span>{isTrue ? "✓" : "○"}</span>
-                  {item.label}
-                </span>
+                  <span className="text-zinc-300">{item.label}</span>
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-semibold ${
+                      isTrue
+                        ? "bg-emerald-900/40 text-emerald-300 ring-1 ring-emerald-700/50"
+                        : "bg-zinc-700/40 text-zinc-400 ring-1 ring-zinc-600"
+                    }`}
+                  >
+                    <span>{isTrue ? "✓" : "○"}</span>
+                    {isTrue ? "Yes" : "No"}
+                  </span>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </div>
       </div>
     </div>

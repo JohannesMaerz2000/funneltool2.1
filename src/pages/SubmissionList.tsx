@@ -212,7 +212,7 @@ export default function SubmissionList() {
                 setPageSize(Number(e.target.value));
                 handleFilterChange();
               }}
-              className={`${ui.input} normal-case tracking-normal`}
+              className={`${ui.input} w-32 normal-case tracking-normal`}
             >
               <option value={20}>20</option>
               <option value={50}>50</option>
