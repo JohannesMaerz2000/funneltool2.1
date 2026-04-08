@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { Asset } from "../types/submission";
-import { batchPresignUrls } from "../api/client";
+import { batchPresignUrls, deleteSubmissionAsset } from "../api/client";
 import { ui } from "./ui";
 
 function fileName(key: string) {
@@ -33,6 +33,18 @@ function DownloadIcon({ className = "w-5 h-5" }: { className?: string }) {
     <svg viewBox="0 0 20 20" fill="currentColor" className={className}>
       <path d="M10 3a.75.75 0 01.75.75v7.69l2.22-2.22a.75.75 0 111.06 1.06l-3.5 3.5a.75.75 0 01-1.06 0l-3.5-3.5a.75.75 0 111.06-1.06l2.22 2.22V3.75A.75.75 0 0110 3z" />
       <path d="M3 15.75a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" />
+    </svg>
+  );
+}
+
+function TrashIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" className={className}>
+      <path
+        fillRule="evenodd"
+        d="M8.75 2.5a1.25 1.25 0 00-1.233 1.058L7.4 4.25H5.75a.75.75 0 000 1.5h.343l.632 9.173A2.25 2.25 0 008.97 17h2.06a2.25 2.25 0 002.245-2.077l.632-9.173h.343a.75.75 0 000-1.5H12.6l-.117-.692A1.25 1.25 0 0011.25 2.5h-2.5zm2.34 1.75L11 3.807a.25.25 0 00-.247-.207h-1.506a.25.25 0 00-.247.207l-.09.443h2.18zM8.22 7.28a.75.75 0 011.5.04l-.2 6a.75.75 0 11-1.5-.04l.2-6zm3.56 0a.75.75 0 00-1.5.04l.2 6a.75.75 0 001.5-.04l-.2-6z"
+        clipRule="evenodd"
+      />
     </svg>
   );
 }
@@ -151,22 +163,27 @@ function ImageThumb({
   submissionId,
   url,
   onClick,
+  onDelete,
+  isDeleting,
 }: {
   asset: Asset;
   submissionId: string;
   url?: string;
   onClick: (url: string, name: string) => void;
+  onDelete: (key: string) => void;
+  isDeleting: boolean;
 }) {
   const name = fileName(asset.key);
+  const category = inferAssetCategory(asset);
 
   return (
     <div
-      className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900/70 shadow-md transition hover:border-zinc-500 hover:shadow-lg"
+      className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm shadow-lg transition-all duration-300 hover:border-sky-500/50 hover:shadow-sky-500/10 hover:scale-[1.02]"
       onClick={() => url && onClick(url, name)}
     >
       {!url && (
-        <div className="absolute inset-0 flex items-center justify-center text-zinc-500 text-sm">
-          Loading…
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-500/20 border-t-sky-500" />
         </div>
       )}
       {url && (
@@ -176,18 +193,39 @@ function ImageThumb({
             alt={name}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
-          <button
-            className="absolute bottom-2 right-2 flex items-center justify-center rounded-lg bg-black/70 p-2 text-white opacity-0 transition group-hover:opacity-100 hover:bg-black/90"
-            title={`Download ${name}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              downloadAsset(submissionId, asset.key);
-            }}
-          >
-            <DownloadIcon className="w-4 h-4" />
-          </button>
+          {/* Subtle gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+          <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate text-[10px] font-black uppercase tracking-widest text-white/90">
+                {category}
+              </span>
+              <button
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/40"
+                title={`Download ${name}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadAsset(submissionId, asset.key);
+                }}
+              >
+                <DownloadIcon className="h-4 w-4" />
+              </button>
+              <button
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/30 text-white backdrop-blur-md transition-colors hover:bg-rose-500/60 disabled:cursor-not-allowed disabled:opacity-60"
+                title={`Delete ${name}`}
+                disabled={isDeleting}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(asset.key);
+                }}
+              >
+                <TrashIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </>
       )}
     </div>
@@ -207,21 +245,28 @@ function PdfThumb({
 
   return (
     <button
-      className="flex w-full cursor-pointer flex-col items-center gap-3 rounded-lg border border-zinc-700 bg-zinc-900/70 p-4 text-left shadow-md transition hover:border-zinc-500 hover:bg-zinc-900 disabled:cursor-wait disabled:opacity-60"
+      className="group flex w-full cursor-pointer flex-col items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 text-left shadow-lg transition-all duration-300 hover:border-rose-500/50 hover:bg-zinc-800/60 hover:shadow-rose-500/5 disabled:cursor-wait disabled:opacity-60"
       onClick={() => url && onClick(url, name)}
       disabled={!url}
       title={name}
     >
-      <div className="flex items-center justify-center w-full py-2">
+      <div className="flex w-full items-center justify-center py-2 transition-transform duration-300 group-hover:scale-110">
         {!url ? (
-          <div className="w-12 h-12 rounded bg-zinc-700 animate-pulse" />
+          <div className="h-12 w-12 animate-pulse rounded bg-zinc-800" />
         ) : (
-          <PdfIcon />
+          <div className="relative">
+            <PdfIcon />
+            <div className="absolute -inset-2 -z-10 bg-rose-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
         )}
       </div>
-      <span className="text-sm text-zinc-200 font-semibold truncate w-full text-center">{name}</span>
+      <span className="w-full truncate text-center text-sm font-bold text-zinc-100 transition-colors group-hover:text-rose-400">
+        {name}
+      </span>
       {asset.size != null && (
-        <span className="text-xs text-zinc-500">{formatSize(asset.size)}</span>
+        <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+          {formatSize(asset.size)}
+        </span>
       )}
     </button>
   );
@@ -237,12 +282,18 @@ function AssetItem({
   const icon = asset.type === "document" ? "📄" : "📎";
 
   return (
-    <div className="flex items-center gap-4 rounded-lg border border-zinc-700 bg-zinc-900/70 px-4 py-3 shadow-md transition hover:border-zinc-500 hover:bg-zinc-900">
-      <span className="text-2xl leading-none">{icon}</span>
-      <div className="flex-1 min-w-0">
-        <p className="text-base font-semibold truncate text-zinc-100">{fileName(asset.key)}</p>
+    <div className="group flex items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-4 shadow-lg transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-800/60">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-800 text-xl shadow-inner group-hover:bg-zinc-700 transition-colors">
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-bold text-zinc-100 transition-colors group-hover:text-white">
+          {fileName(asset.key)}
+        </p>
         {asset.size != null && (
-          <p className="text-sm text-zinc-500">{formatSize(asset.size)}</p>
+          <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+            {formatSize(asset.size)}
+          </p>
         )}
       </div>
       {url ? (
@@ -250,87 +301,131 @@ function AssetItem({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-sm font-semibold text-zinc-300 transition hover:text-zinc-100 hover:underline"
+          className="shrink-0 rounded-lg bg-zinc-800/80 px-3 py-1.5 text-xs font-bold text-zinc-300 transition-all hover:bg-sky-500/20 hover:text-sky-300"
         >
-          Open ↗
+          OPEN ↗
         </a>
       ) : (
-        <span className="shrink-0 text-sm text-zinc-500">Loading…</span>
+        <span className="shrink-0 animate-pulse text-xs font-bold text-zinc-600">
+          LOADING…
+        </span>
       )}
     </div>
   );
 }
 
-function PdfPopout({ url, name, onClose }: { url: string; name: string; onClose: () => void }) {
+function PdfPopout({
+  url,
+  name,
+  onClose,
+}: {
+  url: string;
+  name: string;
+  onClose: () => void;
+}) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-md"
       onClick={onClose}
     >
-        <div
-        className={`${ui.card} flex h-[90vh] w-full max-w-5xl flex-col shadow-2xl`}
+      <div
+        className={`${ui.card} flex h-[90vh] w-full max-w-6xl flex-col border-zinc-800 bg-zinc-950 shadow-2xl overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center gap-3 border-b border-zinc-800 bg-zinc-900 px-5 py-4">
-          <PdfIcon />
-          <span className="flex-1 text-base font-semibold text-zinc-100 truncate">{name}</span>
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-zinc-400 hover:text-zinc-200 transition shrink-0"
-            title="Open in new tab"
-          >
-            <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-              <path fillRule="evenodd" d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h5a.75.75 0 010 1.5h-5z" clipRule="evenodd" />
-              <path fillRule="evenodd" d="M6.194 12.753a.75.75 0 001.06.053L16.5 4.44v2.81a.75.75 0 001.5 0v-4.5a.75.75 0 00-.75-.75h-4.5a.75.75 0 000 1.5h2.553l-9.056 8.194a.75.75 0 00-.053 1.06z" clipRule="evenodd" />
-            </svg>
-          </a>
-          <button
-            className="text-zinc-400 hover:text-zinc-200 transition shrink-0"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-            </svg>
-          </button>
+        <div className="flex shrink-0 items-center gap-4 bg-zinc-900/80 px-6 py-4 backdrop-blur-md">
+          <div className="h-8 w-8 scale-75">
+            <PdfIcon />
+          </div>
+          <span className="flex-1 truncate text-base font-bold text-zinc-100">
+            {name}
+          </span>
+          <div className="flex items-center gap-2">
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 transition hover:bg-sky-500/20 hover:text-sky-300"
+              title="Open in new tab"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                <path
+                  fillRule="evenodd"
+                  d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h5a.75.75 0 010 1.5h-5z"
+                  clipRule="evenodd"
+                />
+                <path
+                  fillRule="evenodd"
+                  d="M6.194 12.753a.75.75 0 001.06.053L16.5 4.44v2.81a.75.75 0 001.5 0v-4.5a.75.75 0 00-.75-.75h-4.5a.75.75 0 000 1.5h2.553l-9.056 8.194a.75.75 0 00-.053 1.06z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </a>
+            <button
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 transition hover:bg-rose-500/20 hover:text-rose-300"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* PDF iframe */}
-        <iframe
-          src={url}
-          title={name}
-          className="flex-1 w-full border-0"
-        />
+        <iframe src={url} title={name} className="flex-1 border-0" />
       </div>
     </div>
   );
 }
 
-function Lightbox({ url, name, onClose }: { url: string; name: string; onClose: () => void }) {
+function Lightbox({
+  url,
+  name,
+  onClose,
+}: {
+  url: string;
+  name: string;
+  onClose: () => void;
+}) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
-      <img
-        src={url}
-        alt={name}
-        decoding="async"
-        className="max-w-[90vw] max-h-[90vh] object-contain rounded shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      />
+      <div className="relative flex max-h-full max-w-full flex-col">
+        <img
+          src={url}
+          alt={name}
+          decoding="async"
+          className="max-h-[85vh] max-w-[95vw] rounded-lg object-contain shadow-2xl ring-1 ring-white/10"
+          onClick={(e) => e.stopPropagation()}
+        />
+        <div className="mt-4 flex items-center justify-between px-2">
+          <p className="text-sm font-bold text-zinc-100">{name}</p>
+          <button
+            className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-white/20"
+            onClick={onClose}
+          >
+            CLOSE
+          </button>
+        </div>
+      </div>
       <button
-        className="absolute top-4 right-4 text-white text-3xl leading-none hover:opacity-70"
+        className="absolute top-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-black/40 text-white transition-all hover:bg-white/10"
         onClick={onClose}
       >
-        ✕
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          className="h-6 w-6"
+        >
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
       </button>
-      <p className="absolute bottom-4 left-0 right-0 text-center text-sm text-white/80">
-        {name}
-      </p>
     </div>
   );
 }
@@ -338,31 +433,65 @@ function Lightbox({ url, name, onClose }: { url: string; name: string; onClose: 
 export default function AssetGallery({
   assets,
   submissionId,
+  onAssetsChanged,
 }: {
   assets: Asset[];
   submissionId: string;
+  onAssetsChanged?: () => Promise<void> | void;
 }) {
-  const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null);
-  const [pdfPopout, setPdfPopout] = useState<{ url: string; name: string } | null>(null);
+  const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(
+    null
+  );
+  const [pdfPopout, setPdfPopout] = useState<{
+    url: string;
+    name: string;
+  } | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: async (key: string) => {
+      await deleteSubmissionAsset(submissionId, key);
+      await onAssetsChanged?.();
+    },
+    onError: (err) => {
+      const message = err instanceof Error ? err.message : "Failed to delete asset";
+      window.alert(message);
+    },
+  });
 
   // Memoize all derived lists in a single pass
-  const { images, pdfs, docs, others, categoryStats } = useMemo(() => {
-    const imgs: Asset[] = [];
+  const { imagesByCategory, pdfs, docs, others } = useMemo(() => {
+    const imagesMap: Record<string, Asset[]> = {};
     const pdfList: Asset[] = [];
     const docList: Asset[] = [];
     const otherList: Asset[] = [];
+
     for (const a of assets) {
-      if (a.type === "image") imgs.push(a);
-      else if (isPdf(a.key)) pdfList.push(a);
+      if (a.type === "image") {
+        const cat = inferAssetCategory(a);
+        if (!imagesMap[cat]) imagesMap[cat] = [];
+        imagesMap[cat].push(a);
+      } else if (isPdf(a.key)) pdfList.push(a);
       else if (a.type === "document") docList.push(a);
       else otherList.push(a);
     }
+
+    // Sort categories: Exterior first, then others alphabetically
+    const sortedImages = Object.keys(imagesMap)
+      .sort((a, b) => {
+        if (a === "Exterior") return -1;
+        if (b === "Exterior") return 1;
+        return a.localeCompare(b);
+      })
+      .reduce((acc, key) => {
+        acc[key] = imagesMap[key];
+        return acc;
+      }, {} as Record<string, Asset[]>);
+
     return {
-      images: imgs,
+      imagesByCategory: sortedImages,
       pdfs: pdfList,
       docs: docList,
       others: otherList,
-      categoryStats: buildCategoryStats(assets),
     };
   }, [assets]);
 
@@ -392,60 +521,85 @@ export default function AssetGallery({
   }, [batchResults]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       {lightbox && (
-        <Lightbox url={lightbox.url} name={lightbox.name} onClose={() => setLightbox(null)} />
+        <Lightbox
+          url={lightbox.url}
+          name={lightbox.name}
+          onClose={() => setLightbox(null)}
+        />
       )}
       {pdfPopout && (
-        <PdfPopout url={pdfPopout.url} name={pdfPopout.name} onClose={() => setPdfPopout(null)} />
+        <PdfPopout
+          url={pdfPopout.url}
+          name={pdfPopout.name}
+          onClose={() => setPdfPopout(null)}
+        />
       )}
 
-      {categoryStats.length > 0 && (
-        <div>
-          <div className="flex flex-wrap gap-3">
-            {categoryStats.map((row) => (
-              <span
-                key={row.category}
-                className="inline-flex items-center rounded-lg border border-zinc-700 bg-zinc-900/80 px-4 py-2 text-sm font-semibold text-zinc-200 shadow-md"
-              >
-                {row.category}: <span className="ml-2 font-bold text-zinc-300">{row.total}</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {images.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-zinc-300">Images</h4>
+      {/* Images Section Grouped by Category */}
+      {Object.keys(imagesByCategory).length > 0 && (
+        <div className="space-y-8">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+            <h4 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400">
+              Gallery
+            </h4>
             <a
-              href={`/api/submissions/${encodeURIComponent(submissionId)}/download-all`}
+              href={`/api/submissions/${encodeURIComponent(
+                submissionId
+              )}/download-all`}
               download
-              className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900/80 px-4 py-2 text-sm font-semibold text-zinc-300 shadow-md transition hover:border-zinc-500 hover:text-zinc-100 hover:bg-zinc-900"
+              className="group flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-xs font-bold text-zinc-300 transition-all hover:bg-sky-500/20 hover:text-sky-300"
             >
-              <DownloadIcon className="w-4 h-4" />
-              Download All (.zip)
+              <DownloadIcon className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
+              DOWNLOAD ALL ZIP
             </a>
           </div>
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
-            {images.map((a) => (
-              <ImageThumb
-                key={a.key}
-                asset={a}
-                submissionId={submissionId}
-                url={urlMap.get(a.key)}
-                onClick={(url, name) => setLightbox({ url, name })}
-              />
+
+          <div className="space-y-8">
+            {Object.entries(imagesByCategory).map(([category, catImages]) => (
+              <div key={category} className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <h5 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-500">
+                    {category}
+                  </h5>
+                  <div className="h-px flex-1 bg-zinc-800/50" />
+                  <span className="text-[10px] font-bold text-zinc-600">
+                    {catImages.length} shots
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
+                  {catImages.map((a) => (
+                    <ImageThumb
+                      key={a.key}
+                      asset={a}
+                      submissionId={submissionId}
+                      url={urlMap.get(a.key)}
+                      onClick={(url, name) => setLightbox({ url, name })}
+                      onDelete={(key) => {
+                        if (!window.confirm(`Delete this asset permanently?\n\n${fileName(key)}`)) return;
+                        deleteMutation.mutate(key);
+                      }}
+                      isDeleting={deleteMutation.isPending}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>
       )}
 
+      {/* PDFs Section */}
       {pdfs.length > 0 && (
-        <div>
-          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-zinc-300">PDFs</h4>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <h4 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400">
+              PDF Documents
+            </h4>
+            <div className="h-px flex-1 bg-zinc-800/50" />
+          </div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {pdfs.map((a) => (
               <PdfThumb
                 key={a.key}
@@ -458,22 +612,17 @@ export default function AssetGallery({
         </div>
       )}
 
-      {docs.length > 0 && (
-        <div>
-          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-zinc-300">Documents</h4>
-          <div className="flex flex-col gap-2">
-            {docs.map((a) => (
-              <AssetItem key={a.key} asset={a} url={urlMap.get(a.key)} />
-            ))}
+      {/* Other Assets */}
+      {(docs.length > 0 || others.length > 0) && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <h4 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400">
+              Other Assets
+            </h4>
+            <div className="h-px flex-1 bg-zinc-800/50" />
           </div>
-        </div>
-      )}
-
-      {others.length > 0 && (
-        <div>
-          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-zinc-300">Other files</h4>
-          <div className="flex flex-col gap-2">
-            {others.map((a) => (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {[...docs, ...others].map((a) => (
               <AssetItem key={a.key} asset={a} url={urlMap.get(a.key)} />
             ))}
           </div>

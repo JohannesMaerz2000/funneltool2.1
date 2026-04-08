@@ -162,70 +162,76 @@ export default function SubmissionList() {
         {data && <span className={`${ui.badge} ${badgeTone("info")}`}>{data.total} cases found</span>}
       </div>
 
-      <div className={`${ui.card} mb-6 p-6`}>
-        <div className="flex flex-wrap items-end gap-4">
-          <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            Search (VIN or Deal ID)
-            <input
-              type="search"
-              placeholder="Filter by VIN or Deal ID..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                handleFilterChange();
-              }}
-              className={`${ui.input} w-72 normal-case tracking-normal`}
-            />
-          </label>
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        {/* Search */}
+        <div className="flex h-10 items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900 px-4 focus-within:border-zinc-500 focus-within:ring-2 focus-within:ring-zinc-500/25 transition">
+          <svg className="h-3.5 w-3.5 shrink-0 text-zinc-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M9 3a6 6 0 100 12A6 6 0 009 3zM1 9a8 8 0 1114.32 4.906l3.387 3.387a1 1 0 01-1.414 1.414l-3.387-3.387A8 8 0 011 9z" clipRule="evenodd" />
+          </svg>
+          <input
+            type="search"
+            placeholder="VIN or Deal ID..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); handleFilterChange(); }}
+            className="w-52 bg-transparent text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none"
+          />
+        </div>
 
-          <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            From
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => {
-                setFromDate(e.target.value);
-                handleFilterChange();
-              }}
-              className={`${ui.input} normal-case tracking-normal`}
-            />
-          </label>
+        {/* From date */}
+        <div className="flex h-10 items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900 px-4 focus-within:border-zinc-500 focus-within:ring-2 focus-within:ring-zinc-500/25 transition">
+          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">From</span>
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => { setFromDate(e.target.value); handleFilterChange(); }}
+            className="bg-transparent text-sm text-zinc-100 focus:outline-none [color-scheme:dark]"
+          />
+        </div>
 
-          <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            To
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => {
-                setToDate(e.target.value);
-                handleFilterChange();
-              }}
-              className={`${ui.input} normal-case tracking-normal`}
-            />
-          </label>
+        {/* To date */}
+        <div className="flex h-10 items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900 px-4 focus-within:border-zinc-500 focus-within:ring-2 focus-within:ring-zinc-500/25 transition">
+          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">To</span>
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => { setToDate(e.target.value); handleFilterChange(); }}
+            className="bg-transparent text-sm text-zinc-100 focus:outline-none [color-scheme:dark]"
+          />
+        </div>
 
-          <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            Page size
+        {/* Page size */}
+        <div className="flex h-10 items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900 px-4 focus-within:border-zinc-500 focus-within:ring-2 focus-within:ring-zinc-500/25 transition">
+          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Show</span>
+          <div className="relative flex items-center">
             <select
               value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                handleFilterChange();
-              }}
-              className={`${ui.input} w-32 normal-case tracking-normal`}
+              onChange={(e) => { setPageSize(Number(e.target.value)); handleFilterChange(); }}
+              className="appearance-none bg-transparent pr-6 text-sm font-semibold text-zinc-100 focus:outline-none"
             >
               <option value={20}>20</option>
               <option value={50}>50</option>
               <option value={100}>100</option>
             </select>
-          </label>
-
-          {(search || fromDate || toDate || pageSize !== 20) && (
-            <button onClick={clearFilters} className="mb-1 text-sm font-semibold text-zinc-300 hover:text-zinc-100">
-              Clear
-            </button>
-          )}
+            <svg className="pointer-events-none absolute right-0 h-3.5 w-3.5 text-zinc-500" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <span className="text-xs font-medium text-zinc-500">per page</span>
         </div>
+
+        {/* Clear */}
+        {(search || fromDate || toDate || pageSize !== 20) && (
+          <button
+            onClick={clearFilters}
+            className="flex h-10 items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-900 px-4 text-sm font-semibold text-zinc-400 transition hover:border-zinc-500 hover:text-zinc-100"
+          >
+            <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+            Clear
+          </button>
+        )}
+
       </div>
 
       {isLoading && (

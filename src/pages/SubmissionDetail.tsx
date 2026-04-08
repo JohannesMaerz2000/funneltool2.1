@@ -1,7 +1,12 @@
 import { Link, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { batchPresignUrls, getSubmission, listSubmissions } from "../api/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import {
+  batchPresignUrls,
+  getSubmission,
+  listSubmissions,
+  uploadSubmissionAssetProxy,
+} from "../api/client";
 import type { Asset, SubmissionDetail as SubmissionDetailType } from "../types/submission";
 import AssetGallery from "../components/AssetGallery";
 import { badgeTone, ui } from "../components/ui";
@@ -675,6 +680,290 @@ function VehicleConditionCard({
   );
 }
 
+const PHOTO_UPLOAD_CATEGORIES = [
+  "exterior",
+  "interior",
+  "rims",
+  "defects",
+  "tesla_autopilot",
+  "digital_service_log",
+  "damages",
+] as const;
+
+const PAPER_UPLOAD_CATEGORIES = [
+  "registration_document",
+  "coc_certificate",
+  "service_book",
+  "inspection_report",
+  "invoice",
+  "other_document",
+] as const;
+
+type UploadTarget = "photos" | "papers";
+
+function ImageUploadCard({
+  submissionId,
+  onUploaded,
+}: {
+  submissionId: string;
+  onUploaded: () => Promise<void> | void;
+}) {
+  const [uploadTarget, setUploadTarget] = useState<UploadTarget>("photos");
+  const [category, setCategory] = useState<string>("exterior");
+  const [statusText, setStatusText] = useState<string | null>(null);
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<Array<{ name: string; url: string; isImage: boolean }>>([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const availableCategories = uploadTarget === "photos" ? PHOTO_UPLOAD_CATEGORIES : PAPER_UPLOAD_CATEGORIES;
+  const fileInputAccept = uploadTarget === "photos" ? "image/*" : "image/*,.pdf,application/pdf";
+
+  useEffect(() => {
+    setCategory(uploadTarget === "photos" ? "exterior" : "registration_document");
+    setSelectedFiles([]);
+    setStatusText(null);
+    setErrorText(null);
+  }, [uploadTarget]);
+
+  useEffect(() => {
+    const urls = selectedFiles.map((file) => {
+      const isImage = file.type.startsWith("image/");
+      return {
+        name: file.name,
+        url: isImage ? URL.createObjectURL(file) : "",
+        isImage,
+      };
+    });
+    setPreviewUrls(urls);
+
+    return () => {
+      urls.forEach((item) => {
+        if (item.url) URL.revokeObjectURL(item.url);
+      });
+    };
+  }, [selectedFiles]);
+
+  const uploadMutation = useMutation({
+    mutationFn: async (selected: File[]) => {
+      if (selected.length === 0) {
+        throw new Error("Please select at least one image.");
+      }
+
+      for (let i = 0; i < selected.length; i += 1) {
+        const file = selected[i];
+        const isImage = file.type.startsWith("image/");
+        const isPdf = file.type === "application/pdf";
+        if (uploadTarget === "photos" && !isImage) {
+          throw new Error(`"${file.name}" is not an image file.`);
+        }
+        if (uploadTarget === "papers" && !isImage && !isPdf) {
+          throw new Error(`"${file.name}" is not a supported paper file.`);
+        }
+        setStatusText(`Uploading ${i + 1}/${selected.length}: ${file.name}`);
+        await uploadSubmissionAssetProxy({
+          submissionId,
+          file,
+          target: uploadTarget,
+          category,
+        });
+      }
+      return selected.length;
+    },
+    onSuccess: async (count) => {
+      setErrorText(null);
+      setStatusText(`Uploaded ${count} image${count === 1 ? "" : "s"} successfully.`);
+      setSelectedFiles([]);
+      await onUploaded();
+      setTimeout(() => setStatusText(null), 3000);
+    },
+    onError: (err) => {
+      setErrorText(err instanceof Error ? err.message : "Upload failed.");
+      setStatusText(null);
+    },
+  });
+
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/20 overflow-hidden shadow-inner translate-z-0">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex w-full items-center justify-between px-6 py-4 transition-colors hover:bg-zinc-800/40"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+            <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+              <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+            </svg>
+          </div>
+          <p className="text-sm font-bold text-zinc-100 uppercase tracking-wider">Upload New Assets</p>
+        </div>
+        <span className={`text-zinc-500 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
+          <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+            <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+          </svg>
+        </span>
+      </button>
+
+      {isExpanded && (
+        <div className="px-6 py-5 space-y-6 border-t border-zinc-800/60 bg-zinc-900/40">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500" htmlFor="upload-target">
+                Upload Type
+              </label>
+              <select
+                id="upload-target"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200"
+                value={uploadTarget}
+                onChange={(event) => setUploadTarget(event.target.value as UploadTarget)}
+                disabled={uploadMutation.isPending}
+              >
+                <option value="photos">Fahrzeugfotos (02_Fahrzeugfotos)</option>
+                <option value="papers">Fahrzeugpapiere (01_Fahrzeugpapiere)</option>
+              </select>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500" htmlFor="upload-category">
+                Select Category
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {availableCategories.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setCategory(cat)}
+                    className={`rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all ${
+                      category === cat
+                        ? "bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/50"
+                        : "bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                Choose Files
+              </label>
+              <div className="flex items-center gap-3">
+                <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-zinc-700 bg-zinc-800/30 px-4 py-8 text-sm font-bold text-zinc-400 ring-offset-zinc-950 transition-all hover:border-sky-500/40 hover:bg-sky-500/5 hover:text-zinc-200 focus-within:ring-2 focus-within:ring-sky-500 focus-within:ring-offset-2">
+                  <input
+                    type="file"
+                    className="sr-only"
+                    multiple
+                    accept={fileInputAccept}
+                    disabled={uploadMutation.isPending}
+                    onChange={(event) => {
+                      const files = event.target.files;
+                      if (!files || files.length === 0) return;
+                      setStatusText(null);
+                      setErrorText(null);
+                      const selected = Array.from(files).filter((file) => {
+                        if (uploadTarget === "photos") return file.type.startsWith("image/");
+                        return file.type.startsWith("image/") || file.type === "application/pdf";
+                      });
+                      if (selected.length === 0) {
+                        setErrorText(uploadTarget === "photos" ? "Please select image files." : "Please select image or PDF files.");
+                        setSelectedFiles([]);
+                        event.target.value = "";
+                        return;
+                      }
+                      setSelectedFiles(selected);
+                      event.target.value = "";
+                    }}
+                  />
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="h-6 w-6 opacity-50">
+                    <path fillRule="evenodd" d="M15.621 4.379a3 3 0 00-4.242 0l-7 7a3 3 0 004.242 4.242l7-7a3 3 0 000-4.242zM7.5 13.5l5-5" clipRule="evenodd" />
+                  </svg>
+                  {selectedFiles.length > 0 ? `${selectedFiles.length} files selected` : "Drop files or click to browse"}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {previewUrls.length > 0 && (
+            <div className="space-y-3 pt-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                Preview ({previewUrls.length})
+              </p>
+              <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 lg:grid-cols-8">
+                {previewUrls.map((item, index) => (
+                  <div key={`${item.name}-${index}`} className="group relative aspect-square overflow-hidden rounded-lg bg-zinc-800 shadow-lg ring-1 ring-white/5">
+                    {item.isImage ? (
+                      <img
+                        src={item.url}
+                        alt={item.name}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs font-black uppercase tracking-wider text-zinc-300">
+                        PDF
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-4 pt-4 border-t border-zinc-800/60 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1">
+              {statusText && (
+                <div className="flex items-center gap-2 text-xs font-bold text-sky-400">
+                  <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-sky-400" />
+                  {statusText}
+                </div>
+              )}
+              {errorText && (
+                <div className="flex items-center gap-2 text-xs font-bold text-rose-400">
+                  <div className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                  {errorText}
+                </div>
+              )}
+            </div>
+            <div className="flex gap-3">
+              {selectedFiles.length > 0 && !uploadMutation.isPending && (
+                <button
+                  type="button"
+                  className="px-4 py-2 text-xs font-black uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition-colors"
+                  onClick={() => setSelectedFiles([])}
+                >
+                  Clear Selection
+                </button>
+              )}
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-6 py-2 text-xs font-black uppercase tracking-widest text-emerald-950 transition-all hover:bg-emerald-400 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:scale-100 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                disabled={uploadMutation.isPending || selectedFiles.length === 0}
+                onClick={() => uploadMutation.mutate(selectedFiles)}
+              >
+                {uploadMutation.isPending ? (
+                  <>
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-emerald-950/20 border-t-emerald-950" />
+                    UPLOADING...
+                  </>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z" clipRule="evenodd" />
+                    </svg>
+                    START UPLOAD
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SubmissionMetaCard({ data, m15Detail }: { data: SubmissionDetailType; m15Detail?: SubmissionDetailType | undefined }) {
   return (
     <div className={ui.card}>
@@ -726,6 +1015,7 @@ function SubmissionMetaCard({ data, m15Detail }: { data: SubmissionDetailType; m
 
 export default function SubmissionDetail() {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
 
   const {
     data,
@@ -817,7 +1107,7 @@ export default function SubmissionDetail() {
   );
 
   const effectiveDealId = m15Detail?.pipedriveDealId ?? data.pipedriveDealId;
-  const effectiveAssetCount = caseAssets.length;
+  const uploadTargetSubmissionId = m15Detail?.id ?? data.id;
 
   return (
     <div className="min-h-screen bg-zinc-950">
@@ -927,10 +1217,30 @@ export default function SubmissionDetail() {
                 <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Assets ({caseAssets.length})</p>
               </div>
               <div className="px-6 py-5">
+                <ImageUploadCard
+                  submissionId={uploadTargetSubmissionId}
+                  onUploaded={async () => {
+                    await Promise.all([
+                      queryClient.invalidateQueries({ queryKey: ["submission"] }),
+                      queryClient.invalidateQueries({ queryKey: ["linked-submission"] }),
+                    ]);
+                  }}
+                />
                 {caseAssets.length === 0 ? (
-                  <p className="text-base text-zinc-400">No assets available.</p>
+                  <p className="mt-5 text-base text-zinc-400">No assets available.</p>
                 ) : (
-                  <AssetGallery assets={caseAssets} submissionId={m15Detail?.id ?? data.id} />
+                  <div className="mt-5">
+                    <AssetGallery
+                      assets={caseAssets}
+                      submissionId={uploadTargetSubmissionId}
+                      onAssetsChanged={async () => {
+                        await Promise.all([
+                          queryClient.invalidateQueries({ queryKey: ["submission"] }),
+                          queryClient.invalidateQueries({ queryKey: ["linked-submission"] }),
+                        ]);
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             </div>

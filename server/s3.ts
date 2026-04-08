@@ -2,6 +2,8 @@ import {
   S3Client,
   ListObjectsV2Command,
   GetObjectCommand,
+  PutObjectCommand,
+  DeleteObjectCommand,
   type _Object,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -110,4 +112,42 @@ export async function getObjectStream(key: string) {
 export async function presignUrl(key: string, expiresInSeconds = 3600): Promise<string> {
   const cmd = new GetObjectCommand({ Bucket: BUCKET, Key: key });
   return getSignedUrl(getS3(), cmd, { expiresIn: expiresInSeconds });
+}
+
+/** Generate a short-lived presigned PUT URL for uploading an object. */
+export async function presignUploadUrl(
+  key: string,
+  contentType: string,
+  expiresInSeconds = 900
+): Promise<string> {
+  const cmd = new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+    ContentType: contentType,
+  });
+  return getSignedUrl(getS3(), cmd, { expiresIn: expiresInSeconds });
+}
+
+/** Upload bytes directly to S3. */
+export async function putObject(
+  key: string,
+  body: Uint8Array,
+  contentType: string
+): Promise<void> {
+  const cmd = new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+    Body: body,
+    ContentType: contentType,
+  });
+  await getS3().send(cmd);
+}
+
+/** Hard-delete an object from S3. */
+export async function deleteObject(key: string): Promise<void> {
+  const cmd = new DeleteObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+  });
+  await getS3().send(cmd);
 }

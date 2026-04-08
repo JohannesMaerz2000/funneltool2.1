@@ -1,8 +1,9 @@
-import { Router, type Response } from "express";
+import { Router, raw, type Response } from "express";
 import { Readable } from "node:stream";
+import { randomUUID } from "node:crypto";
 import archiver from "archiver";
 import type { _Object } from "@aws-sdk/client-s3";
-import { listAllObjects, presignUrl, getObjectStream, PREFIX } from "../s3.js";
+import { listAllObjects, presignUrl, presignUploadUrl, getObjectStream, putObject, deleteObject, PREFIX } from "../s3.js";
 import { buildAssets, buildAssetSummary, groupBySubmission, isRawImagesKey } from "../parser.js";
 import {
   fetchSubmissionDetail,
@@ -21,6 +22,11 @@ type S3ObjectList = Awaited<ReturnType<typeof listAllObjects>>;
 let objectCache: { ts: number; data: S3ObjectList } | null = null;
 let groupCache: { objectTs: number; data: ReturnType<typeof groupBySubmission> } | null = null;
 const CACHE_TTL_MS = 5 * 60_000; // 5 minutes
+
+function invalidateS3Caches() {
+  objectCache = null;
+  groupCache = null;
+}
 
 async function getCachedObjects() {
   const now = Date.now();
@@ -69,6 +75,90 @@ function parseOptionalString(input: unknown): string | undefined {
   if (typeof input !== "string") return undefined;
   const trimmed = input.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function sanitizePathSegment(value: string): string {
+  return value
+    .trim()
+    .replace(/[^a-zA-Z0-9_-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function getFileExtension(fileName: string): string {
+  const idx = fileName.lastIndexOf(".");
+  if (idx === -1 || idx === fileName.length - 1) return "";
+  return fileName.slice(idx + 1).toLowerCase();
+}
+
+function normalizeCategory(category: string): string {
+  return category
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+type UploadTarget = "photos" | "papers";
+
+function isUploadTarget(value: string | undefined): value is UploadTarget {
+  return value === "photos" || value === "papers";
+}
+
+function folderForTarget(target: UploadTarget): string {
+  return target === "papers" ? "01_Fahrzeugpapiere" : "02_Fahrzeugfotos";
+}
+
+function inferExtension(fileName: string, contentType: string): string {
+  const fromName = getFileExtension(fileName);
+  if (fromName) return fromName;
+  const lowerType = contentType.toLowerCase();
+  if (lowerType === "image/jpeg") return "jpg";
+  if (lowerType === "image/png") return "png";
+  if (lowerType === "image/webp") return "webp";
+  if (lowerType === "application/pdf") return "pdf";
+  return "bin";
+}
+
+function nextUploadIndex(objects: _Object[]): number {
+  let maxIdx = -1;
+  for (const obj of objects) {
+    const key = obj.Key;
+    if (!key) continue;
+    const base = key.split("/").pop() ?? "";
+    const match = base.match(/^(\d+)_/);
+    if (!match) continue;
+    const idx = Number.parseInt(match[1], 10);
+    if (Number.isFinite(idx) && idx > maxIdx) maxIdx = idx;
+  }
+  return maxIdx + 1;
+}
+
+function buildUploadKey(input: {
+  vin?: string;
+  category: string;
+  fileName: string;
+  contentType: string;
+  target: UploadTarget;
+  nextIndex: number;
+}): string {
+  const vin = sanitizePathSegment(input.vin?.toUpperCase() ?? "unknown-vin") || "unknown-vin";
+  const vinSuffix = vin.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 4) || "vinx";
+  const category = normalizeCategory(input.category) || (input.target === "papers" ? "registration_document" : "exterior");
+  const ext = inferExtension(input.fileName, input.contentType);
+  const hash = randomUUID().replace(/-/g, "").slice(0, 8);
+  const folder = folderForTarget(input.target);
+  const filePart = `${input.nextIndex}_${category}_${hash}${vinSuffix}.${ext}`;
+  return `${PREFIX}${vin}/${folder}/${filePart}`;
+}
+
+function isSupportedImageContentType(contentType: string): boolean {
+  return /^image\/[a-z0-9.+-]+$/i.test(contentType);
+}
+
+function isSupportedPaperContentType(contentType: string): boolean {
+  return isSupportedImageContentType(contentType) || contentType.toLowerCase() === "application/pdf";
 }
 
 function parseBoundedInt(
@@ -226,6 +316,159 @@ submissionsRouter.post("/presign-batch", async (req, res) => {
   } catch (err) {
     console.error("[submissions] presign-batch error:", err);
     res.status(500).json({ error: "Failed to generate URLs", detail: String(err) });
+  }
+});
+
+/**
+ * POST /api/submissions/:id/upload-url
+ * Body: { fileName: string, contentType: string, category?: string }
+ * Returns: { key, uploadUrl }
+ */
+submissionsRouter.post("/:id/upload-url", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const fileName = parseOptionalString(req.body?.fileName);
+    const contentType = parseOptionalString(req.body?.contentType);
+    const category = parseOptionalString(req.body?.category) ?? "exterior";
+
+    if (!fileName || !contentType) {
+      res.status(400).json({ error: "fileName and contentType are required" });
+      return;
+    }
+    if (!isSupportedImageContentType(contentType)) {
+      res.status(400).json({ error: "Only image uploads are supported" });
+      return;
+    }
+
+    const upstream = await fetchSubmissionDetail(id);
+    const vin = isRecord(upstream.submission) ? asString(upstream.submission.vin) : undefined;
+    const objects = await getCachedObjects();
+    const groups = getCachedGroups(objects);
+    const caseInsensitiveGroups = buildCaseInsensitiveGroups(groups);
+    const existingObjects = resolveSubmissionObjects(groups, caseInsensitiveGroups, [id, vin]);
+    const nextIndex = nextUploadIndex(existingObjects);
+    const key = buildUploadKey({
+      vin,
+      category,
+      fileName,
+      contentType,
+      target: "photos",
+      nextIndex,
+    });
+    const uploadUrl = await presignUploadUrl(key, contentType);
+
+    // Bust object/group cache so newly uploaded images appear on the next fetch.
+    invalidateS3Caches();
+
+    res.json({ key, uploadUrl });
+  } catch (err) {
+    if (handleSellerApiError(res, err)) return;
+    console.error("[submissions] upload-url error:", err);
+    res.status(500).json({ error: "Failed to generate upload URL", detail: String(err) });
+  }
+});
+
+/**
+ * POST /api/submissions/:id/upload-complete
+ * Body: { key: string }
+ */
+submissionsRouter.post("/:id/upload-complete", async (req, res) => {
+  try {
+    const key = parseOptionalString(req.body?.key);
+    if (!key || !key.startsWith(PREFIX) || isRawImagesKey(key)) {
+      res.status(400).json({ error: "Invalid key" });
+      return;
+    }
+    invalidateS3Caches();
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("[submissions] upload-complete error:", err);
+    res.status(500).json({ error: "Failed to finalize upload", detail: String(err) });
+  }
+});
+
+/**
+ * POST /api/submissions/:id/upload-asset?fileName=<name>&category=<category>&target=photos|papers
+ * Body: raw bytes
+ */
+submissionsRouter.post("/:id/upload-asset", raw({ type: () => true, limit: "30mb" }), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const fileName = parseOptionalString(req.query.fileName) ?? "upload.jpg";
+    const category = parseOptionalString(req.query.category) ?? "exterior";
+    const targetRaw = parseOptionalString(req.query.target) ?? "photos";
+    const contentType = parseOptionalString(req.headers["content-type"]);
+    const body = req.body;
+    const target = isUploadTarget(targetRaw) ? targetRaw : "photos";
+
+    if (!contentType) {
+      res.status(400).json({ error: "Content-Type is required" });
+      return;
+    }
+    const isSupportedType =
+      target === "papers"
+        ? isSupportedPaperContentType(contentType)
+        : isSupportedImageContentType(contentType);
+    if (!isSupportedType) {
+      res.status(400).json({ error: target === "papers" ? "Papers must be image/* or application/pdf" : "Photos must be image/*" });
+      return;
+    }
+    if (!(body instanceof Buffer) || body.length === 0) {
+      res.status(400).json({ error: "Asset body is required" });
+      return;
+    }
+
+    const upstream = await fetchSubmissionDetail(id);
+    const vin = isRecord(upstream.submission) ? asString(upstream.submission.vin) : undefined;
+    const objects = await getCachedObjects();
+    const groups = getCachedGroups(objects);
+    const caseInsensitiveGroups = buildCaseInsensitiveGroups(groups);
+    const existingObjects = resolveSubmissionObjects(groups, caseInsensitiveGroups, [id, vin]);
+    const nextIndex = nextUploadIndex(existingObjects);
+    const key = buildUploadKey({ vin, category, fileName, contentType, target, nextIndex });
+
+    await putObject(key, body, contentType);
+    invalidateS3Caches();
+
+    res.json({ key });
+  } catch (err) {
+    if (handleSellerApiError(res, err)) return;
+    console.error("[submissions] upload-asset error:", err);
+    res.status(500).json({ error: "Failed to upload asset", detail: String(err) });
+  }
+});
+
+/**
+ * DELETE /api/submissions/:id/asset?key=<s3key>
+ */
+submissionsRouter.delete("/:id/asset", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const key = parseOptionalString(req.query.key) ?? parseOptionalString(req.body?.key);
+    if (!key || !key.startsWith(PREFIX) || isRawImagesKey(key)) {
+      res.status(400).json({ error: "Invalid key" });
+      return;
+    }
+
+    const upstream = await fetchSubmissionDetail(id);
+    const vin = isRecord(upstream.submission) ? asString(upstream.submission.vin) : undefined;
+    const objects = await getCachedObjects();
+    const groups = getCachedGroups(objects);
+    const caseInsensitiveGroups = buildCaseInsensitiveGroups(groups);
+    const allowedObjects = resolveSubmissionObjects(groups, caseInsensitiveGroups, [id, vin]);
+    const keyAllowed = allowedObjects.some((obj) => obj.Key === key);
+    if (!keyAllowed) {
+      res.status(403).json({ error: "Asset does not belong to this submission" });
+      return;
+    }
+
+    await deleteObject(key);
+    invalidateS3Caches();
+    res.json({ ok: true });
+  } catch (err) {
+    if (handleSellerApiError(res, err)) return;
+    console.error("[submissions] delete asset error:", err);
+    res.status(500).json({ error: "Failed to delete asset", detail: String(err) });
   }
 });
 

@@ -57,3 +57,81 @@ export async function batchPresignUrls(
   }
   return res.json();
 }
+
+export async function createSubmissionImageUploadUrl(input: {
+  submissionId: string;
+  fileName: string;
+  contentType: string;
+  category?: string;
+}): Promise<{ key: string; uploadUrl: string }> {
+  const res = await fetch(`/api/submissions/${encodeURIComponent(input.submissionId)}/upload-url`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fileName: input.fileName,
+      contentType: input.contentType,
+      category: input.category,
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+  }
+  return res.json() as Promise<{ key: string; uploadUrl: string }>;
+}
+
+export async function markSubmissionUploadComplete(submissionId: string, key: string): Promise<void> {
+  const res = await fetch(
+    `/api/submissions/${encodeURIComponent(submissionId)}/upload-complete`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key }),
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+  }
+}
+
+export async function uploadSubmissionAssetProxy(input: {
+  submissionId: string;
+  file: File;
+  target: "photos" | "papers";
+  category?: string;
+}): Promise<{ key: string }> {
+  const qs = new URLSearchParams({
+    fileName: input.file.name,
+    target: input.target,
+  });
+  if (input.category) qs.set("category", input.category);
+
+  const res = await fetch(
+    `/api/submissions/${encodeURIComponent(input.submissionId)}/upload-asset?${qs}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": input.file.type || (input.target === "papers" ? "application/pdf" : "image/jpeg") },
+      body: input.file,
+    }
+  );
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+  }
+
+  return res.json() as Promise<{ key: string }>;
+}
+
+export async function deleteSubmissionAsset(submissionId: string, key: string): Promise<void> {
+  const qs = new URLSearchParams({ key });
+  const res = await fetch(`/api/submissions/${encodeURIComponent(submissionId)}/asset?${qs}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+  }
+}
