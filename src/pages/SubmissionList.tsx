@@ -2,6 +2,7 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { batchPresignUrls, listSubmissions } from "../api/client";
+import { badgeTone, ui } from "../components/ui";
 import type { CaseSummary } from "../types/submission";
 
 function formatDate(iso: string) {
@@ -27,13 +28,13 @@ function toEndOfDayIso(date: string): string | undefined {
 
 function SubmissionThumbnail({ url }: { url?: string }) {
   if (!url) {
-    return <div className="h-16 w-16 rounded-lg border border-slate-600 bg-slate-700/50" />;
+    return <div className="h-16 w-16 rounded-lg border border-zinc-700 bg-zinc-800/70" />;
   }
   return (
     <img
       src={url}
       alt="Submission thumbnail"
-      className="h-16 w-16 rounded-lg border border-slate-600 object-cover"
+      className="h-16 w-16 rounded-lg border border-zinc-700 object-cover"
       loading="lazy"
     />
   );
@@ -41,53 +42,36 @@ function SubmissionThumbnail({ url }: { url?: string }) {
 
 function SyncBadge({ status }: { status?: string | null }) {
   const normalized = status?.toLowerCase();
-  const style =
+  const tone =
     normalized === "completed"
-      ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/50 border border-emerald-400/30"
+      ? "success"
       : normalized === "pending"
-        ? "bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/50 border border-amber-400/30"
+        ? "warn"
         : normalized === "failed"
-          ? "bg-red-500/20 text-red-300 ring-1 ring-red-400/50 border border-red-400/30"
-          : "bg-slate-600/40 text-slate-300 ring-1 ring-slate-500/50 border border-slate-500/30";
+          ? "danger"
+          : "neutral";
+
   return (
-    <span className={`inline-flex rounded-lg px-3 py-1.5 text-sm font-bold ${style}`}>
+    <span className={`${ui.badge} ${badgeTone(tone)}`}>
       {status ?? "unknown"}
     </span>
   );
 }
 
-// CaseRow from the server is now used directly as CaseSummary
-
 function CaseIntakeBadge({ hasM1, hasM15 }: { hasM1: boolean; hasM15: boolean }) {
   if (hasM1 && hasM15) {
-    return (
-      <span className="inline-flex rounded-lg bg-emerald-500/20 px-3 py-1.5 text-sm font-bold text-emerald-300 ring-1 ring-emerald-400/50 border border-emerald-400/30">
-        M1 + M1.5
-      </span>
-    );
+    return <span className={`${ui.badge} ${badgeTone("success")}`}>M1 + M1.5</span>;
   }
 
   if (hasM15) {
-    return (
-      <span className="inline-flex rounded-lg bg-emerald-500/20 px-3 py-1.5 text-sm font-bold text-emerald-300 ring-1 ring-emerald-400/50 border border-emerald-400/30">
-        M1.5
-      </span>
-    );
+    return <span className={`${ui.badge} ${badgeTone("success")}`}>M1.5</span>;
   }
 
   if (hasM1) {
-    return (
-      <span className="inline-flex rounded-lg bg-cyan-500/20 px-3 py-1.5 text-sm font-bold text-cyan-300 ring-1 ring-cyan-400/50 border border-cyan-400/30">
-        M1
-      </span>
-    );
+    return <span className={`${ui.badge} ${badgeTone("success")}`}>M1</span>;
   }
 
-  return (
-    <span className="inline-flex rounded-lg bg-slate-600/40 px-3 py-1.5 text-sm font-bold text-slate-300 ring-1 ring-slate-500/50 border border-slate-500/30">
-      unknown
-    </span>
-  );
+  return <span className={`${ui.badge} ${badgeTone("neutral")}`}>unknown</span>;
 }
 
 export default function SubmissionList() {
@@ -172,123 +156,118 @@ export default function SubmissionList() {
     <div>
       <div className="mb-8 flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-white">Submissions</h1>
-          <p className="mt-2 text-lg text-slate-400">VIN-grouped cases (M1 + M1.5)</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-100">Submissions</h1>
+          <p className="mt-2 text-base text-zinc-400">VIN-grouped cases (M1 + M1.5)</p>
         </div>
-        {data && (
-          <span className="rounded-lg border border-emerald-400/30 bg-emerald-500/20 px-4 py-2 text-base font-bold text-emerald-300 shadow-lg">
-            {data.total} cases found
-          </span>
-        )}
+        {data && <span className={`${ui.badge} ${badgeTone("info")}`}>{data.total} cases found</span>}
       </div>
 
-      <div className="mb-6 flex flex-wrap items-end gap-4 rounded-lg border border-slate-700 bg-slate-800/40 p-6 shadow-lg">
-        <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-          Search (VIN or Deal ID)
-          <input
-            type="search"
-            placeholder="Filter by VIN or Deal ID..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              handleFilterChange();
-            }}
-            className="w-72 rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2.5 text-base normal-case tracking-normal text-slate-100 placeholder-slate-500 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
-          />
-        </label>
+      <div className={`${ui.card} mb-6 p-6`}>
+        <div className="flex flex-wrap items-end gap-4">
+          <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            Search (VIN or Deal ID)
+            <input
+              type="search"
+              placeholder="Filter by VIN or Deal ID..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                handleFilterChange();
+              }}
+              className={`${ui.input} w-72 normal-case tracking-normal`}
+            />
+          </label>
 
-        <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-          From
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => {
-              setFromDate(e.target.value);
-              handleFilterChange();
-            }}
-            className="rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2.5 text-base normal-case tracking-normal text-slate-100 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
-          />
-        </label>
+          <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            From
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => {
+                setFromDate(e.target.value);
+                handleFilterChange();
+              }}
+              className={`${ui.input} normal-case tracking-normal`}
+            />
+          </label>
 
-        <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-          To
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => {
-              setToDate(e.target.value);
-              handleFilterChange();
-            }}
-            className="rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2.5 text-base normal-case tracking-normal text-slate-100 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
-          />
-        </label>
+          <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            To
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => {
+                setToDate(e.target.value);
+                handleFilterChange();
+              }}
+              className={`${ui.input} normal-case tracking-normal`}
+            />
+          </label>
 
-        <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-          Page size
-          <select
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              handleFilterChange();
-            }}
-            className="rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2.5 text-base normal-case tracking-normal text-slate-100 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
-          >
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-        </label>
+          <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            Page size
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                handleFilterChange();
+              }}
+              className={`${ui.input} normal-case tracking-normal`}
+            >
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </label>
 
-        {(search || fromDate || toDate || pageSize !== 20) && (
-          <button
-            onClick={clearFilters}
-            className="mb-1 text-base font-bold text-emerald-400 hover:text-emerald-300 transition"
-          >
-            Clear
-          </button>
-        )}
+          {(search || fromDate || toDate || pageSize !== 20) && (
+            <button onClick={clearFilters} className="mb-1 text-sm font-semibold text-zinc-300 hover:text-zinc-100">
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
       {isLoading && (
-        <div className="flex items-center gap-2 py-12 text-slate-400">
-          <span className="animate-spin text-2xl">⟳</span> Loading submissions...
+        <div className="flex items-center gap-2 py-12 text-zinc-400">
+          <span className="animate-spin text-xl">⟳</span> Loading submissions...
         </div>
       )}
 
       {isError && (
-        <div className="rounded-lg border border-red-600/40 bg-red-900/20 p-6 text-base text-red-300">
-          <strong>Error loading submissions:</strong>{" "}
-          {error instanceof Error ? error.message : "Unknown error"}
+        <div className="rounded-xl border border-rose-900/70 bg-rose-900/20 p-6 text-base text-rose-200">
+          <strong>Error loading submissions:</strong> {error instanceof Error ? error.message : "Unknown error"}
         </div>
       )}
 
       {data && caseRows.length === 0 && !isLoading && (
-        <p className="py-12 text-center text-lg text-slate-400">No submissions match your filters.</p>
+        <p className="py-12 text-center text-base text-zinc-400">No submissions match your filters.</p>
       )}
 
       {data && caseRows.length > 0 && (
         <div className="relative">
           {isFetching && !isLoading && (
-            <div className="absolute right-0 top-0 py-2 text-sm text-slate-500">refreshing...</div>
+            <div className="absolute right-0 top-0 py-2 text-sm text-zinc-500">Refreshing...</div>
           )}
-          <div className="overflow-x-auto rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg">
-            <table className="min-w-full text-base">
-              <thead className="border-b border-slate-700 bg-slate-800/60">
+
+          <div className={`${ui.card} overflow-x-auto`}>
+            <table className="min-w-full text-sm">
+              <thead className="border-b border-zinc-800 bg-zinc-900/90">
                 <tr>
-                  <th className="px-6 py-4 text-left font-bold text-slate-300">Thumbnail</th>
-                  <th className="px-6 py-4 text-left font-bold text-slate-300">VIN</th>
-                  <th className="px-6 py-4 text-left font-bold text-slate-300">Forms</th>
-                  <th className="px-6 py-4 text-left font-bold text-slate-300">Sync</th>
-                  <th className="px-6 py-4 text-left font-bold text-slate-300">Updated</th>
-                  <th className="px-6 py-4 text-left font-bold text-slate-300">Deal</th>
-                  <th className="px-6 py-4 text-left font-bold text-slate-300">Assets</th>
+                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Thumbnail</th>
+                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">VIN</th>
+                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Forms</th>
+                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Sync</th>
+                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Updated</th>
+                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Deal</th>
+                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Assets</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-700">
+              <tbody className="divide-y divide-zinc-800">
                 {caseRows.map((row, idx) => (
                   <tr
                     key={row.caseKey}
-                    className={`cursor-pointer transition hover:bg-slate-700/40 ${idx % 2 === 0 ? "bg-slate-800/20" : "bg-slate-800/40"}`}
+                    className={`cursor-pointer transition hover:bg-zinc-800 ${idx % 2 === 0 ? "bg-zinc-900/50" : "bg-zinc-900/20"}`}
                     onClick={() => navigate(`/submissions/${encodeURIComponent(row.openId)}`)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
@@ -301,16 +280,16 @@ export default function SubmissionList() {
                     <td className="px-6 py-4">
                       <SubmissionThumbnail url={thumbnailUrlMap.get(row.openId)} />
                     </td>
-                    <td className="px-6 py-4 font-mono text-sm text-slate-300">{row.vin ?? "N/A"}</td>
+                    <td className="px-6 py-4 font-mono text-xs text-zinc-300">{row.vin ?? "N/A"}</td>
                     <td className="px-6 py-4">
                       <CaseIntakeBadge hasM1={!!row.m1} hasM15={!!row.m15} />
                     </td>
                     <td className="px-6 py-4">
                       <SyncBadge status={row.pipedriveSyncStatus} />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-300">{formatDate(row.updatedAt)}</td>
-                    <td className="px-6 py-4 text-slate-300">{row.pipedriveDealId ?? "N/A"}</td>
-                    <td className="px-6 py-4 text-slate-300 font-semibold">{row.assetCount}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-zinc-300">{formatDate(row.updatedAt)}</td>
+                    <td className="px-6 py-4 text-zinc-300">{row.pipedriveDealId ?? "N/A"}</td>
+                    <td className="px-6 py-4 font-semibold text-zinc-300">{row.assetCount}</td>
                   </tr>
                 ))}
               </tbody>
@@ -318,22 +297,22 @@ export default function SubmissionList() {
           </div>
 
           {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-between text-base">
-              <span className="text-slate-400">
-                Page <span className="font-bold text-white">{page}</span> of <span className="font-bold text-white">{totalPages}</span>
+            <div className="mt-6 flex items-center justify-between text-sm">
+              <span className="text-zinc-400">
+                Page <span className="font-semibold text-zinc-100">{page}</span> of <span className="font-semibold text-zinc-100">{totalPages}</span>
               </span>
               <div className="flex gap-3">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="rounded-lg border border-slate-600 bg-slate-800/50 px-4 py-2.5 font-bold text-slate-300 transition hover:border-emerald-400 hover:bg-slate-700 hover:text-slate-100 disabled:opacity-40"
+                  className={`${ui.button} disabled:cursor-not-allowed disabled:opacity-40`}
                 >
                   ← Prev
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="rounded-lg border border-slate-600 bg-slate-800/50 px-4 py-2.5 font-bold text-slate-300 transition hover:border-emerald-400 hover:bg-slate-700 hover:text-slate-100 disabled:opacity-40"
+                  className={`${ui.button} disabled:cursor-not-allowed disabled:opacity-40`}
                 >
                   Next →
                 </button>

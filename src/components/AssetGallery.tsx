@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Asset } from "../types/submission";
 import { batchPresignUrls } from "../api/client";
+import { ui } from "./ui";
 
 function fileName(key: string) {
   return key.split("/").pop() ?? key;
@@ -137,9 +138,9 @@ function buildCategoryStats(assets: Asset[]): CategoryStat[] {
 function PdfIcon() {
   return (
     <svg viewBox="0 0 64 72" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-12 h-12">
-      <rect x="4" y="2" width="46" height="58" rx="5" fill="#334155" stroke="#475569" strokeWidth="2" />
-      <path d="M34 2v14a4 4 0 004 4h14" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
-      <rect x="10" y="40" width="44" height="24" rx="4" fill="#ef4444" />
+      <rect x="4" y="2" width="46" height="58" rx="5" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+      <path d="M34 2v14a4 4 0 004 4h14" stroke="#334155" strokeWidth="2" strokeLinecap="round" />
+      <rect x="10" y="40" width="44" height="24" rx="4" fill="#1e293b" />
       <text x="32" y="57" textAnchor="middle" fill="white" fontSize="11" fontWeight="700" fontFamily="system-ui, sans-serif">PDF</text>
     </svg>
   );
@@ -160,11 +161,11 @@ function ImageThumb({
 
   return (
     <div
-      className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg border border-slate-600 bg-slate-700/50 shadow-md transition hover:border-emerald-400 hover:shadow-lg"
+      className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900/70 shadow-md transition hover:border-zinc-500 hover:shadow-lg"
       onClick={() => url && onClick(url, name)}
     >
       {!url && (
-        <div className="absolute inset-0 flex items-center justify-center text-slate-500 text-sm">
+        <div className="absolute inset-0 flex items-center justify-center text-zinc-500 text-sm">
           Loading…
         </div>
       )}
@@ -206,21 +207,21 @@ function PdfThumb({
 
   return (
     <button
-      className="flex flex-col items-center gap-3 rounded-lg border border-slate-600 bg-slate-800/50 p-4 shadow-md transition hover:border-emerald-400 hover:shadow-lg hover:bg-slate-800/70 cursor-pointer disabled:cursor-wait disabled:opacity-60 text-left w-full"
+      className="flex w-full cursor-pointer flex-col items-center gap-3 rounded-lg border border-zinc-700 bg-zinc-900/70 p-4 text-left shadow-md transition hover:border-zinc-500 hover:bg-zinc-900 disabled:cursor-wait disabled:opacity-60"
       onClick={() => url && onClick(url, name)}
       disabled={!url}
       title={name}
     >
       <div className="flex items-center justify-center w-full py-2">
         {!url ? (
-          <div className="w-12 h-12 rounded bg-slate-700 animate-pulse" />
+          <div className="w-12 h-12 rounded bg-zinc-700 animate-pulse" />
         ) : (
           <PdfIcon />
         )}
       </div>
-      <span className="text-sm text-slate-200 font-semibold truncate w-full text-center">{name}</span>
+      <span className="text-sm text-zinc-200 font-semibold truncate w-full text-center">{name}</span>
       {asset.size != null && (
-        <span className="text-xs text-slate-500">{formatSize(asset.size)}</span>
+        <span className="text-xs text-zinc-500">{formatSize(asset.size)}</span>
       )}
     </button>
   );
@@ -236,12 +237,12 @@ function AssetItem({
   const icon = asset.type === "document" ? "📄" : "📎";
 
   return (
-    <div className="flex items-center gap-4 rounded-lg border border-slate-600 bg-slate-800/50 px-4 py-3 shadow-md transition hover:border-emerald-400 hover:shadow-lg hover:bg-slate-800/70">
+    <div className="flex items-center gap-4 rounded-lg border border-zinc-700 bg-zinc-900/70 px-4 py-3 shadow-md transition hover:border-zinc-500 hover:bg-zinc-900">
       <span className="text-2xl leading-none">{icon}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-base font-semibold truncate text-slate-100">{fileName(asset.key)}</p>
+        <p className="text-base font-semibold truncate text-zinc-100">{fileName(asset.key)}</p>
         {asset.size != null && (
-          <p className="text-sm text-slate-500">{formatSize(asset.size)}</p>
+          <p className="text-sm text-zinc-500">{formatSize(asset.size)}</p>
         )}
       </div>
       {url ? (
@@ -249,12 +250,12 @@ function AssetItem({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-sm font-bold text-emerald-400 hover:text-emerald-300 hover:underline transition"
+          className="shrink-0 text-sm font-semibold text-zinc-300 transition hover:text-zinc-100 hover:underline"
         >
           Open ↗
         </a>
       ) : (
-        <span className="shrink-0 text-sm text-slate-500">Loading…</span>
+        <span className="shrink-0 text-sm text-zinc-500">Loading…</span>
       )}
     </div>
   );
@@ -266,19 +267,19 @@ function PdfPopout({ url, name, onClose }: { url: string; name: string; onClose:
       className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div
-        className="flex flex-col w-full max-w-5xl h-[90vh] rounded-lg overflow-hidden shadow-2xl bg-slate-900"
+        <div
+        className={`${ui.card} flex h-[90vh] w-full max-w-5xl flex-col shadow-2xl`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-700 bg-slate-800 shrink-0">
+        <div className="flex shrink-0 items-center gap-3 border-b border-zinc-800 bg-zinc-900 px-5 py-4">
           <PdfIcon />
-          <span className="flex-1 text-base font-semibold text-slate-100 truncate">{name}</span>
+          <span className="flex-1 text-base font-semibold text-zinc-100 truncate">{name}</span>
           <a
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-slate-400 hover:text-slate-200 transition shrink-0"
+            className="text-zinc-400 hover:text-zinc-200 transition shrink-0"
             title="Open in new tab"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
@@ -287,7 +288,7 @@ function PdfPopout({ url, name, onClose }: { url: string; name: string; onClose:
             </svg>
           </a>
           <button
-            className="text-slate-400 hover:text-slate-200 transition shrink-0"
+            className="text-zinc-400 hover:text-zinc-200 transition shrink-0"
             onClick={onClose}
             aria-label="Close"
           >
@@ -405,9 +406,9 @@ export default function AssetGallery({
             {categoryStats.map((row) => (
               <span
                 key={row.category}
-                className="inline-flex items-center rounded-lg border border-slate-600 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-200 shadow-md"
+                className="inline-flex items-center rounded-lg border border-zinc-700 bg-zinc-900/80 px-4 py-2 text-sm font-semibold text-zinc-200 shadow-md"
               >
-                {row.category}: <span className="ml-2 font-bold text-emerald-400">{row.total}</span>
+                {row.category}: <span className="ml-2 font-bold text-zinc-300">{row.total}</span>
               </span>
             ))}
           </div>
@@ -417,11 +418,11 @@ export default function AssetGallery({
       {images.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-slate-300">Images</h4>
+            <h4 className="text-sm font-bold uppercase tracking-wider text-zinc-300">Images</h4>
             <a
               href={`/api/submissions/${encodeURIComponent(submissionId)}/download-all`}
               download
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-800/50 px-4 py-2 text-sm font-bold text-slate-300 shadow-md transition hover:border-emerald-400 hover:text-emerald-300 hover:bg-slate-800/70"
+              className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900/80 px-4 py-2 text-sm font-semibold text-zinc-300 shadow-md transition hover:border-zinc-500 hover:text-zinc-100 hover:bg-zinc-900"
             >
               <DownloadIcon className="w-4 h-4" />
               Download All (.zip)
@@ -443,7 +444,7 @@ export default function AssetGallery({
 
       {pdfs.length > 0 && (
         <div>
-          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-300">PDFs</h4>
+          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-zinc-300">PDFs</h4>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
             {pdfs.map((a) => (
               <PdfThumb
@@ -459,7 +460,7 @@ export default function AssetGallery({
 
       {docs.length > 0 && (
         <div>
-          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-300">Documents</h4>
+          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-zinc-300">Documents</h4>
           <div className="flex flex-col gap-2">
             {docs.map((a) => (
               <AssetItem key={a.key} asset={a} url={urlMap.get(a.key)} />
@@ -470,7 +471,7 @@ export default function AssetGallery({
 
       {others.length > 0 && (
         <div>
-          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-300">Other files</h4>
+          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-zinc-300">Other files</h4>
           <div className="flex flex-col gap-2">
             {others.map((a) => (
               <AssetItem key={a.key} asset={a} url={urlMap.get(a.key)} />

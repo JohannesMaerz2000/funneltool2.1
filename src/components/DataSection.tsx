@@ -1,3 +1,5 @@
+import { ui } from "./ui";
+
 /** Renders an arbitrary Record<string, unknown> as a key-value table. */
 export default function DataSection({
   title,
@@ -53,18 +55,18 @@ export default function DataSection({
 
   return (
     <div>
-      <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-slate-700 pb-3">
+      <h3 className={`mb-4 border-b border-zinc-800 pb-3 ${ui.sectionTitle}`}>
         {title}
       </h3>
-      <div className="overflow-x-auto rounded-lg border border-slate-700 bg-slate-800/50 shadow-lg">
+      <div className={`${ui.card} overflow-x-auto`}>
         <table className="min-w-full text-sm">
-          <tbody className="divide-y divide-slate-700">
+          <tbody className="divide-y divide-zinc-800">
             {rows.map((row, idx) => (
-              <tr key={row.key} className={idx % 2 === 0 ? "bg-slate-800/30" : "bg-slate-800/50"}>
-                <td className="w-1/3 whitespace-nowrap px-4 py-3 font-semibold text-slate-300">
+              <tr key={row.key} className={idx % 2 === 0 ? "bg-zinc-900/40" : "bg-zinc-900/10"}>
+                <td className="w-1/3 whitespace-nowrap px-4 py-3 font-semibold text-zinc-300">
                   {row.key}
                 </td>
-                <td className="break-all px-4 py-3 text-slate-100">
+                <td className="break-all px-4 py-3 text-zinc-100">
                   {row.value}
                 </td>
               </tr>

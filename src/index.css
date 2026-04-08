@@ -4,12 +4,13 @@
 
 @layer base {
   :root {
-    --brand: 62 192 153;
-    --brand-soft: 232 248 242;
-    --ink: 17 24 39;
-    --muted: 107 114 128;
-    --line: 229 231 235;
-    --page: 246 248 247;
+    --page: 2 6 23;
+    --surface: 15 23 42;
+    --surface-elevated: 17 24 39;
+    --line: 51 65 85;
+    --text: 226 232 240;
+    --muted: 148 163 184;
+    --accent: 148 163 184;
   }
 
   html,
@@ -19,10 +20,65 @@
   }
 
   body {
-    @apply antialiased text-gray-900;
+    @apply antialiased text-zinc-200;
     background:
-      radial-gradient(circle at 0% 0%, rgba(var(--brand), 0.12), transparent 38%),
-      radial-gradient(circle at 100% 0%, rgba(var(--brand), 0.08), transparent 30%),
+      radial-gradient(circle at 0% 0%, rgba(14, 116, 144, 0.12), transparent 34%),
+      radial-gradient(circle at 100% 0%, rgba(5, 150, 105, 0.1), transparent 28%),
+      radial-gradient(circle at 50% 100%, rgba(217, 119, 6, 0.07), transparent 30%),
       rgb(var(--page));
+  }
+}
+
+@layer components {
+  .ui-page {
+    @apply min-h-screen bg-zinc-950 text-zinc-100;
+  }
+
+  .ui-card {
+    @apply overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/70 shadow-lg;
+  }
+
+  .ui-card-header {
+    @apply border-b border-zinc-800 bg-zinc-900/70 px-6 py-5;
+  }
+
+  .ui-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500;
+  }
+
+  .ui-section-title {
+    @apply text-sm font-semibold uppercase tracking-[0.14em] text-zinc-400;
+  }
+
+  .ui-input {
+    @apply rounded-lg border border-zinc-700 bg-zinc-900/70 px-4 py-2.5 text-base text-zinc-100 placeholder-zinc-500 transition focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/25;
+  }
+
+  .ui-button {
+    @apply rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800;
+  }
+
+  .ui-badge {
+    @apply inline-flex items-center rounded-full border px-3 py-1.5 text-sm font-semibold;
+  }
+
+  .ui-badge-neutral {
+    @apply border-zinc-700 bg-zinc-800/80 text-zinc-300;
+  }
+
+  .ui-badge-info {
+    @apply border-sky-900/70 bg-sky-950/30 text-sky-100;
+  }
+
+  .ui-badge-success {
+    @apply border-emerald-900/70 bg-emerald-950/30 text-emerald-100;
+  }
+
+  .ui-badge-warn {
+    @apply border-amber-900/70 bg-amber-950/30 text-amber-100;
+  }
+
+  .ui-badge-danger {
+    @apply border-rose-900/70 bg-rose-950/30 text-rose-100;
   }
 }
