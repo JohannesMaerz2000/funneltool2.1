@@ -1,5 +1,4 @@
 const DEFAULT_BASE_URL = "http://api.release.seller.aampere.com";
-const DEFAULT_DEV_API_KEY = "ft_akey_fa5a140ae49341695a1f739fd35931a4";
 
 export interface SellerSubmissionListItem {
   id: string;
@@ -58,18 +57,29 @@ function getSellerApiBaseUrl(): string {
     : `${normalizedBaseUrl}/api/v1`;
 }
 
-function getSellerApiKey(): string {
+function getSellerApiKey(): string | null {
   return (
     process.env.SELLER_API_KEY?.trim() ||
     process.env.FUNNELTOOL_SELLER_API_KEY?.trim() ||
-    DEFAULT_DEV_API_KEY
+    null
   );
+}
+
+export function validateSellerApiEnv(): void {
+  if (!getSellerApiKey()) {
+    throw new Error(
+      "Missing Seller API key. Set SELLER_API_KEY (preferred) or FUNNELTOOL_SELLER_API_KEY."
+    );
+  }
 }
 
 async function sellerFetch<T>(path: string, searchParams?: URLSearchParams): Promise<T> {
   const apiKey = getSellerApiKey();
   if (!apiKey) {
-    throw new SellerApiError("Missing seller API key", 500);
+    throw new SellerApiError(
+      "Missing Seller API key. Set SELLER_API_KEY (preferred) or FUNNELTOOL_SELLER_API_KEY.",
+      500
+    );
   }
 
   const qs = searchParams && [...searchParams.keys()].length > 0

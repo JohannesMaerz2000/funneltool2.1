@@ -4,6 +4,7 @@ import { resolve } from "path";
 import express from "express";
 import cors from "cors";
 import { submissionsRouter } from "./routes/submissions.js";
+import { validateSellerApiEnv } from "./sellerApi.js";
 
 // Load .env.aws if present
 const envAwsPath = resolve(process.cwd(), ".env.aws");
@@ -19,6 +20,8 @@ if (existsSync(envAwsPath)) {
     if (key && !process.env[key]) process.env[key] = value;
   }
 }
+
+validateSellerApiEnv();
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;

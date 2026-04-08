@@ -199,31 +199,33 @@ function ImageThumb({
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
           <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
               <span className="truncate text-[10px] font-black uppercase tracking-widest text-white/90">
                 {category}
               </span>
-              <button
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/40"
-                title={`Download ${name}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  downloadAsset(submissionId, asset.key);
-                }}
-              >
-                <DownloadIcon className="h-4 w-4" />
-              </button>
-              <button
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/30 text-white backdrop-blur-md transition-colors hover:bg-rose-500/60 disabled:cursor-not-allowed disabled:opacity-60"
-                title={`Delete ${name}`}
-                disabled={isDeleting}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(asset.key);
-                }}
-              >
-                <TrashIcon className="h-4 w-4" />
-              </button>
+              <div className="ml-auto flex items-center gap-2">
+                <button
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/40"
+                  title={`Download ${name}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    downloadAsset(submissionId, asset.key);
+                  }}
+                >
+                  <DownloadIcon className="h-4 w-4" />
+                </button>
+                <button
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-500/30 text-white backdrop-blur-md transition-colors hover:bg-rose-500/60 disabled:cursor-not-allowed disabled:opacity-60"
+                  title={`Delete ${name}`}
+                  disabled={isDeleting}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(asset.key);
+                  }}
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </>
@@ -568,7 +570,7 @@ export default function AssetGallery({
                     {catImages.length} shots
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {catImages.map((a) => (
                     <ImageThumb
                       key={a.key}
