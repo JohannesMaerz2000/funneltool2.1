@@ -18,16 +18,23 @@ function getS3(): S3Client {
   if (!_s3) {
     const region =
       process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION ?? "eu-central-1";
-    _s3 = new S3Client({
-      region,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-        ...(process.env.AWS_SESSION_TOKEN
-          ? { sessionToken: process.env.AWS_SESSION_TOKEN }
-          : {}),
-      },
-    });
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID?.trim();
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY?.trim();
+    const sessionToken = process.env.AWS_SESSION_TOKEN?.trim();
+
+    // Prefer explicit credentials when provided (local/dev), otherwise use
+    // the default AWS credential provider chain (e.g. App Runner instance role).
+    _s3 =
+      accessKeyId && secretAccessKey
+        ? new S3Client({
+            region,
+            credentials: {
+              accessKeyId,
+              secretAccessKey,
+              ...(sessionToken ? { sessionToken } : {}),
+            },
+          })
+        : new S3Client({ region });
   }
   return _s3;
 }
