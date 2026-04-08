@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = "https://api-dev.release.seller.aampere.com/api/v1";
+const DEFAULT_BASE_URL = "http://api.release.seller.aampere.com";
 const DEFAULT_DEV_API_KEY = "ft_akey_fa5a140ae49341695a1f739fd35931a4";
 
 export interface SellerSubmissionListItem {
@@ -51,7 +51,11 @@ export class SellerApiError extends Error {
 }
 
 function getSellerApiBaseUrl(): string {
-  return process.env.SELLER_API_BASE_URL?.trim() || DEFAULT_BASE_URL;
+  const configuredBaseUrl = process.env.SELLER_API_BASE_URL?.trim() || DEFAULT_BASE_URL;
+  const normalizedBaseUrl = configuredBaseUrl.replace(/\/+$/, "");
+  return normalizedBaseUrl.endsWith("/api/v1")
+    ? normalizedBaseUrl
+    : `${normalizedBaseUrl}/api/v1`;
 }
 
 function getSellerApiKey(): string {

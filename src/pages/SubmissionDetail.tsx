@@ -121,47 +121,41 @@ function resolveAssetForFragment(fragment: string, assets: Asset[]): Asset | und
 }
 
 
-function ComparisonBadge({
-  label,
-  userValue,
-  datValue,
+function AuditTable({
+  items,
 }: {
-  label: string;
-  userValue: string;
-  datValue: string;
+  items: Array<{ label: string; userValue: string; datValue: string }>;
 }) {
-  const match = userValue.toLowerCase() === datValue.toLowerCase();
-  const colorClass = match
-    ? "bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 ring-emerald-400/30"
-    : "bg-red-500/20 text-red-200 border border-red-500/40 ring-red-400/30";
-
   return (
-    <div className={`flex items-center justify-between rounded-lg px-5 py-4 ring-1 shadow-md ${colorClass}`}>
-      <div>
-        <p className="text-xs font-bold uppercase tracking-wider opacity-70 mb-2">{label}</p>
-        <div className="flex items-center gap-3">
-          {match ? (
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs text-white font-bold">
-              ✓
-            </span>
-          ) : (
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white font-bold">
-              !
-            </span>
-          )}
-          <span className="text-base font-bold">{match ? "Data Match" : "Data Mismatch"}</span>
-        </div>
-      </div>
-      <div className="flex gap-5 items-center">
-        <div className="text-right">
-          <p className="text-xs opacity-70 uppercase font-bold">User</p>
-          <p className="text-base font-bold text-slate-100">{userValue}</p>
-        </div>
-        <div className="text-right border-l border-current/20 pl-5">
-          <p className="text-xs opacity-70 uppercase font-bold">DAT</p>
-          <p className="text-base font-bold text-slate-100">{datValue}</p>
-        </div>
-      </div>
+    <div className="overflow-hidden rounded-lg border border-slate-700">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="bg-slate-800/60 text-xs font-bold uppercase tracking-wider text-slate-400">
+            <th className="px-4 py-2.5 text-left">Field</th>
+            <th className="px-4 py-2.5 text-left">User</th>
+            <th className="px-4 py-2.5 text-left">DAT</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-700/50">
+          {items.map((item) => {
+            const match = item.userValue.toLowerCase() === item.datValue.toLowerCase();
+            return (
+              <tr
+                key={item.label}
+                className={match ? "bg-emerald-500/10" : "bg-red-500/10"}
+              >
+                <td className="px-4 py-2 font-medium text-slate-200">{item.label}</td>
+                <td className={`px-4 py-2 font-mono ${match ? "text-emerald-300" : "text-red-300"}`}>
+                  {item.userValue}
+                </td>
+                <td className={`px-4 py-2 font-mono ${match ? "text-emerald-300" : "text-red-300"}`}>
+                  {item.datValue}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -240,23 +234,7 @@ function DataAuditSection({
     });
   }
 
-  return (
-    <div className="mb-8">
-      <h3 className="mb-5 text-lg font-bold uppercase tracking-wider text-slate-200 border-b border-slate-700 pb-3">
-        Data Audit & Comparison
-      </h3>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {auditItems.map((item) => (
-          <ComparisonBadge
-            key={item.label}
-            label={item.label}
-            userValue={item.userValue}
-            datValue={item.datValue}
-          />
-        ))}
-      </div>
-    </div>
-  );
+  return <AuditTable items={auditItems} />;
 }
 
 
@@ -911,17 +889,13 @@ export default function SubmissionDetail() {
           <div className="lg:col-span-2 space-y-8">
             {/* Data Audit Section */}
             {vehicleConditionData && caseDat && (
-              <div className="rounded-lg border border-slate-700 bg-slate-800/40 shadow-lg overflow-hidden">
-                <div className="border-l-4 border-l-rose-500 bg-gradient-to-r from-rose-900/30 to-slate-800 px-6 py-5">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Data Audit & Comparison</p>
-                </div>
-                <div className="px-6 py-5">
-                  <DataAuditSection
-                    submissionData={vehicleConditionData}
-                    dat={caseDat}
-                    vinHistory={caseVinHistory}
-                  />
-                </div>
+              <div>
+                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">Data Audit & Comparison</p>
+                <DataAuditSection
+                  submissionData={vehicleConditionData}
+                  dat={caseDat}
+                  vinHistory={caseVinHistory}
+                />
               </div>
             )}
 

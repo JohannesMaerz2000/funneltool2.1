@@ -276,7 +276,6 @@ export default function SubmissionList() {
               <thead className="border-b border-slate-700 bg-slate-800/60">
                 <tr>
                   <th className="px-6 py-4 text-left font-bold text-slate-300">Thumbnail</th>
-                  <th className="px-6 py-4 text-left font-bold text-slate-300">Case ID</th>
                   <th className="px-6 py-4 text-left font-bold text-slate-300">VIN</th>
                   <th className="px-6 py-4 text-left font-bold text-slate-300">Forms</th>
                   <th className="px-6 py-4 text-left font-bold text-slate-300">Sync</th>
@@ -301,11 +300,6 @@ export default function SubmissionList() {
                   >
                     <td className="px-6 py-4">
                       <SubmissionThumbnail url={thumbnailUrlMap.get(row.openId)} />
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-mono text-sm font-bold text-emerald-400">
-                        {row.openId}
-                      </span>
                     </td>
                     <td className="px-6 py-4 font-mono text-sm text-slate-300">{row.vin ?? "N/A"}</td>
                     <td className="px-6 py-4">
