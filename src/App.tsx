@@ -1,9 +1,34 @@
+import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import SubmissionList from "./pages/SubmissionList";
 import SubmissionDetail from "./pages/SubmissionDetail";
+import Login from "./pages/Login";
 import { ui } from "./components/ui";
+import { onUnauthorized } from "./api/client";
 
 export default function App() {
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Check if we already have a valid session
+    fetch("/api/health").then((r) => {
+      // health is public, so check a protected endpoint instead
+      fetch("/api/submissions?pageSize=1").then((r2) => {
+        setAuthed(r2.ok);
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    return onUnauthorized(() => setAuthed(false));
+  }, []);
+
+  if (authed === null) return null; // loading
+
+  if (!authed) {
+    return <Login onSuccess={() => setAuthed(true)} />;
+  }
+
   return (
     <div className={ui.page}>
       <header className="sticky top-0 z-20 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">

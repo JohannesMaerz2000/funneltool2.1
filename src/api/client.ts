@@ -3,6 +3,13 @@ import type {
   SubmissionDetail,
 } from "../types/submission";
 
+// 401 listener — App.tsx uses this to show login screen
+let unauthorizedCb: (() => void) | null = null;
+export function onUnauthorized(cb: () => void) {
+  unauthorizedCb = cb;
+  return () => { unauthorizedCb = null; };
+}
+
 export interface ListParams {
   vin?: string;
   pipedriveDealId?: string;
@@ -15,6 +22,10 @@ export interface ListParams {
 
 async function apiFetch<T>(path: string): Promise<T> {
   const res = await fetch(path);
+  if (res.status === 401) {
+    unauthorizedCb?.();
+    throw new Error("Unauthorized");
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
