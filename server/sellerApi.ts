@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = "http://api.release.seller.aampere.com";
+const DEFAULT_BASE_URL = "http://api.seller.aampere.com/";
 
 export interface SellerSubmissionListItem {
   id: string;
@@ -107,9 +107,9 @@ async function sellerFetch<T>(path: string, searchParams?: URLSearchParams): Pro
   if (!res.ok) {
     const message =
       typeof parsedBody === "object" &&
-      parsedBody !== null &&
-      "error" in parsedBody &&
-      typeof (parsedBody as { error?: unknown }).error === "string"
+        parsedBody !== null &&
+        "error" in parsedBody &&
+        typeof (parsedBody as { error?: unknown }).error === "string"
         ? (parsedBody as { error: string }).error
         : `Seller API request failed with ${res.status}`;
     throw new SellerApiError(message, res.status, parsedBody);
