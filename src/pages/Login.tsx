@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { ui } from "../components/ui";
 
 export default function Login({ onSuccess }: { onSuccess: () => void }) {
   const [error, setError] = useState("");
@@ -31,14 +32,22 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950">
+    <div className={`${ui.page} flex items-center justify-center`}>
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl"
+        className={`${ui.card} w-full max-w-sm p-8 shadow-2xl`}
       >
-        <h1 className="mb-6 text-center text-xl font-semibold text-zinc-100">
-          Featherless Login
-        </h1>
+        <div className="mb-8 text-center">
+          <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-[#3ec099]/30 bg-white text-xl font-bold text-[#3ec099] shadow-sm">
+            F
+          </span>
+          <h1 className="text-2xl font-bold text-zinc-900">
+            Welcome Back
+          </h1>
+          <p className="mt-2 text-sm text-zinc-500">
+            Enter your password to access Featherless
+          </p>
+        </div>
 
         {/* Hidden username field so browsers offer to save credentials */}
         <input
@@ -51,31 +60,35 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
           aria-hidden="true"
         />
 
-        <label className="mb-2 block text-sm text-zinc-400" htmlFor="password">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          autoFocus
-          className="mb-4 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
-          placeholder="Enter password"
-        />
+        <div className="space-y-4">
+          <div>
+            <label className={ui.eyebrow} htmlFor="password">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              autoFocus
+              className={`${ui.input} w-full`}
+              placeholder="••••••••"
+            />
+          </div>
 
-        {error && (
-          <p className="mb-3 text-sm text-red-400">{error}</p>
-        )}
+          {error && (
+            <p className="text-sm font-medium text-rose-600">{error}</p>
+          )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-lg bg-sky-600 px-4 py-2.5 font-medium text-white transition hover:bg-sky-500 disabled:opacity-50"
-        >
-          {loading ? "..." : "Sign in"}
-        </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`${ui.button} w-full`}
+          >
+            {loading ? "Signing in..." : "Sign in"}
+          </button>
+        </div>
       </form>
     </div>
   );

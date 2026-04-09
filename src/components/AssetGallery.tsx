@@ -28,7 +28,7 @@ function downloadAsset(submissionId: string, key: string) {
   a.click();
 }
 
-function DownloadIcon({ className = "w-5 h-5" }: { className?: string }) {
+export function DownloadIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" fill="currentColor" className={className}>
       <path d="M10 3a.75.75 0 01.75.75v7.69l2.22-2.22a.75.75 0 111.06 1.06l-3.5 3.5a.75.75 0 01-1.06 0l-3.5-3.5a.75.75 0 111.06-1.06l2.22 2.22V3.75A.75.75 0 0110 3z" />
@@ -178,7 +178,7 @@ function ImageThumb({
 
   return (
     <div
-      className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm shadow-lg transition-all duration-300 hover:border-sky-500/50 hover:shadow-sky-500/10 hover:scale-[1.02]"
+      className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:border-[#3ec099]/50 hover:shadow-lg hover:scale-[1.02]"
       onClick={() => url && onClick(url, name)}
     >
       {!url && (
@@ -247,7 +247,7 @@ function PdfThumb({
 
   return (
     <button
-      className="group flex w-full cursor-pointer flex-col items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 text-left shadow-lg transition-all duration-300 hover:border-rose-500/50 hover:bg-zinc-800/60 hover:shadow-rose-500/5 disabled:cursor-wait disabled:opacity-60"
+      className="group flex w-full cursor-pointer flex-col items-center gap-3 rounded-xl border border-zinc-200 bg-white p-5 text-left shadow-sm transition-all duration-300 hover:border-[#3ec099]/50 hover:bg-zinc-50 hover:shadow-md disabled:cursor-wait disabled:opacity-60"
       onClick={() => url && onClick(url, name)}
       disabled={!url}
       title={name}
@@ -262,11 +262,11 @@ function PdfThumb({
           </div>
         )}
       </div>
-      <span className="w-full truncate text-center text-sm font-bold text-zinc-100 transition-colors group-hover:text-rose-400">
+      <span className="w-full truncate text-center text-sm font-bold text-zinc-900 transition-colors group-hover:text-[#3ec099]">
         {name}
       </span>
       {asset.size != null && (
-        <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
           {formatSize(asset.size)}
         </span>
       )}
@@ -284,16 +284,16 @@ function AssetItem({
   const icon = asset.type === "document" ? "📄" : "📎";
 
   return (
-    <div className="group flex items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-4 shadow-lg transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-800/60">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-800 text-xl shadow-inner group-hover:bg-zinc-700 transition-colors">
+    <div className="group flex items-center gap-4 rounded-xl border border-zinc-200 bg-white px-5 py-4 shadow-sm transition-all duration-300 hover:border-zinc-300 hover:bg-zinc-50">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-xl shadow-inner group-hover:bg-zinc-200 transition-colors">
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold text-zinc-100 transition-colors group-hover:text-white">
+        <p className="truncate text-sm font-bold text-zinc-900 transition-colors group-hover:text-black">
           {fileName(asset.key)}
         </p>
         {asset.size != null && (
-          <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
             {formatSize(asset.size)}
           </p>
         )}
@@ -303,12 +303,12 @@ function AssetItem({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 rounded-lg bg-zinc-800/80 px-3 py-1.5 text-xs font-bold text-zinc-300 transition-all hover:bg-sky-500/20 hover:text-sky-300"
+          className="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-600 transition-all hover:bg-[#3ec099]/10 hover:text-[#3ec099]"
         >
           OPEN ↗
         </a>
       ) : (
-        <span className="shrink-0 animate-pulse text-xs font-bold text-zinc-600">
+        <span className="shrink-0 animate-pulse text-xs font-bold text-zinc-300">
           LOADING…
         </span>
       )}
@@ -331,15 +331,15 @@ function PdfPopout({
       onClick={onClose}
     >
       <div
-        className={`${ui.card} flex h-[90vh] w-full max-w-6xl flex-col border-zinc-800 bg-zinc-950 shadow-2xl overflow-hidden`}
+        className={`${ui.card} flex h-[90vh] w-full max-w-6xl flex-col border-zinc-200 bg-white shadow-2xl overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center gap-4 bg-zinc-900/80 px-6 py-4 backdrop-blur-md">
+        <div className="flex shrink-0 items-center gap-4 bg-zinc-50 px-6 py-4 border-b border-zinc-100">
           <div className="h-8 w-8 scale-75">
             <PdfIcon />
           </div>
-          <span className="flex-1 truncate text-base font-bold text-zinc-100">
+          <span className="flex-1 truncate text-base font-bold text-zinc-900">
             {name}
           </span>
           <div className="flex items-center gap-2">
@@ -347,7 +347,7 @@ function PdfPopout({
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 transition hover:bg-sky-500/20 hover:text-sky-300"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-zinc-200 text-zinc-500 transition hover:bg-[#3ec099]/10 hover:text-[#3ec099] hover:border-[#3ec099]/30"
               title="Open in new tab"
             >
               <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
@@ -364,7 +364,7 @@ function PdfPopout({
               </svg>
             </a>
             <button
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 transition hover:bg-rose-500/20 hover:text-rose-300"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-zinc-200 text-zinc-500 transition hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200"
               onClick={onClose}
               aria-label="Close"
             >
@@ -555,53 +555,35 @@ export default function AssetGallery({
       {/* Images Section Grouped by Category */}
       {Object.keys(imagesByCategory).length > 0 && (
         <div className="space-y-8">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
-            <h4 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400">
-              Gallery
-            </h4>
-            <a
-              href={`/api/submissions/${encodeURIComponent(
-                submissionId
-              )}/download-all`}
-              download
-              className="group flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-xs font-bold text-zinc-300 transition-all hover:bg-sky-500/20 hover:text-sky-300"
-            >
-              <DownloadIcon className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
-              DOWNLOAD ALL ZIP
-            </a>
-          </div>
-
-          <div className="space-y-8">
-            {Object.entries(imagesByCategory).map(([category, catImages]) => (
-              <div key={category} className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <h5 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-500">
-                    {category}
-                  </h5>
-                  <div className="h-px flex-1 bg-zinc-800/50" />
-                  <span className="text-[10px] font-bold text-zinc-600">
-                    {catImages.length} shots
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                  {catImages.map((a) => (
-                    <ImageThumb
-                      key={a.key}
-                      asset={a}
-                      submissionId={submissionId}
-                      url={urlMap.get(a.key)}
-                      onClick={(url, name) => setLightbox({ url, name })}
-                      onDelete={(key) => {
-                        if (!window.confirm(`Delete this asset permanently?\n\n${fileName(key)}`)) return;
-                        deleteMutation.mutate(key);
-                      }}
-                      isDeleting={deleteMutation.isPending}
-                    />
-                  ))}
-                </div>
+          {Object.entries(imagesByCategory).map(([category, catImages]) => (
+            <div key={category} className="space-y-4">
+              <div className="flex items-center gap-4">
+                <h5 className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-400">
+                  {category}
+                </h5>
+                <div className="h-px flex-1 bg-zinc-100" />
+                <span className="text-[10px] font-bold text-zinc-300">
+                  {catImages.length} shots
+                </span>
               </div>
-            ))}
-          </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {catImages.map((a) => (
+                  <ImageThumb
+                    key={a.key}
+                    asset={a}
+                    submissionId={submissionId}
+                    url={urlMap.get(a.key)}
+                    onClick={(url, name) => setLightbox({ url, name })}
+                    onDelete={(key) => {
+                      if (!window.confirm(`Delete this asset permanently?\n\n${fileName(key)}`)) return;
+                      deleteMutation.mutate(key);
+                    }}
+                    isDeleting={deleteMutation.isPending}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -609,10 +591,10 @@ export default function AssetGallery({
       {pdfs.length > 0 && (
         <div className="space-y-6">
           <div className="flex items-center gap-4">
-            <h4 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400">
+            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
               PDF Documents
             </h4>
-            <div className="h-px flex-1 bg-zinc-800/50" />
+            <div className="h-px flex-1 bg-zinc-100" />
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {pdfs.map((a) => (
@@ -631,10 +613,10 @@ export default function AssetGallery({
       {(docs.length > 0 || others.length > 0) && (
         <div className="space-y-6">
           <div className="flex items-center gap-4">
-            <h4 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400">
+            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
               Other Assets
             </h4>
-            <div className="h-px flex-1 bg-zinc-800/50" />
+            <div className="h-px flex-1 bg-zinc-100" />
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {[...docs, ...others].map((a) => (

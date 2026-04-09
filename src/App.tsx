@@ -31,23 +31,24 @@ export default function App() {
 
   return (
     <div className={ui.page}>
-      <header className="sticky top-0 z-20 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
+      <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex w-full max-w-full items-center gap-4 px-6 py-5">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sky-900/50 bg-gradient-to-br from-zinc-800 to-sky-950/40 text-lg font-bold text-zinc-100">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#3ec099]/30 bg-white text-lg font-bold text-[#3ec099] shadow-sm">
             F
           </span>
-          <div>
-            <span className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-zinc-100">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-2 text-2xl font-bold tracking-tight text-zinc-900">
               Featherless
               <span className="flex items-center gap-1">
                 <span className="text-xl">🪶</span>
                 <span className="text-xl">🚫</span>
               </span>
             </span>
+            <div id="header-portal-root" />
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-7xl px-6 py-8">
+      <main className="mx-auto w-full max-w-7xl px-6 pt-6 pb-8">
         <Routes>
           <Route path="/" element={<Navigate to="/submissions" replace />} />
           <Route path="/submissions" element={<SubmissionList />} />
