@@ -1,5 +1,5 @@
 import { useDeferredValue, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { batchPresignUrls, listSubmissions } from "../api/client";
 import { badgeTone, ui } from "../components/ui";
@@ -7,6 +7,17 @@ import { formatDateTime } from "../utils/dateUtils";
 import type { CaseSummary } from "../types/submission";
 
 type ViewTab = "initial" | "partial" | "advance";
+const DEFAULT_VIEWS: ViewTab[] = ["initial", "partial", "advance"];
+
+function parseViewsParam(raw: string | null): ViewTab[] {
+  if (!raw) return DEFAULT_VIEWS;
+  const parsed = raw
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter((value): value is ViewTab => value === "initial" || value === "partial" || value === "advance");
+  const unique = [...new Set(parsed)];
+  return unique.length > 0 ? unique : DEFAULT_VIEWS;
+}
 
 
 function toStartOfDayIso(date: string): string | undefined {
@@ -101,7 +112,8 @@ function getViewData(row: CaseSummary, selectedViews: ViewTab[]) {
 
 export default function SubmissionList() {
   const navigate = useNavigate();
-  const [selectedViews, setSelectedViews] = useState<ViewTab[]>(["initial", "partial", "advance"]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedViews = useMemo(() => parseViewsParam(searchParams.get("views")), [searchParams]);
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -175,12 +187,15 @@ export default function SubmissionList() {
   }
 
   function toggleView(view: ViewTab) {
-    setSelectedViews((prev) => {
-      if (prev.includes(view)) {
-        if (prev.length === 1) return prev;
-        return prev.filter((v) => v !== view);
-      }
-      const next = [...prev, view];
+    const nextViews = selectedViews.includes(view)
+      ? selectedViews.length === 1
+        ? selectedViews
+        : selectedViews.filter((v) => v !== view)
+      : [...selectedViews, view];
+
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("views", nextViews.join(","));
       return next;
     });
     setPage(1);
@@ -321,11 +336,19 @@ export default function SubmissionList() {
                     <tr
                       key={`${row.caseKey}:${view}`}
                       className={`cursor-pointer transition hover:bg-zinc-800 ${idx % 2 === 0 ? "bg-zinc-900/50" : "bg-zinc-900/20"}`}
-                      onClick={() => navigate(`/submissions/${encodeURIComponent(openId)}`)}
+                      onClick={() =>
+                        navigate({
+                          pathname: `/submissions/${encodeURIComponent(openId)}`,
+                          search: searchParams.toString() ? `?${searchParams.toString()}` : "",
+                        })
+                      }
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
-                          navigate(`/submissions/${encodeURIComponent(openId)}`);
+                          navigate({
+                            pathname: `/submissions/${encodeURIComponent(openId)}`,
+                            search: searchParams.toString() ? `?${searchParams.toString()}` : "",
+                          });
                         }
                       }}
                       tabIndex={0}

@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { getSubmission, listSubmissions, uploadSubmissionAssetProxy } from "../api/client";
@@ -688,7 +688,9 @@ function ImageUploadCard({
 
 export default function SubmissionDetail() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const queryClient = useQueryClient();
+  const backToList = `/submissions${location.search}`;
 
   const {
     data,
@@ -733,7 +735,7 @@ export default function SubmissionDetail() {
   if (isError) {
     return (
       <div>
-        <Link to="/submissions" className="text-sm font-medium text-zinc-300 hover:text-zinc-100 hover:underline">
+        <Link to={backToList} className="text-sm font-medium text-zinc-300 hover:text-zinc-100 hover:underline">
           ← Back to list
         </Link>
         <div className="mt-4 rounded-xl border border-rose-900/60 bg-rose-900/20 p-4 text-sm text-rose-100">
@@ -791,7 +793,7 @@ export default function SubmissionDetail() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-7xl px-6 py-8 space-y-6">
         <div className="flex items-center justify-between gap-4">
-          <Link to="/submissions" className="text-sm font-medium text-zinc-300 hover:text-zinc-100 hover:underline">
+          <Link to={backToList} className="text-sm font-medium text-zinc-300 hover:text-zinc-100 hover:underline">
             ← Back to list
           </Link>
           {isFetchingLinked ? <span className="text-xs text-zinc-500">Checking linked form...</span> : null}
