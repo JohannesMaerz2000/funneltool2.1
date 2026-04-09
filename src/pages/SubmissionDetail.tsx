@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { getSubmission, listSubmissions, uploadSubmissionAssetProxy } from "../api/client";
 import type { Asset, SubmissionDetail as SubmissionDetailType } from "../types/submission";
 import AssetGallery from "../components/AssetGallery";
+import { formatDate, formatIfDate } from "../utils/dateUtils";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -24,7 +25,61 @@ function normalizeAdvanceData(
   if (!raw) return null;
   const nested = raw.submissionData;
   if (isRecord(nested)) return nested;
-  return raw;
+
+  const advanceFieldKeys = new Set([
+    "mileage",
+    "tuvUntil",
+    "accidentFree",
+    "accidentDescription",
+    "numberOfOwners",
+    "numberOfKeys",
+    "formOfOwnership",
+    "isPetCar",
+    "isSmokerCar",
+    "hasTrailerHitch",
+    "tyreTypes",
+    "tyreDetails",
+    "vehicleDefects",
+    "vehicleDocuments",
+    "chargingCable",
+    "digitalCheckbook",
+    "digitalCheckbookPhotos",
+    "serviceHistoryMaintained",
+    "registrationDocumentOwner",
+    "pickupAgreement",
+    "vehicleAgreement",
+    "informationDisclosureAgreement",
+    "additionalAccessories",
+    "nonOriginalConditionDescription",
+  ]);
+
+  const rawKeys = Object.keys(raw);
+  const looksLikeFormEngineEnvelope =
+    rawKeys.includes("values") ||
+    rawKeys.includes("last_submitted") ||
+    rawKeys.includes("submission_start") ||
+    rawKeys.includes("user_id");
+  if (looksLikeFormEngineEnvelope) return null;
+
+  const hasKnownAdvanceFields = rawKeys.some((key) => advanceFieldKeys.has(key));
+  return hasKnownAdvanceFields ? raw : null;
+}
+
+function extractSubmissionData(
+  detail: SubmissionDetailType | undefined,
+  intake: "initial" | "advance"
+): Record<string, unknown> | null {
+  if (!detail) return null;
+
+  const topLevel = isRecord(detail.submissionData) ? detail.submissionData : null;
+  const nestedSnakeCase = isRecord(detail.submission)
+    ? detail.submission.submission_data
+    : null;
+  const snakeCase = isRecord(nestedSnakeCase) ? nestedSnakeCase : null;
+  const raw = topLevel ?? snakeCase;
+
+  if (!raw) return null;
+  return intake === "advance" ? normalizeAdvanceData(raw) : raw;
 }
 
 function getLatestByIntake(
@@ -57,7 +112,7 @@ function stringifyValue(value: unknown): string {
   if (value === null || value === undefined) return "";
   if (typeof value === "boolean") return value ? "true" : "false";
   if (typeof value === "number") return Number.isFinite(value) ? String(value) : "";
-  if (typeof value === "string") return value;
+  if (typeof value === "string") return formatIfDate(value);
 
   try {
     return JSON.stringify(value);
@@ -151,7 +206,10 @@ function formatFieldName(fieldName: string): string {
   return name.charAt(0).toUpperCase() + name.trim().slice(1);
 }
 
-function SubmissionDataViewer({ rows }: { rows: MergedRow[] }) {
+const ANALYTICS_KEYS = ["gaClientId", "gClId", "fbClId", "utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm", "newsLetter", "policyConfirmation"];
+
+function SubmissionDataViewer({ rows, title, defaultCollapsed = false }: { rows: MergedRow[]; title: string; defaultCollapsed?: boolean }) {
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [showEmpty, setShowEmpty] = useState(false);
 
   const isEmpty = (row: MergedRow) => {
@@ -199,8 +257,25 @@ function SubmissionDataViewer({ rows }: { rows: MergedRow[] }) {
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-bold text-zinc-200">Submission Data</h2>
-        {emptyCount > 0 && (
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="flex items-center gap-2 group"
+          >
+            <div className={`p-1 rounded bg-zinc-800 group-hover:bg-zinc-700 transition-colors ${isCollapsed ? '-rotate-90' : ''}`}>
+              <svg className="w-3 h-3 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <h2 className="text-sm font-bold text-zinc-200">{title}</h2>
+          </button>
+          {!isCollapsed && (
+            <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider bg-zinc-800/50 px-1.5 py-0.5 rounded">
+              {rows.length} fields
+            </span>
+          )}
+        </div>
+        {!isCollapsed && emptyCount > 0 && (
           <button
             onClick={() => setShowEmpty(!showEmpty)}
             className="text-xs text-sky-400 hover:text-sky-300 font-medium transition-colors shrink-0"
@@ -209,6 +284,9 @@ function SubmissionDataViewer({ rows }: { rows: MergedRow[] }) {
           </button>
         )}
       </div>
+
+      {!isCollapsed && (
+        <>
 
       {visibleRows.length === 0 ? (
         <div className="py-8 text-center border-2 border-dashed border-zinc-800 rounded-xl">
@@ -225,6 +303,8 @@ function SubmissionDataViewer({ rows }: { rows: MergedRow[] }) {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
@@ -593,10 +673,8 @@ export default function SubmissionDetail() {
   const m1Detail = getLatestByIntake(data, linkedSubmission ?? undefined, "initial");
   const m15Detail = getLatestByIntake(data, linkedSubmission ?? undefined, "advance");
 
-  const initialSubmissionData = isRecord(m1Detail?.submissionData) ? m1Detail.submissionData : null;
-  const advanceSubmissionData = normalizeAdvanceData(
-    isRecord(m15Detail?.submissionData) ? m15Detail.submissionData : null
-  );
+  const initialSubmissionData = extractSubmissionData(m1Detail, "initial");
+  const advanceSubmissionData = extractSubmissionData(m15Detail, "advance");
 
   const contactFirstName = asString(initialSubmissionData?.firstName);
   const contactLastName = asString(initialSubmissionData?.lastName);
@@ -605,8 +683,15 @@ export default function SubmissionDetail() {
   const contactPhone = asString(initialSubmissionData?.phone) ?? "N/A";
   const contactSellerType = asString(initialSubmissionData?.sellerType) ?? "N/A";
 
-  const mergedRows = buildMergedRows(initialSubmissionData, advanceSubmissionData).filter(
-    (row) => !["firstName", "lastName", "email", "phone", "sellerType", "vin", "gaClientId"].includes(row.field)
+  const displaySubmissionRows = buildMergedRows(initialSubmissionData, advanceSubmissionData);
+  const analyticsSourceRows = buildMergedRows(initialSubmissionData, null);
+
+  const submissionRows = displaySubmissionRows.filter(
+    (row) => !["firstName", "lastName", "email", "phone", "sellerType", "vin", ...ANALYTICS_KEYS].includes(row.field)
+  );
+
+  const analyticsRows = analyticsSourceRows.filter(
+    (row) => ANALYTICS_KEYS.includes(row.field)
   );
 
   const caseAssets = mergeAssets(m15Detail?.assets, m1Detail?.assets);
@@ -674,7 +759,7 @@ export default function SubmissionDetail() {
                     </tr>
                     <tr>
                       <td className="py-2 pr-4 text-zinc-400">First registration</td>
-                      <td className="py-2">{firstRegistration}</td>
+                      <td className="py-2">{firstRegistration !== "N/A" ? formatDate(firstRegistration) : "N/A"}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -709,7 +794,8 @@ export default function SubmissionDetail() {
           </div>
         </div>
 
-        <SubmissionDataViewer rows={mergedRows} />
+        <SubmissionDataViewer title="Submission Data" rows={submissionRows} />
+        <SubmissionDataViewer title="Marketing & Analytics" rows={analyticsRows} defaultCollapsed={true} />
 
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
           <h2 className="text-base font-semibold">Pictures & Assets ({caseAssets.length})</h2>

@@ -3,16 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { batchPresignUrls, listSubmissions } from "../api/client";
 import { badgeTone, ui } from "../components/ui";
+import { formatDateTime } from "../utils/dateUtils";
 import type { CaseSummary } from "../types/submission";
 
 type ViewTab = "initial" | "partial" | "advance";
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: "short",
-    timeStyle: "short",
-  });
-}
 
 function toStartOfDayIso(date: string): string | undefined {
   if (!date) return undefined;
@@ -327,7 +322,7 @@ export default function SubmissionList() {
                       <td className="px-6 py-4">
                         <SyncBadge status={status} />
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-zinc-300">{formatDate(updatedAt)}</td>
+                      <td className="whitespace-nowrap px-6 py-4 text-zinc-300">{formatDateTime(updatedAt)}</td>
                       <td className="px-6 py-4 text-zinc-300">{dealId ?? "N/A"}</td>
                       <td className="px-6 py-4 font-semibold text-zinc-300">{assetCount}</td>
                     </tr>
