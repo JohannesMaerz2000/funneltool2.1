@@ -62,6 +62,23 @@ function IntakeBadge({ view }: { view: ViewTab }) {
   return <span className={`${ui.badge} ${badgeTone("success")}`}>advance</span>;
 }
 
+function formatSource(source?: string | null): string {
+  if (!source) return "unknown";
+  return source.toLowerCase();
+}
+
+function SourceBadge({ source }: { source?: string | null }) {
+  const normalized = formatSource(source);
+  const tone =
+    normalized === "internal_form"
+      ? "info"
+      : normalized === "feathery"
+        ? "warn"
+        : "neutral";
+
+  return <span className={`${ui.badge} ${badgeTone(tone)}`}>{normalized}</span>;
+}
+
 function getAdvanceState(status?: string | null): "partial" | "advance" {
   return status?.toLowerCase() === "completed" ? "advance" : "partial";
 }
@@ -285,6 +302,7 @@ export default function SubmissionList() {
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">VIN</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Intake</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Sync</th>
+                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Source</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Updated</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Deal</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Assets</th>
@@ -321,6 +339,9 @@ export default function SubmissionList() {
                       </td>
                       <td className="px-6 py-4">
                         <SyncBadge status={status} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <SourceBadge source={summary.submissionSource} />
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-zinc-300">{formatDateTime(updatedAt)}</td>
                       <td className="px-6 py-4 text-zinc-300">{dealId ?? "N/A"}</td>

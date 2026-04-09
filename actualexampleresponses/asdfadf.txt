@@ -1,0 +1,1014 @@
+        "datEquipmentId": "15621",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Batterieheizsystem",
+        "datEquipmentId": "73189",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Blinkleuchten LED in Außenspiegel integriert",
+        "datEquipmentId": "18211",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Dachspoiler",
+        "datEquipmentId": "20908",
+        "equipmentClass": null,
+        "equipmentGroup": "SPOI"
+      },
+      {
+        "description": "Einschaltautomatik für Fahrlicht / Lichtsensor",
+        "datEquipmentId": "18604",
+        "equipmentClass": null,
+        "equipmentGroup": "AUFL"
+      },
+      {
+        "description": "Elektr. Bremskraftverteilung",
+        "datEquipmentId": "40307",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Elektromotor 168 kW (cont. 56 kW)",
+        "datEquipmentId": "79670",
+        "equipmentClass": "1",
+        "equipmentGroup": null
+      },
+      {
+        "description": "Elektron. Stabilitätskontrolle (ESC) mit Bremsassistent",
+        "datEquipmentId": "70310",
+        "equipmentClass": null,
+        "equipmentGroup": "ESP"
+      },
+      {
+        "description": "Fahrassistenz-System: aktiver Spurhalteassistent (LKAS, Lane Keep Assist System)",
+        "datEquipmentId": "42919",
+        "equipmentClass": null,
+        "equipmentGroup": "FA49"
+      },
+      {
+        "description": "Fahrassistenz-System: aktiver Totwinkel-Assistent",
+        "datEquipmentId": "41166",
+        "equipmentClass": null,
+        "equipmentGroup": "FA33"
+      },
+      {
+        "description": "Fahrassistenz-System: Aufmerksamkeits-Assistent",
+        "datEquipmentId": "42926",
+        "equipmentClass": null,
+        "equipmentGroup": "FA41"
+      },
+      {
+        "description": "Fahrassistenz-System: Ausstiegswarnung",
+        "datEquipmentId": "41158",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Fahrassistenz-System: Autobahnassistent 2.0 (Highway Driving Assist, HDA 2.0)",
+        "datEquipmentId": "41185",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Fahrassistenz-System: Autonome Notbremsfunktion inkl. Frontkollisionswarnung (FCA)",
+        "datEquipmentId": "40956",
+        "equipmentClass": null,
+        "equipmentGroup": "FA05"
+      },
+      {
+        "description": "Fahrassistenz-System: Berganfahrhilfe",
+        "datEquipmentId": "70603",
+        "equipmentClass": null,
+        "equipmentGroup": "FA16"
+      },
+      {
+        "description": "Fahrassistenz-System: Einparkhilfe vorn und hinten",
+        "datEquipmentId": "25797",
+        "equipmentClass": null,
+        "equipmentGroup": "PDC3"
+      },
+      {
+        "description": "Fahrassistenz-System: Fahrprofilauswahl (Drive Mode)",
+        "datEquipmentId": "70517",
+        "equipmentClass": null,
+        "equipmentGroup": "FA22"
+      },
+      {
+        "description": "Fahrassistenz-System: Fernlichtassistent",
+        "datEquipmentId": "18610",
+        "equipmentClass": null,
+        "equipmentGroup": "FA30"
+      },
+      {
+        "description": "Fahrassistenz-System: Insassenalarm (Rear Occopant Alert, ROA)",
+        "datEquipmentId": "41171",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Fahrassistenz-System: Multikollisionsbremse (Multi Collision Brake)",
+        "datEquipmentId": "40959",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Fahrassistenz-System: Querverkehrs-Assistent Heck (Cross Traffic)",
+        "datEquipmentId": "41159",
+        "equipmentClass": null,
+        "equipmentGroup": "FA46"
+      },
+      {
+        "description": "Fahrassistenz-System: Sicherheitssystem mit automatischem Notruf (ERA GLONASS / eCall)",
+        "datEquipmentId": "24902",
+        "equipmentClass": null,
+        "equipmentGroup": "FA10"
+      },
+      {
+        "description": "Fahrassistenz-System: Spurfolgeassistent (Lane Following Assist, LFA)",
+        "datEquipmentId": "42941",
+        "equipmentClass": null,
+        "equipmentGroup": "FA49"
+      },
+      {
+        "description": "Fahrassistenz-System: Verkehrszeichenerkennung, erweitert (Geschwindigkeits-Regel-/Begrenzeranlage)",
+        "datEquipmentId": "41162",
+        "equipmentClass": null,
+        "equipmentGroup": "FA28"
+      },
+      {
+        "description": "Fensterheber elektr. mit Einklemmschutz",
+        "datEquipmentId": "35006",
+        "equipmentClass": null,
+        "equipmentGroup": "FH2"
+      },
+      {
+        "description": "Fensterheber elektrisch vorn und hinten, mit Auf-/Ab-Automatik",
+        "datEquipmentId": "35009",
+        "equipmentClass": null,
+        "equipmentGroup": "FH4"
+      },
+      {
+        "description": "Fensterrahmen Zierleisten schwarz glänzend",
+        "datEquipmentId": "36420",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Freisprecheinrichtung Bluetooth",
+        "datEquipmentId": "24808",
+        "equipmentClass": null,
+        "equipmentGroup": "TEL3"
+      },
+      {
+        "description": "Frontscheibe Verbundglas",
+        "datEquipmentId": "22500",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Frontschürze, Heckschürze und Seitenschutzleisten in Kontrastfarbe",
+        "datEquipmentId": "20787",
+        "equipmentClass": null,
+        "equipmentGroup": "SPOI"
+      },
+      {
+        "description": "Frontstaufach / Frunk (Kofferraum, vorn)",
+        "datEquipmentId": "39692",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Getriebe für Elektrofahrzeug",
+        "datEquipmentId": "76400",
+        "equipmentClass": "11",
+        "equipmentGroup": "AG1"
+      },
+      {
+        "description": "Getränkehalter hinten",
+        "datEquipmentId": "38909",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Getränkehalter vorn",
+        "datEquipmentId": "39003",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Gurtstraffer",
+        "datEquipmentId": "37300",
+        "equipmentClass": null,
+        "equipmentGroup": "GUST"
+      },
+      {
+        "description": "Head-up-Display",
+        "datEquipmentId": "25204",
+        "equipmentClass": null,
+        "equipmentGroup": "HUD"
+      },
+      {
+        "description": "Heckklappe/-Deckel elektr. betätigt (Öffnung, sensorgesteuert)",
+        "datEquipmentId": "35609",
+        "equipmentClass": null,
+        "equipmentGroup": "HKEL"
+      },
+      {
+        "description": "Heckleuchten LED (Pixel-Design)",
+        "datEquipmentId": "18834",
+        "equipmentClass": null,
+        "equipmentGroup": "LEDH"
+      },
+      {
+        "description": "Heckscheibe heizbar",
+        "datEquipmentId": "22800",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "HV-Batterie 77,4 kWh (Lithium-Ionen)",
+        "datEquipmentId": "72720",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Induktionsladeschale für Smartphone",
+        "datEquipmentId": "39898",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Innenspiegel mit Abblendautomatik",
+        "datEquipmentId": "37901",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Instrumentenanzeige Farbdisplay 12,25 Zoll",
+        "datEquipmentId": "25394",
+        "equipmentClass": null,
+        "equipmentGroup": "MONM"
+      },
+      {
+        "description": "Isofix-Aufnahmen für Kindersitz",
+        "datEquipmentId": "39307",
+        "equipmentClass": null,
+        "equipmentGroup": "KISI"
+      },
+      {
+        "description": "Karosserie: 4-türig",
+        "datEquipmentId": "10004",
+        "equipmentClass": "2",
+        "equipmentGroup": null
+      },
+      {
+        "description": "Klimaautomatik 2-Zonen",
+        "datEquipmentId": "29103",
+        "equipmentClass": null,
+        "equipmentGroup": "KLI2"
+      },
+      {
+        "description": "Kopf-Airbag-System",
+        "datEquipmentId": "26901",
+        "equipmentClass": null,
+        "equipmentGroup": "AIR4"
+      },
+      {
+        "description": "Kopfstützen hinten verstellbar",
+        "datEquipmentId": "34900",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Kühlergrill, Aktive Luftklappen, regelbar",
+        "datEquipmentId": "12870",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Ladekabel mit Typ 2-Stecker",
+        "datEquipmentId": "73221",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Ladevorrichtung On-Board-Lader (3-Phasen)",
+        "datEquipmentId": "73237",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Lendenwirbelstütze Sitz vorn links, elektr. verstellbar",
+        "datEquipmentId": "33306",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Lendenwirbelstütze Sitz vorn rechts, elektr. verstellbar",
+        "datEquipmentId": "33307",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Lenkrad (Leder) mit Multifunktion",
+        "datEquipmentId": "69007",
+        "equipmentClass": null,
+        "equipmentGroup": "LEN2"
+      },
+      {
+        "description": "Lenkrad mit Schaltwippen",
+        "datEquipmentId": "69700",
+        "equipmentClass": null,
+        "equipmentGroup": "LEN8"
+      },
+      {
+        "description": "Lenksäule (Lenkrad) höhenverstellbar",
+        "datEquipmentId": "69503",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Lenksäule (Lenkrad) längsverstellbar",
+        "datEquipmentId": "69504",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Leseleuchten vorn und hinten LED",
+        "datEquipmentId": "37719",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Lifetime MapCare (Internetbasierende Dienste)",
+        "datEquipmentId": "25047",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "LM-Felgen",
+        "datEquipmentId": "49106",
+        "equipmentClass": null,
+        "equipmentGroup": "ALU"
+      },
+      {
+        "description": "Luftdüsen hinten",
+        "datEquipmentId": "29393",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Matrix-LED-Scheinwerfer",
+        "datEquipmentId": "18039",
+        "equipmentClass": null,
+        "equipmentGroup": "LED"
+      },
+      {
+        "description": "Mittelarmlehne hinten",
+        "datEquipmentId": "27300",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Mittelarmlehne vorn",
+        "datEquipmentId": "27202",
+        "equipmentClass": null,
+        "equipmentGroup": "MALV"
+      },
+      {
+        "description": "Navigationsbasierte Adaptive Geschwindigkeitsregelanlage (Tempomat) mit Abstandsregelung (NSCC)",
+        "datEquipmentId": "26734",
+        "equipmentClass": null,
+        "equipmentGroup": "ABRG"
+      },
+      {
+        "description": "Nebelschlussleuchte LED",
+        "datEquipmentId": "18710",
+        "equipmentClass": null,
+        "equipmentGroup": "LEDH"
+      },
+      {
+        "description": "Notladekabel (ICCB)",
+        "datEquipmentId": "73205",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Parkbremse elektrisch (EPB)",
+        "datEquipmentId": "40803",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Radioempfang digital (DAB+)",
+        "datEquipmentId": "24052",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Reifen-Reparaturkit",
+        "datEquipmentId": "68802",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Reifendruck-Kontrollsystem",
+        "datEquipmentId": "25903",
+        "equipmentClass": null,
+        "equipmentGroup": "RDK"
+      },
+      {
+        "description": "Rückfahrkamera",
+        "datEquipmentId": "39804",
+        "equipmentClass": null,
+        "equipmentGroup": "FA25"
+      },
+      {
+        "description": "Rücksitzlehne geteilt/klappbar",
+        "datEquipmentId": "33508",
+        "equipmentClass": null,
+        "equipmentGroup": "SITH"
+      },
+      {
+        "description": "Rücksitzlehne umklappbar mit Fernentriegelung im Kofferraum",
+        "datEquipmentId": "33513",
+        "equipmentClass": null,
+        "equipmentGroup": "SITH"
+      },
+      {
+        "description": "Schalt-/Wählhebel (Shift by Wire)",
+        "datEquipmentId": "39299",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Scheibenbeschlagerkennung / Regelung",
+        "datEquipmentId": "38905",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Scheibenwischer mit Regensensor",
+        "datEquipmentId": "19101",
+        "equipmentClass": null,
+        "equipmentGroup": "SWRE"
+      },
+      {
+        "description": "Seitenairbag vorn",
+        "datEquipmentId": "26903",
+        "equipmentClass": null,
+        "equipmentGroup": "AIR3"
+      },
+      {
+        "description": "Seitenairbag vorn mitte (Central Airbag)",
+        "datEquipmentId": "26890",
+        "equipmentClass": null,
+        "equipmentGroup": "AIR3"
+      },
+      {
+        "description": "Service-System: Online Update OTA (Over The Air)",
+        "datEquipmentId": "25866",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Service-System: Remote Services (Blue Link)",
+        "datEquipmentId": "25879",
+        "equipmentClass": null,
+        "equipmentGroup": "FA10"
+      },
+      {
+        "description": "Servolenkung",
+        "datEquipmentId": "69800",
+        "equipmentClass": null,
+        "equipmentGroup": "SL"
+      },
+      {
+        "description": "Sicherheitsgurte vorn höhenverstellbar",
+        "datEquipmentId": "37004",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Sitz vorn links elektr. verstellbar",
+        "datEquipmentId": "32605",
+        "equipmentClass": null,
+        "equipmentGroup": "SITE"
+      },
+      {
+        "description": "Sitz vorn links höhenverstellbar",
+        "datEquipmentId": "32704",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Sitz vorn rechts elektr. verstellbar",
+        "datEquipmentId": "32606",
+        "equipmentClass": null,
+        "equipmentGroup": "SITE"
+      },
+      {
+        "description": "Sitz vorn rechts höhenverstellbar",
+        "datEquipmentId": "32705",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Sitzbezug / Polsterung: Stoff",
+        "datEquipmentId": "29799",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Sitzheizung hinten",
+        "datEquipmentId": "29503",
+        "equipmentClass": null,
+        "equipmentGroup": "SITV"
+      },
+      {
+        "description": "Sitzheizung vorn",
+        "datEquipmentId": "29500",
+        "equipmentClass": null,
+        "equipmentGroup": "SITB"
+      },
+      {
+        "description": "Smart-Key",
+        "datEquipmentId": "35510",
+        "equipmentClass": null,
+        "equipmentGroup": "KEYL"
+      },
+      {
+        "description": "Smartphone Schnittstelle (Apple CarPlay & Android Auto)",
+        "datEquipmentId": "25172",
+        "equipmentClass": null,
+        "equipmentGroup": "MP3A"
+      },
+      {
+        "description": "Sonnenblenden mit Spiegel",
+        "datEquipmentId": "37902",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Start-Stop-Knopf",
+        "datEquipmentId": "35513",
+        "equipmentClass": null,
+        "equipmentGroup": "MSSA"
+      },
+      {
+        "description": "Steckdose (12V-Anschluß) 2.Sitzreihe",
+        "datEquipmentId": "39807",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Steckdose (12V-Anschluß) vorn",
+        "datEquipmentId": "39011",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Tagfahrlicht LED",
+        "datEquipmentId": "18913",
+        "equipmentClass": null,
+        "equipmentGroup": "TFAL"
+      },
+      {
+        "description": "Techniq-Paket",
+        "datEquipmentId": "3511",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Türgriffe außen ausfahrbar / versenkbar, elektrisch",
+        "datEquipmentId": "36377",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Türgriffe außen Wagenfarbe",
+        "datEquipmentId": "36404",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "USB-Anschluss (Typ C, 2-fach)",
+        "datEquipmentId": "24885",
+        "equipmentClass": null,
+        "equipmentGroup": "MP3A"
+      },
+      {
+        "description": "USB-Anschluss Mittelkonsole",
+        "datEquipmentId": "25014",
+        "equipmentClass": null,
+        "equipmentGroup": "MP3A"
+      },
+      {
+        "description": "USB-Ladeanschlüsse (2-fach, Typ C) für 2.Sitzreihe",
+        "datEquipmentId": "25029",
+        "equipmentClass": null,
+        "equipmentGroup": "MP3A"
+      },
+      {
+        "description": "Verglasung Akustikglas",
+        "datEquipmentId": "22108",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Verglasung getönt",
+        "datEquipmentId": "22000",
+        "equipmentClass": null,
+        "equipmentGroup": "WDG"
+      },
+      {
+        "description": "Verglasung hinten abgedunkelt (Privacy Glass)",
+        "datEquipmentId": "22202",
+        "equipmentClass": null,
+        "equipmentGroup": "SORO"
+      },
+      {
+        "description": "Vorheizsystem für Batterie",
+        "datEquipmentId": "73188",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Warnanlage für Sicherheitsgurte, Fahrer-/Beifahrerseite",
+        "datEquipmentId": "37107",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Wegfahrsperre (elektronisch)",
+        "datEquipmentId": "38106",
+        "equipmentClass": null,
+        "equipmentGroup": "WFS"
+      },
+      {
+        "description": "Wärmepumpe für Heizungs-/Klimaanlage",
+        "datEquipmentId": "29299",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Zentralverriegelung mit Fernbedienung",
+        "datEquipmentId": "35301",
+        "equipmentClass": null,
+        "equipmentGroup": "ZV"
+      }
+    ],
+    "extra_equipments": [
+      {
+        "description": "BOSE-Paket",
+        "datEquipmentId": "2607",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Mica-Lackierung / Mineraleffekt-Lackierung",
+        "datEquipmentId": "11609",
+        "equipmentClass": null,
+        "equipmentGroup": "SONL"
+      },
+      {
+        "description": "Park-Paket",
+        "datEquipmentId": "4409",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      },
+      {
+        "description": "Schiebedach elektrisch (Glas)",
+        "datEquipmentId": "16507",
+        "equipmentClass": null,
+        "equipmentGroup": "SD1"
+      },
+      {
+        "description": "Vehicle-to-Load Stecker (V2L)",
+        "datEquipmentId": "73285",
+        "equipmentClass": null,
+        "equipmentGroup": null
+      }
+    ]
+  },
+  "vinHistory": {
+    "id": "a8a2b142-9c18-4465-9ae6-23a3fd8a0192",
+    "vin": "KMHM341A8PA013327",
+    "first_registration": "2023-04-27",
+    "match_count": 1,
+    "number_of_request": 1,
+    "created_at": "2026-02-18T17:32:10.357Z",
+    "updated_at": "2026-02-18T17:32:10.357Z"
+  },
+  "imageProcessingJobs": [
+    {
+      "id": "7f63d503-f7f2-400f-a31c-ed82fca965e6",
+      "created_at": "2026-04-09T09:41:22.556Z",
+      "updated_at": "2026-04-09T09:41:45.971Z",
+      "deal_id": "17673",
+      "vin": "KMHM341A8PA013327",
+      "status": "completed",
+      "source": "s3",
+      "save_local": false,
+      "result": {
+        "vin": "KMHM341A8PA013327",
+        "dealId": "17673",
+        "failed": 0,
+        "source": "s3",
+        "results": [
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_1cb9685bkmhm.jpg",
+            "originalName": "0_exterior_1cb9685bkmhm.jpeg",
+            "originalSize": 5675261,
+            "processedName": "0_exterior_1cb9685bkmhm.jpg",
+            "processedSize": 384596
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_1f3efcd5kmhm.jpg",
+            "originalName": "0_exterior_1f3efcd5kmhm.jpeg",
+            "originalSize": 4053185,
+            "processedName": "0_exterior_1f3efcd5kmhm.jpg",
+            "processedSize": 483846
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_30f1e86fkmhm.jpg",
+            "originalName": "0_exterior_30f1e86fkmhm.jpeg",
+            "originalSize": 4332423,
+            "processedName": "0_exterior_30f1e86fkmhm.jpg",
+            "processedSize": 434098
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_581c7e9ckmhm.jpg",
+            "originalName": "0_exterior_581c7e9ckmhm.jpeg",
+            "originalSize": 3433339,
+            "processedName": "0_exterior_581c7e9ckmhm.jpg",
+            "processedSize": 354308
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_700b2b14kmhm.jpg",
+            "originalName": "0_exterior_700b2b14kmhm.jpeg",
+            "originalSize": 6923275,
+            "processedName": "0_exterior_700b2b14kmhm.jpg",
+            "processedSize": 446515
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_7d91a663kmhm.jpg",
+            "originalName": "0_exterior_7d91a663kmhm.jpeg",
+            "originalSize": 6095697,
+            "processedName": "0_exterior_7d91a663kmhm.jpg",
+            "processedSize": 375848
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_ab52e0a1kmhm.jpg",
+            "originalName": "0_exterior_ab52e0a1kmhm.jpeg",
+            "originalSize": 7136760,
+            "processedName": "0_exterior_ab52e0a1kmhm.jpg",
+            "processedSize": 476003
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_ef51d902kmhm.jpg",
+            "originalName": "0_exterior_ef51d902kmhm.jpeg",
+            "originalSize": 6491954,
+            "processedName": "0_exterior_ef51d902kmhm.jpg",
+            "processedSize": 430495
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_0915734fkmhm.jpg",
+            "originalName": "1_interior_0915734fkmhm.jpeg",
+            "originalSize": 5918046,
+            "processedName": "1_interior_0915734fkmhm.jpg",
+            "processedSize": 325647
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_4c12381ckmhm.jpg",
+            "originalName": "1_interior_4c12381ckmhm.jpeg",
+            "originalSize": 5934611,
+            "processedName": "1_interior_4c12381ckmhm.jpg",
+            "processedSize": 326082
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_8ebe4393kmhm.jpg",
+            "originalName": "1_interior_8ebe4393kmhm.jpeg",
+            "originalSize": 5934611,
+            "processedName": "1_interior_8ebe4393kmhm.jpg",
+            "processedSize": 326082
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_a4f8cbd7kmhm.jpg",
+            "originalName": "1_interior_a4f8cbd7kmhm.jpeg",
+            "originalSize": 6032429,
+            "processedName": "1_interior_a4f8cbd7kmhm.jpg",
+            "processedSize": 286404
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_a82d61e4kmhm.jpg",
+            "originalName": "1_interior_a82d61e4kmhm.jpeg",
+            "originalSize": 5378620,
+            "processedName": "1_interior_a82d61e4kmhm.jpg",
+            "processedSize": 291784
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_b89aa9eckmhm.jpg",
+            "originalName": "1_interior_b89aa9eckmhm.jpeg",
+            "originalSize": 4922735,
+            "processedName": "1_interior_b89aa9eckmhm.jpg",
+            "processedSize": 270218
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/2_rims_2ccc81d9kmhm.jpg",
+            "originalName": "2_rims_2ccc81d9kmhm.jpeg",
+            "originalSize": 5637997,
+            "processedName": "2_rims_2ccc81d9kmhm.jpg",
+            "processedSize": 303850
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/2_rims_6cafb2e7kmhm.jpg",
+            "originalName": "2_rims_6cafb2e7kmhm.jpeg",
+            "originalSize": 5209485,
+            "processedName": "2_rims_6cafb2e7kmhm.jpg",
+            "processedSize": 224522
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/2_rims_9dced2c8kmhm.jpg",
+            "originalName": "2_rims_9dced2c8kmhm.jpeg",
+            "originalSize": 5515104,
+            "processedName": "2_rims_9dced2c8kmhm.jpg",
+            "processedSize": 260110
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/2_rims_abf0f889kmhm.jpg",
+            "originalName": "2_rims_abf0f889kmhm.jpeg",
+            "originalSize": 5263321,
+            "processedName": "2_rims_abf0f889kmhm.jpg",
+            "processedSize": 291840
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/01_Fahrzeugpapiere/4_registration_document_39d16f8bkmhm.jpg",
+            "originalName": "4_registration_document_39d16f8bkmhm.jpeg",
+            "originalSize": 5822238,
+            "processedName": "4_registration_document_39d16f8bkmhm.jpg",
+            "processedSize": 624121
+          },
+          {
+            "success": true,
+            "s3OutputKey": "advance/KMHM341A8PA013327/01_Fahrzeugpapiere/4_registration_document_4f3436eakmhm.jpg",
+            "originalName": "4_registration_document_4f3436eakmhm.jpeg",
+            "originalSize": 5067177,
+            "processedName": "4_registration_document_4f3436eakmhm.jpg",
+            "processedSize": 374281
+          }
+        ],
+        "saveLocal": false,
+        "succeeded": 20,
+        "totalImages": 20,
+        "totalOriginalSize": 110778268,
+        "totalProcessedSize": 7290650
+      },
+      "error": null,
+      "completed_at": "2026-04-09T09:41:45.970Z"
+    }
+  ],
+  "assetCount": 19,
+  "thumbnailKey": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_581c7e9ckmhm.jpg",
+  "assets": [
+    {
+      "key": "advance/KMHM341A8PA013327/01_Fahrzeugpapiere/4_registration_document_4f3436eakmhm.jpg",
+      "type": "image",
+      "size": 374281,
+      "lastModified": "2026-04-09T09:41:46.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_1cb9685bkmhm.jpg",
+      "type": "image",
+      "size": 384596,
+      "lastModified": "2026-04-09T09:41:27.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_1f3efcd5kmhm.jpg",
+      "type": "image",
+      "size": 483846,
+      "lastModified": "2026-04-09T09:41:26.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_30f1e86fkmhm.jpg",
+      "type": "image",
+      "size": 434098,
+      "lastModified": "2026-04-09T09:41:28.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_581c7e9ckmhm.jpg",
+      "type": "image",
+      "size": 354308,
+      "lastModified": "2026-04-09T09:41:30.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_700b2b14kmhm.jpg",
+      "type": "image",
+      "size": 446515,
+      "lastModified": "2026-04-09T09:41:27.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_7d91a663kmhm.jpg",
+      "type": "image",
+      "size": 375848,
+      "lastModified": "2026-04-09T09:41:30.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_ab52e0a1kmhm.jpg",
+      "type": "image",
+      "size": 476003,
+      "lastModified": "2026-04-09T09:41:31.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/0_exterior_ef51d902kmhm.jpg",
+      "type": "image",
+      "size": 430495,
+      "lastModified": "2026-04-09T09:41:31.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_0915734fkmhm.jpg",
+      "type": "image",
+      "size": 325647,
+      "lastModified": "2026-04-09T09:41:35.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_4c12381ckmhm.jpg",
+      "type": "image",
+      "size": 326082,
+      "lastModified": "2026-04-09T09:41:36.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_8ebe4393kmhm.jpg",
+      "type": "image",
+      "size": 326082,
+      "lastModified": "2026-04-09T09:41:36.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_a4f8cbd7kmhm.jpg",
+      "type": "image",
+      "size": 286404,
+      "lastModified": "2026-04-09T09:41:36.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_a82d61e4kmhm.jpg",
+      "type": "image",
+      "size": 291784,
+      "lastModified": "2026-04-09T09:41:40.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/1_interior_b89aa9eckmhm.jpg",
+      "type": "image",
+      "size": 270218,
+      "lastModified": "2026-04-09T09:41:41.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/2_rims_2ccc81d9kmhm.jpg",
+      "type": "image",
+      "size": 303850,
+      "lastModified": "2026-04-09T09:41:41.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/2_rims_6cafb2e7kmhm.jpg",
+      "type": "image",
+      "size": 224522,
+      "lastModified": "2026-04-09T09:41:41.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/2_rims_9dced2c8kmhm.jpg",
+      "type": "image",
+      "size": 260110,
+      "lastModified": "2026-04-09T09:41:45.000Z"
+    },
+    {
+      "key": "advance/KMHM341A8PA013327/02_Fahrzeugfotos/2_rims_abf0f889kmhm.jpg",
+      "type": "image",
+      "size": 291840,
+      "lastModified": "2026-04-09T09:41:45.000Z"
+    }
+  ]
+}
+(base) johannesmaerz@MacBookPro funneltool2.1 % 

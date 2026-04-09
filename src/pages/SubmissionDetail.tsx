@@ -65,6 +65,69 @@ function normalizeAdvanceData(
   return hasKnownAdvanceFields ? raw : null;
 }
 
+const INITIAL_FIELD_ALIASES: Record<string, string[]> = {
+  vin: ["vin"],
+  email: ["email", "mail"],
+  phone: ["phone", "phoneNumber", "phone_number", "mobile", "mobilePhone"],
+  firstName: ["firstName", "first_name", "firstname"],
+  lastName: ["lastName", "last_name", "lastname"],
+  mileage: ["mileage", "kilometers", "km"],
+  sellerType: ["sellerType", "seller_type"],
+  newsLetter: ["newsLetter", "newsletter", "news_letter"],
+  whatsappConsent: ["whatsappConsent", "whatsapp_consent"],
+  policyConfirmation: ["policyConfirmation", "policy_confirmation"],
+  gaClientId: ["gaClientId", "ga_client_id"],
+  gClId: ["gClId", "gclid", "g_cl_id"],
+  fbClId: ["fbClId", "fbclid", "fb_cl_id"],
+  utmSource: ["utmSource", "utm_source"],
+  utmMedium: ["utmMedium", "utm_medium"],
+  utmCampaign: ["utmCampaign", "utm_campaign"],
+  utmContent: ["utmContent", "utm_content"],
+  utmTerm: ["utmTerm", "utm_term"],
+};
+
+function mapInitialFields(input: Record<string, unknown>): Record<string, unknown> | null {
+  const normalizedEntries = Object.entries(input).map(([key, value]) => [key.toLowerCase(), value] as const);
+  const normalized = new Map<string, unknown>(normalizedEntries);
+  const out: Record<string, unknown> = {};
+
+  Object.entries(INITIAL_FIELD_ALIASES).forEach(([targetKey, aliases]) => {
+    for (const alias of aliases) {
+      const match = normalized.get(alias.toLowerCase());
+      if (match !== undefined) {
+        out[targetKey] = match;
+        break;
+      }
+    }
+  });
+
+  return Object.keys(out).length > 0 ? out : null;
+}
+
+function normalizeInitialData(
+  raw: Record<string, unknown> | null | undefined
+): Record<string, unknown> | null {
+  if (!raw) return null;
+
+  const values = raw.values;
+  const looksLikeFeatheryEnvelope =
+    Array.isArray(values) &&
+    ("user_id" in raw || "last_submitted" in raw || "submission_start" in raw);
+
+  if (looksLikeFeatheryEnvelope) {
+    const extracted: Record<string, unknown> = {};
+    values.forEach((item) => {
+      if (!isRecord(item)) return;
+      const id = asString(item.id);
+      if (!id) return;
+      extracted[id] = item.value;
+    });
+    return mapInitialFields(extracted);
+  }
+
+  return mapInitialFields(raw) ?? raw;
+}
+
 function extractSubmissionData(
   detail: SubmissionDetailType | undefined,
   intake: "initial" | "advance"
@@ -79,7 +142,7 @@ function extractSubmissionData(
   const raw = topLevel ?? snakeCase;
 
   if (!raw) return null;
-  return intake === "advance" ? normalizeAdvanceData(raw) : raw;
+  return intake === "advance" ? normalizeAdvanceData(raw) : normalizeInitialData(raw);
 }
 
 function getLatestByIntake(
@@ -207,6 +270,18 @@ function formatFieldName(fieldName: string): string {
 }
 
 const ANALYTICS_KEYS = ["gaClientId", "gClId", "fbClId", "utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm", "newsLetter", "policyConfirmation"];
+
+function formatSource(source?: string | null): string {
+  if (!source) return "unknown";
+  return source.toLowerCase();
+}
+
+function sourceBadgeClasses(source?: string | null): string {
+  const normalized = formatSource(source);
+  if (normalized === "internal_form") return "border-sky-500/40 bg-sky-500/10 text-sky-300";
+  if (normalized === "feathery") return "border-amber-500/40 bg-amber-500/10 text-amber-300";
+  return "border-zinc-700 bg-zinc-800 text-zinc-300";
+}
 
 function SubmissionDataViewer({ rows, title, defaultCollapsed = false }: { rows: MergedRow[]; title: string; defaultCollapsed?: boolean }) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
@@ -709,6 +784,8 @@ export default function SubmissionDetail() {
   const firstRegistration = asString(caseDat?.first_registration) ?? "N/A";
 
   const effectiveDealId = m15Detail?.pipedriveDealId ?? data.pipedriveDealId;
+  const m1Source = m1Detail?.submissionSource;
+  const m15Source = m15Detail?.submissionSource;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -786,6 +863,22 @@ export default function SubmissionDetail() {
                     <tr>
                       <td className="py-2 pr-4 text-zinc-400">Seller type</td>
                       <td className="py-2">{contactSellerType}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 text-zinc-400">M1 source</td>
+                      <td className="py-2">
+                        <span className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-semibold ${sourceBadgeClasses(m1Source)}`}>
+                          {formatSource(m1Source)}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 text-zinc-400">M1.5 source</td>
+                      <td className="py-2">
+                        <span className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-semibold ${sourceBadgeClasses(m15Source)}`}>
+                          {formatSource(m15Source)}
+                        </span>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
