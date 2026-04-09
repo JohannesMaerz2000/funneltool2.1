@@ -4,12 +4,12 @@
 
 @layer base {
   :root {
-    --page: 2 6 23;
-    --surface: 15 23 42;
-    --surface-elevated: 17 24 39;
-    --line: 51 65 85;
-    --text: 226 232 240;
-    --muted: 148 163 184;
+    --page: 9 9 11;
+    --surface: 24 24 27;
+    --surface-elevated: 39 39 42;
+    --line: 63 63 70;
+    --text: 244 244 245;
+    --muted: 161 161 170;
     --accent: 148 163 184;
   }
 
@@ -21,11 +21,10 @@
 
   body {
     @apply antialiased text-zinc-200;
-    background:
-      radial-gradient(circle at 0% 0%, rgba(14, 116, 144, 0.12), transparent 34%),
-      radial-gradient(circle at 100% 0%, rgba(5, 150, 105, 0.1), transparent 28%),
-      radial-gradient(circle at 50% 100%, rgba(217, 119, 6, 0.07), transparent 30%),
-      rgb(var(--page));
+    background-color: rgb(var(--page));
+    background-image: 
+      radial-gradient(circle at 100% 0%, rgba(39, 39, 42, 0.4), transparent 28%),
+      radial-gradient(circle at 50% 100%, rgba(39, 39, 42, 0.2), transparent 30%);
   }
 }
 
