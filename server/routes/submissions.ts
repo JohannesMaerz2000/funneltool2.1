@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import archiver from "archiver";
 import type { _Object } from "@aws-sdk/client-s3";
 import { listAllObjects, presignUrl, presignUploadUrl, getObjectStream, putObject, deleteObject, PREFIX } from "../s3.js";
-import { buildAssets, buildAssetSummary, groupBySubmission, isRawImagesKey } from "../parser.js";
+import { buildAssets, buildAssetSummary, groupBySubmission, isExcludedAssetKey } from "../parser.js";
 import {
   fetchSubmissionDetail,
   fetchSubmissionList,
@@ -337,7 +337,7 @@ submissionsRouter.post("/presign-batch", async (req, res) => {
       const batchResults = await Promise.all(
         batch.map(async ({ id, key }) => {
           void id;
-          if (!key || !key.startsWith(PREFIX) || isRawImagesKey(key)) {
+          if (!key || !key.startsWith(PREFIX) || isExcludedAssetKey(key)) {
             return { key, url: null };
           }
           const url = await presignUrl(key);
@@ -409,7 +409,7 @@ submissionsRouter.post("/:id/upload-url", async (req, res) => {
 submissionsRouter.post("/:id/upload-complete", async (req, res) => {
   try {
     const key = parseOptionalString(req.body?.key);
-    if (!key || !key.startsWith(PREFIX) || isRawImagesKey(key)) {
+    if (!key || !key.startsWith(PREFIX) || isExcludedAssetKey(key)) {
       res.status(400).json({ error: "Invalid key" });
       return;
     }
@@ -479,7 +479,7 @@ submissionsRouter.delete("/:id/asset", async (req, res) => {
   try {
     const { id } = req.params;
     const key = parseOptionalString(req.query.key) ?? parseOptionalString(req.body?.key);
-    if (!key || !key.startsWith(PREFIX) || isRawImagesKey(key)) {
+    if (!key || !key.startsWith(PREFIX) || isExcludedAssetKey(key)) {
       res.status(400).json({ error: "Invalid key" });
       return;
     }
@@ -673,7 +673,7 @@ submissionsRouter.get("/:id/download-all", async (req, res) => {
     const imageKeys = objs
       .filter((o) => {
         const key = o.Key ?? "";
-        if (!key || key.endsWith("/") || isRawImagesKey(key)) return false;
+        if (!key || key.endsWith("/") || isExcludedAssetKey(key)) return false;
         const ext = key.slice(key.lastIndexOf(".")).toLowerCase();
         return imageExts.has(ext);
       })
@@ -722,8 +722,8 @@ submissionsRouter.get("/:id/download", async (req, res) => {
       res.status(403).json({ error: "Key must be inside allowed S3 prefix" });
       return;
     }
-    if (isRawImagesKey(key)) {
-      res.status(403).json({ error: "raw_images assets are excluded" });
+    if (isExcludedAssetKey(key)) {
+      res.status(403).json({ error: "raw_images/raw_documents assets are excluded" });
       return;
     }
     const { body, contentType, contentLength } = await getObjectStream(key);
@@ -775,8 +775,8 @@ submissionsRouter.get("/:id/asset-url", async (req, res) => {
       res.status(403).json({ error: "Key must be inside allowed S3 prefix" });
       return;
     }
-    if (isRawImagesKey(key)) {
-      res.status(403).json({ error: "raw_images assets are excluded" });
+    if (isExcludedAssetKey(key)) {
+      res.status(403).json({ error: "raw_images/raw_documents assets are excluded" });
       return;
     }
     const url = await presignUrl(key);

@@ -11,8 +11,18 @@ export function isRawImagesKey(key: string): boolean {
     .some((segment) => segment.toLowerCase() === "raw_images");
 }
 
+export function isRawDocumentsKey(key: string): boolean {
+  return key
+    .split("/")
+    .some((segment) => segment.toLowerCase() === "raw_documents");
+}
+
+export function isExcludedAssetKey(key: string): boolean {
+  return isRawImagesKey(key) || isRawDocumentsKey(key);
+}
+
 function visibleAssetObjects(objects: _Object[]): _Object[] {
-  return objects.filter((o) => o.Key && !o.Key.endsWith("/") && !isRawImagesKey(o.Key));
+  return objects.filter((o) => o.Key && !o.Key.endsWith("/") && !isExcludedAssetKey(o.Key));
 }
 
 function extOf(key: string): string {
