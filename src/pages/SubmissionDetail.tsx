@@ -266,6 +266,8 @@ function formatFieldName(fieldName: string): string {
   let name = fieldName.replace(/\[(\d+)\]/g, (_, num) => ` ${parseInt(num, 10) + 1}`);
   name = name.replace(/\./g, ' - ');
   name = name.replace(/([A-Z])/g, ' $1');
+  name = name.replace(/\bVin\b/gi, 'VIN');
+  name = name.replace(/\bCoc\b/gi, 'COC');
   return name.charAt(0).toUpperCase() + name.trim().slice(1);
 }
 
@@ -288,6 +290,7 @@ function SubmissionDataViewer({ rows, title, defaultCollapsed = false }: { rows:
   const [showEmpty, setShowEmpty] = useState(false);
 
   const isEmpty = (row: MergedRow) => {
+    if (row.field === "vehicleDocuments") return false;
     if (row.rawValue === null || row.rawValue === undefined || row.rawValue === "") return true;
     if (Array.isArray(row.rawValue) && row.rawValue.length === 0) return true;
     if (isRecord(row.rawValue) && Object.keys(row.rawValue).length === 0) return true;
@@ -305,6 +308,9 @@ function SubmissionDataViewer({ rows, title, defaultCollapsed = false }: { rows:
 
   const renderRow = (row: MergedRow) => {
     const isBool = typeof row.rawValue === "boolean";
+    const isVehicleDocs = row.field === "vehicleDocuments";
+    const isStringArray = Array.isArray(row.rawValue) && row.rawValue.length > 0 && row.rawValue.every(v => typeof v === 'string');
+
     return (
       <div key={row.field} className="flex items-start justify-between py-2.5 border-b border-zinc-800/50">
         <span className="text-xs font-semibold text-zinc-400 truncate pr-4 w-1/2 shrink-0" title={formatFieldName(row.field)}>
@@ -318,6 +324,42 @@ function SubmissionDataViewer({ rows, title, defaultCollapsed = false }: { rows:
               ) : (
                 <svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
               )}
+            </div>
+          ) : isVehicleDocs ? (
+            <div className="flex flex-wrap justify-end gap-1.5 mt-0.5">
+              {["coc_certificate", "registration_document", "vehicle_ownership_document"].map((docKey) => {
+                const isPresent = Array.isArray(row.rawValue) && row.rawValue.includes(docKey);
+                const labels: Record<string, string> = {
+                  coc_certificate: "COC",
+                  registration_document: "Registration",
+                  vehicle_ownership_document: "Ownership",
+                };
+                return (
+                  <span
+                    key={docKey}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-all ${
+                      isPresent
+                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-sm shadow-emerald-500/10"
+                        : "bg-zinc-800/20 border-zinc-800 text-zinc-600"
+                    }`}
+                  >
+                    {isPresent && (
+                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {labels[docKey] || docKey}
+                  </span>
+                );
+              })}
+            </div>
+          ) : isStringArray ? (
+            <div className="flex flex-wrap justify-end gap-1 mt-0.5">
+              {(row.rawValue as string[]).map((v, i) => (
+                <span key={i} className="bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded text-[10px] font-bold text-zinc-300 uppercase tracking-tight">
+                  {v.replace(/_/g, ' ')}
+                </span>
+              ))}
             </div>
           ) : (
             <div className={`text-sm ${isEmpty(row) ? 'text-zinc-600 italic' : 'text-zinc-200 font-medium break-words whitespace-pre-wrap'}`}>
