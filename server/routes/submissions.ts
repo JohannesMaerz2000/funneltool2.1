@@ -178,6 +178,40 @@ function normalizeIsoDate(value?: string): string | undefined {
   return new Date(ts).toISOString();
 }
 
+type IntakeFilter = "initial" | "advance";
+type ViewFilter = "initial" | "partial" | "advance";
+
+function normalizeIntakeFilter(value?: string): IntakeFilter | undefined {
+  if (!value) return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "initial" || normalized === "advance") return normalized;
+  return undefined;
+}
+
+function getAdvanceSyncState(status?: string | null): "partial" | "completed" {
+  return status?.trim().toLowerCase() === "completed" ? "completed" : "partial";
+}
+
+function parseViewFilters(value?: string): ViewFilter[] | null {
+  if (!value) return null;
+  const values = value
+    .split(",")
+    .map((v) => v.trim().toLowerCase())
+    .filter(Boolean);
+  if (values.length === 0) return null;
+  const unique = Array.from(new Set(values));
+  const valid = unique.every((v) => v === "initial" || v === "partial" || v === "advance");
+  if (!valid) return null;
+  return unique as ViewFilter[];
+}
+
+function caseMatchesView(c: CaseSummary, view: ViewFilter): boolean {
+  if (view === "initial") return !!c.m1;
+  if (!c.m15) return false;
+  const sync = getAdvanceSyncState(c.m15.pipedriveSyncStatus);
+  return view === "partial" ? sync === "partial" : sync === "completed";
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -480,6 +514,10 @@ submissionsRouter.get("/", async (req, res) => {
   try {
     const vin = parseOptionalString(req.query.vin) ?? parseOptionalString(req.query.query);
     const pipedriveDealId = parseOptionalString(req.query.pipedrive_deal_id);
+    const intakeRaw = parseOptionalString(req.query.intake);
+    const intake = normalizeIntakeFilter(intakeRaw);
+    const viewsRaw = parseOptionalString(req.query.views);
+    const views = parseViewFilters(viewsRaw) ?? ["initial", "partial", "advance"];
     const fromRaw = parseOptionalString(req.query.from);
     const toRaw = parseOptionalString(req.query.to);
     const from = normalizeIsoDate(fromRaw);
@@ -491,6 +529,14 @@ submissionsRouter.get("/", async (req, res) => {
     }
     if (toRaw && !to) {
       res.status(400).json({ error: "Invalid to date (expected ISO date string)" });
+      return;
+    }
+    if (intakeRaw && !intake) {
+      res.status(400).json({ error: "Invalid intake (expected initial or advance)" });
+      return;
+    }
+    if (viewsRaw && !parseViewFilters(viewsRaw)) {
+      res.status(400).json({ error: "Invalid views (expected comma-separated initial, partial, advance)" });
       return;
     }
 
@@ -518,6 +564,12 @@ submissionsRouter.get("/", async (req, res) => {
     const submissions = allItems.map((item) => normalizeSummary(item, enrichmentById.get(item.id)));
     
     let cases = groupIntoCases(submissions);
+
+    // Legacy intake support (if still used by an older client)
+    if (intake === "initial") cases = cases.filter((c) => !!c.m1);
+    if (intake === "advance") cases = cases.filter((c) => !!c.m15);
+
+    cases = cases.filter((c) => views.some((view) => caseMatchesView(c, view)));
 
     // Client-side filter by deal ID if provided
     if (pipedriveDealId) {

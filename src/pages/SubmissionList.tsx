@@ -5,6 +5,8 @@ import { batchPresignUrls, listSubmissions } from "../api/client";
 import { badgeTone, ui } from "../components/ui";
 import type { CaseSummary } from "../types/submission";
 
+type ViewTab = "initial" | "partial" | "advance";
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
     dateStyle: "short",
@@ -45,9 +47,9 @@ function SyncBadge({ status }: { status?: string | null }) {
   const tone =
     normalized === "completed"
       ? "success"
-      : normalized === "pending"
+      : normalized === "partial" || normalized === "pending"
         ? "warn"
-        : normalized === "failed"
+      : normalized === "failed"
           ? "danger"
           : "neutral";
 
@@ -58,24 +60,36 @@ function SyncBadge({ status }: { status?: string | null }) {
   );
 }
 
-function CaseIntakeBadge({ hasM1, hasM15 }: { hasM1: boolean; hasM15: boolean }) {
-  if (hasM1 && hasM15) {
-    return <span className={`${ui.badge} ${badgeTone("success")}`}>M1 + M1.5</span>;
+function IntakeBadge({ view }: { view: ViewTab }) {
+  if (view === "initial") {
+    return <span className={`${ui.badge} ${badgeTone("info")}`}>initial</span>;
   }
+  return <span className={`${ui.badge} ${badgeTone("success")}`}>advance</span>;
+}
 
-  if (hasM15) {
-    return <span className={`${ui.badge} ${badgeTone("success")}`}>M1.5</span>;
+function getAdvanceState(status?: string | null): "partial" | "advance" {
+  return status?.toLowerCase() === "completed" ? "advance" : "partial";
+}
+
+function getViewData(row: CaseSummary, selectedViews: ViewTab[]) {
+  const hasInitial = !!row.m1;
+  const advanceState = row.m15 ? getAdvanceState(row.m15.pipedriveSyncStatus) : null;
+
+  if (selectedViews.includes("advance") && advanceState === "advance" && row.m15) {
+    return { view: "advance" as const, summary: row.m15, status: "completed" };
   }
-
-  if (hasM1) {
-    return <span className={`${ui.badge} ${badgeTone("success")}`}>M1</span>;
+  if (selectedViews.includes("partial") && advanceState === "partial" && row.m15) {
+    return { view: "partial" as const, summary: row.m15, status: "partial" };
   }
-
-  return <span className={`${ui.badge} ${badgeTone("neutral")}`}>unknown</span>;
+  if (selectedViews.includes("initial") && hasInitial && row.m1) {
+    return { view: "initial" as const, summary: row.m1, status: "completed" };
+  }
+  return null;
 }
 
 export default function SubmissionList() {
   const navigate = useNavigate();
+  const [selectedViews, setSelectedViews] = useState<ViewTab[]>(["initial", "partial", "advance"]);
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -85,12 +99,13 @@ export default function SubmissionList() {
 
   const params = useMemo(
     () => ({
+      views: selectedViews,
       from: toStartOfDayIso(fromDate),
       to: toEndOfDayIso(toDate),
       page,
       pageSize,
     }),
-    [fromDate, toDate, page, pageSize]
+    [selectedViews, fromDate, toDate, page, pageSize]
   );
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
@@ -115,9 +130,12 @@ export default function SubmissionList() {
   const thumbnailItems = useMemo(
     () =>
       caseRows
-        .filter((row) => row.thumbnailKey)
-        .map((row) => ({ id: row.openId, key: row.thumbnailKey! })),
-    [caseRows]
+        .map((row) => {
+          const viewData = getViewData(row, selectedViews);
+          return { id: viewData?.summary.id ?? row.openId, key: viewData?.summary.thumbnailKey ?? row.thumbnailKey };
+        })
+        .filter((item): item is { id: string; key: string } => !!item.key),
+    [selectedViews, caseRows]
   );
 
   const { data: thumbnailResults } = useQuery({
@@ -144,11 +162,15 @@ export default function SubmissionList() {
     setPage(1);
   }
 
-  function clearFilters() {
-    setSearch("");
-    setFromDate("");
-    setToDate("");
-    setPageSize(20);
+  function toggleView(view: ViewTab) {
+    setSelectedViews((prev) => {
+      if (prev.includes(view)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((v) => v !== view);
+      }
+      const next = [...prev, view];
+      return next;
+    });
     setPage(1);
   }
 
@@ -157,9 +179,26 @@ export default function SubmissionList() {
       <div className="mb-8 flex items-end justify-between gap-3">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-100">Submissions</h1>
-          <p className="mt-2 text-base text-zinc-400">VIN-grouped cases (M1 + M1.5)</p>
+          <p className="mt-2 text-base text-zinc-400">VIN-grouped cases by intake form</p>
         </div>
         {data && <span className={`${ui.badge} ${badgeTone("info")}`}>{data.total} cases found</span>}
+      </div>
+
+      <div className="mb-4 inline-flex rounded-full border border-zinc-700 bg-zinc-900 p-1">
+        {(["initial", "partial", "advance"] as const).map((tab) => {
+          const isActive = selectedViews.includes(tab);
+          return (
+            <button
+              key={tab}
+              onClick={() => toggleView(tab)}
+              className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition ${
+                isActive ? "bg-zinc-100 text-zinc-900" : "text-zinc-300 hover:text-zinc-100"
+              }`}
+            >
+              {tab}
+            </button>
+          );
+        })}
       </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-2">
@@ -219,19 +258,6 @@ export default function SubmissionList() {
           <span className="text-xs font-medium text-zinc-500">per page</span>
         </div>
 
-        {/* Clear */}
-        {(search || fromDate || toDate || pageSize !== 20) && (
-          <button
-            onClick={clearFilters}
-            className="flex h-10 items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-900 px-4 text-sm font-semibold text-zinc-400 transition hover:border-zinc-500 hover:text-zinc-100"
-          >
-            <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-            Clear
-          </button>
-        )}
-
       </div>
 
       {isLoading && (
@@ -262,7 +288,7 @@ export default function SubmissionList() {
                 <tr>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Thumbnail</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">VIN</th>
-                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Forms</th>
+                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Intake</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Sync</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Updated</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Deal</th>
@@ -270,34 +296,43 @@ export default function SubmissionList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800">
-                {caseRows.map((row, idx) => (
-                  <tr
-                    key={row.caseKey}
-                    className={`cursor-pointer transition hover:bg-zinc-800 ${idx % 2 === 0 ? "bg-zinc-900/50" : "bg-zinc-900/20"}`}
-                    onClick={() => navigate(`/submissions/${encodeURIComponent(row.openId)}`)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        navigate(`/submissions/${encodeURIComponent(row.openId)}`);
-                      }
-                    }}
-                    tabIndex={0}
-                  >
-                    <td className="px-6 py-4">
-                      <SubmissionThumbnail url={thumbnailUrlMap.get(row.openId)} />
-                    </td>
-                    <td className="px-6 py-4 font-mono text-xs text-zinc-300">{row.vin ?? "N/A"}</td>
-                    <td className="px-6 py-4">
-                      <CaseIntakeBadge hasM1={!!row.m1} hasM15={!!row.m15} />
-                    </td>
-                    <td className="px-6 py-4">
-                      <SyncBadge status={row.pipedriveSyncStatus} />
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-zinc-300">{formatDate(row.updatedAt)}</td>
-                    <td className="px-6 py-4 text-zinc-300">{row.pipedriveDealId ?? "N/A"}</td>
-                    <td className="px-6 py-4 font-semibold text-zinc-300">{row.assetCount}</td>
-                  </tr>
-                ))}
+                {caseRows.map((row, idx) => {
+                  const viewData = getViewData(row, selectedViews);
+                  if (!viewData) return null;
+                  const { view, summary, status } = viewData;
+                  const openId = summary.id;
+                  const updatedAt = summary.updatedAt;
+                  const dealId = summary.pipedriveDealId;
+                  const assetCount = summary.assetCount;
+                  return (
+                    <tr
+                      key={`${row.caseKey}:${view}`}
+                      className={`cursor-pointer transition hover:bg-zinc-800 ${idx % 2 === 0 ? "bg-zinc-900/50" : "bg-zinc-900/20"}`}
+                      onClick={() => navigate(`/submissions/${encodeURIComponent(openId)}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          navigate(`/submissions/${encodeURIComponent(openId)}`);
+                        }
+                      }}
+                      tabIndex={0}
+                    >
+                      <td className="px-6 py-4">
+                        <SubmissionThumbnail url={thumbnailUrlMap.get(openId)} />
+                      </td>
+                      <td className="px-6 py-4 font-mono text-xs text-zinc-300">{row.vin ?? "N/A"}</td>
+                      <td className="px-6 py-4">
+                        <IntakeBadge view={view} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <SyncBadge status={status} />
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-zinc-300">{formatDate(updatedAt)}</td>
+                      <td className="px-6 py-4 text-zinc-300">{dealId ?? "N/A"}</td>
+                      <td className="px-6 py-4 font-semibold text-zinc-300">{assetCount}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

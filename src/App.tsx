@@ -12,9 +12,12 @@ export default function App() {
             F
           </span>
           <div>
-            <span className="text-2xl font-semibold tracking-tight text-zinc-100">Funnel Tool</span>
-            <span className="ml-3 rounded-full border border-emerald-900/50 bg-emerald-950/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-200">
-              Internal
+            <span className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-zinc-100">
+              Featherless
+              <span className="flex items-center gap-1">
+                <span className="text-xl">🪶</span>
+                <span className="text-xl">🚫</span>
+              </span>
             </span>
           </div>
         </div>

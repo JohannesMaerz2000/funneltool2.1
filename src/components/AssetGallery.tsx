@@ -449,16 +449,29 @@ export default function AssetGallery({
     name: string;
   } | null>(null);
 
+  const [deletedKeys, setDeletedKeys] = useState<Set<string>>(new Set());
+
   const deleteMutation = useMutation({
     mutationFn: async (key: string) => {
+      setDeletedKeys((prev) => new Set([...prev, key]));
       await deleteSubmissionAsset(submissionId, key);
       await onAssetsChanged?.();
     },
-    onError: (err) => {
+    onError: (err, key) => {
+      setDeletedKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
       const message = err instanceof Error ? err.message : "Failed to delete asset";
       window.alert(message);
     },
   });
+
+  const visibleAssets = useMemo(
+    () => assets.filter((a) => !deletedKeys.has(a.key)),
+    [assets, deletedKeys]
+  );
 
   // Memoize all derived lists in a single pass
   const { imagesByCategory, pdfs, docs, others } = useMemo(() => {
@@ -467,7 +480,7 @@ export default function AssetGallery({
     const docList: Asset[] = [];
     const otherList: Asset[] = [];
 
-    for (const a of assets) {
+    for (const a of visibleAssets) {
       if (a.type === "image") {
         const cat = inferAssetCategory(a);
         if (!imagesMap[cat]) imagesMap[cat] = [];
