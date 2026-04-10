@@ -886,7 +886,7 @@ export default function SubmissionDetail() {
             {effectiveDealId ? (
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-3 px-4 py-1.5 rounded-xl bg-zinc-50 border border-zinc-200/60 shadow-sm">
-                  <span className="text-base font-bold text-zinc-900 leading-none">{effectiveDealId}</span>
+                  <span className="text-lg font-bold text-zinc-900 leading-none">{effectiveDealId}</span>
                   <CopyButton text={effectiveDealId} />
                 </div>
                 <a
