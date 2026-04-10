@@ -20,6 +20,37 @@ function asString(value: unknown): string | undefined {
   return undefined;
 }
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="p-1.5 rounded-lg hover:bg-zinc-200/50 text-zinc-400 hover:text-zinc-600 transition-all flex items-center gap-1.5 active:scale-95 group"
+      title="Copy to clipboard"
+    >
+      {copied ? (
+        <>
+          <svg className="w-3.5 h-3.5 text-[#3ec099]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="text-[10px] font-bold text-[#3ec099] uppercase">Copied</span>
+        </>
+      ) : (
+        <svg className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 function normalizeAdvanceData(
   raw: Record<string, unknown> | null | undefined
 ): Record<string, unknown> | null {
@@ -856,14 +887,20 @@ export default function SubmissionDetail() {
               <h1 className="text-xl font-bold text-zinc-900">Case Overview</h1>
             </div>
             {effectiveDealId ? (
-              <a
-                href={pipedriveUrl(effectiveDealId)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${ui.button} shrink-0`}
-              >
-                View in Pipedrive
-              </a>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 px-4 py-1.5 rounded-xl bg-zinc-50 border border-zinc-200/60 shadow-sm">
+                  <span className="text-base font-bold text-zinc-900 leading-none">{effectiveDealId}</span>
+                  <CopyButton text={effectiveDealId} />
+                </div>
+                <a
+                  href={pipedriveUrl(effectiveDealId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${ui.button} shrink-0`}
+                >
+                  View in Pipedrive
+                </a>
+              </div>
             ) : null}
           </div>
 
