@@ -122,7 +122,9 @@ export default function SubmissionList() {
   const [page, setPage] = useState(1);
   const deferredSearch = useDeferredValue(search);
 
-  const params = useMemo(
+  const isSearching = deferredSearch.trim().length > 0;
+
+  const filteredParams = useMemo(
     () => ({
       views: selectedViews,
       from: toStartOfDayIso(fromDate),
@@ -133,34 +135,46 @@ export default function SubmissionList() {
     [selectedViews, fromDate, toDate, page, pageSize]
   );
 
-  const { data, isLoading, isError, error, isFetching } = useQuery({
-    queryKey: ["submissions", params],
-    queryFn: () => listSubmissions(params),
+  const searchParams_ = useMemo(
+    () => ({
+      vin: deferredSearch.trim(),
+      pipedriveDealId: deferredSearch.trim(),
+      pageSize: 100,
+    }),
+    [deferredSearch]
+  );
+
+  const filteredQuery = useQuery({
+    queryKey: ["submissions", filteredParams],
+    queryFn: () => listSubmissions(filteredParams),
     staleTime: 2 * 60_000,
     placeholderData: keepPreviousData,
+    enabled: !isSearching,
   });
 
-  const caseRows = useMemo(() => {
-    const grouped = data?.data ?? [];
-    if (!deferredSearch.trim()) return grouped;
+  const searchQuery = useQuery({
+    queryKey: ["submissions-search", searchParams_],
+    queryFn: () => listSubmissions(searchParams_),
+    staleTime: 2 * 60_000,
+    placeholderData: keepPreviousData,
+    enabled: isSearching,
+  });
 
-    const searchLower = deferredSearch.toLowerCase().trim();
-    return grouped.filter((row: CaseSummary) => {
-      const vinMatch = row.vin?.toLowerCase().includes(searchLower);
-      const dealIdMatch = row.pipedriveDealId?.toLowerCase().includes(searchLower);
-      return vinMatch || dealIdMatch;
-    });
-  }, [data?.data, deferredSearch]);
+  const activeQuery = isSearching ? searchQuery : filteredQuery;
+  const { data, isLoading, isError, error, isFetching } = activeQuery;
+
+  const caseRows = data?.data ?? [];
+  const activeViews = isSearching ? DEFAULT_VIEWS : selectedViews;
 
   const thumbnailItems = useMemo(
     () =>
       caseRows
         .map((row) => {
-          const viewData = getViewData(row, selectedViews);
+          const viewData = getViewData(row, activeViews);
           return { id: viewData?.summary.id ?? row.openId, key: viewData?.summary.thumbnailKey ?? row.thumbnailKey };
         })
         .filter((item): item is { id: string; key: string } => !!item.key),
-    [selectedViews, caseRows]
+    [activeViews, caseRows]
   );
 
   const { data: thumbnailResults } = useQuery({
@@ -320,7 +334,7 @@ export default function SubmissionList() {
               </thead>
               <tbody className="divide-y divide-zinc-100">
                 {caseRows.map((row, idx) => {
-                  const viewData = getViewData(row, selectedViews);
+                  const viewData = getViewData(row, activeViews);
                   if (!viewData) return null;
                   const { view, summary, status } = viewData;
                   const openId = summary.id;

@@ -551,7 +551,9 @@ submissionsRouter.get("/", async (req, res) => {
     let totalAvailable = 0;
 
     do {
-      const upstream = await fetchSubmissionList({ page: currentPage, pageSize: 100, vin, from, to });
+      // When both vin and pipedrive_deal_id are set, this is a global search — don't constrain upstream by VIN
+      const upstreamVin = pipedriveDealId ? undefined : vin;
+      const upstream = await fetchSubmissionList({ page: currentPage, pageSize: 100, vin: upstreamVin, from, to });
       allItems.push(...upstream.items);
       totalAvailable = upstream.total;
       if (allItems.length >= totalAvailable || currentPage >= 10) break; // limit to 1000 items total for safety
@@ -571,9 +573,19 @@ submissionsRouter.get("/", async (req, res) => {
 
     cases = cases.filter((c) => views.some((view) => caseMatchesView(c, view)));
 
-    // Client-side filter by deal ID if provided
+    // Filter by deal ID — partial match, OR with VIN when both are provided
     if (pipedriveDealId) {
-      cases = cases.filter((c: CaseSummary) => c.pipedriveDealId === pipedriveDealId);
+      const dealLower = pipedriveDealId.toLowerCase();
+      if (vin) {
+        // Both provided = OR search (global search mode)
+        const vinLower = vin.toLowerCase();
+        cases = cases.filter((c: CaseSummary) =>
+          c.vin?.toLowerCase().includes(vinLower) ||
+          c.pipedriveDealId?.toLowerCase().includes(dealLower)
+        );
+      } else {
+        cases = cases.filter((c: CaseSummary) => c.pipedriveDealId?.toLowerCase().includes(dealLower));
+      }
     }
 
     const total = cases.length;
