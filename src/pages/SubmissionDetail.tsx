@@ -274,8 +274,20 @@ function buildMergedRows(
     });
   });
 
+  const isEmptyRaw = (v: unknown): boolean => {
+    if (v === null || v === undefined || v === "") return true;
+    if (Array.isArray(v) && v.length === 0) return true;
+    if (isRecord(v) && Object.keys(v).length === 0) return true;
+    return false;
+  };
+
   const advanceFlat = flattenData(advanceData ?? {});
   advanceFlat.forEach((item) => {
+    const existing = map.get(item.path);
+    // Don't let an empty advance value override a populated initial value
+    if (existing && existing.source === "initial" && isEmptyRaw(item.rawValue) && !isEmptyRaw(existing.rawValue)) {
+      return;
+    }
     map.set(item.path, {
       field: item.path,
       value: item.value,
@@ -856,6 +868,19 @@ export default function SubmissionDetail() {
   const variant = asString(caseDat?.variant) ?? "N/A";
   const firstRegistration = asString(caseDat?.first_registration) ?? "N/A";
 
+  const pickMileage = (d: Record<string, unknown> | null): number | null => {
+    if (!d) return null;
+    const v = d.mileage ?? d.kilometers ?? d.km;
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    if (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v))) return Number(v);
+    return null;
+  };
+  const mileageValue =
+    pickMileage(advanceSubmissionData) ??
+    pickMileage(initialSubmissionData) ??
+    (typeof caseDat?.mileage === "number" ? (caseDat.mileage as number) : null);
+  const mileage = mileageValue !== null ? `${mileageValue.toLocaleString("de-DE")} km` : "N/A";
+
   const effectiveDealId = m15Detail?.pipedriveDealId ?? data.pipedriveDealId;
   const m1Source = m1Detail?.submissionSource;
   const m15Source = m15Detail?.submissionSource;
@@ -929,6 +954,10 @@ export default function SubmissionDetail() {
                     <tr>
                       <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">First registration</td>
                       <td className="py-2.5 font-bold text-zinc-700">{firstRegistration !== "N/A" ? formatDate(firstRegistration) : "N/A"}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Mileage</td>
+                      <td className="py-2.5 font-bold text-zinc-700">{mileage}</td>
                     </tr>
                   </tbody>
                 </table>
