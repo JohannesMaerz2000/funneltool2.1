@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Asset } from "../types/submission";
-import { batchPresignUrls, deleteSubmissionAsset } from "../api/client";
+import { batchPresignUrls, deleteSubmissionAsset, rotateSubmissionAsset } from "../api/client";
 import { ui } from "./ui";
 
 function fileName(key: string) {
@@ -33,6 +33,15 @@ export function DownloadIcon({ className = "w-5 h-5" }: { className?: string }) 
     <svg viewBox="0 0 20 20" fill="currentColor" className={className}>
       <path d="M10 3a.75.75 0 01.75.75v7.69l2.22-2.22a.75.75 0 111.06 1.06l-3.5 3.5a.75.75 0 01-1.06 0l-3.5-3.5a.75.75 0 111.06-1.06l2.22 2.22V3.75A.75.75 0 0110 3z" />
       <path d="M3 15.75a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" />
+    </svg>
+  );
+}
+
+function RotateIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M15.5 4.5A7 7 0 1 0 17 10" />
+      <path d="M17 3v4h-4" />
     </svg>
   );
 }
@@ -164,14 +173,18 @@ function ImageThumb({
   url,
   onClick,
   onDelete,
+  onRotate,
   isDeleting,
+  isRotating,
 }: {
   asset: Asset;
   submissionId: string;
   url?: string;
   onClick: (url: string, name: string) => void;
   onDelete: (key: string) => void;
+  onRotate: (key: string) => void;
   isDeleting: boolean;
+  isRotating: boolean;
 }) {
   const name = fileName(asset.key);
   const category = inferAssetCategory(asset);
@@ -204,6 +217,17 @@ function ImageThumb({
                 {category}
               </span>
               <div className="ml-auto flex items-center gap-2">
+                <button
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/40 disabled:cursor-not-allowed disabled:opacity-60"
+                  title={`Rotate ${name} 90° clockwise`}
+                  disabled={isRotating}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRotate(asset.key);
+                  }}
+                >
+                  <RotateIcon className="h-4 w-4" />
+                </button>
                 <button
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/40"
                   title={`Download ${name}`}
@@ -450,6 +474,26 @@ export default function AssetGallery({
   } | null>(null);
 
   const [deletedKeys, setDeletedKeys] = useState<Set<string>>(new Set());
+  // Per-key version bumped after rotation so the browser re-fetches the new bytes
+  // instead of serving the cached old image under the same presigned URL.
+  const [versionByKey, setVersionByKey] = useState<Record<string, number>>({});
+
+  const queryClient = useQueryClient();
+  const rotateMutation = useMutation({
+    mutationFn: async (key: string) => {
+      await rotateSubmissionAsset(submissionId, key, 90);
+      return key;
+    },
+    onSuccess: async (key) => {
+      setVersionByKey((prev) => ({ ...prev, [key]: (prev[key] ?? 0) + 1 }));
+      // Force a fresh presigned URL (new X-Amz-Date → different URL → browser refetches bytes).
+      await queryClient.invalidateQueries({ queryKey: ["asset-urls-batch", submissionId] });
+    },
+    onError: (err) => {
+      const message = err instanceof Error ? err.message : "Failed to rotate asset";
+      window.alert(message);
+    },
+  });
 
   const deleteMutation = useMutation({
     mutationFn: async (key: string) => {
@@ -516,9 +560,19 @@ export default function AssetGallery({
     [assets, submissionId]
   );
 
+  // Version signature so rotation bumps force a full refetch (new presigned URLs).
+  const versionSig = useMemo(
+    () =>
+      Object.keys(versionByKey)
+        .sort()
+        .map((k) => `${k}:${versionByKey[k]}`)
+        .join("|"),
+    [versionByKey]
+  );
+
   // Single batch request for ALL asset presigned URLs
   const { data: batchResults } = useQuery({
-    queryKey: ["asset-urls-batch", submissionId, batchItems.map((i) => i.key)],
+    queryKey: ["asset-urls-batch", submissionId, batchItems.map((i) => i.key), versionSig],
     queryFn: () => batchPresignUrls(batchItems),
     enabled: batchItems.length > 0,
     staleTime: 50 * 60 * 1000,
@@ -578,7 +632,9 @@ export default function AssetGallery({
                       if (!window.confirm(`Delete this asset permanently?\n\n${fileName(key)}`)) return;
                       deleteMutation.mutate(key);
                     }}
+                    onRotate={(key) => rotateMutation.mutate(key)}
                     isDeleting={deleteMutation.isPending}
+                    isRotating={rotateMutation.isPending && rotateMutation.variables === a.key}
                   />
                 ))}
               </div>

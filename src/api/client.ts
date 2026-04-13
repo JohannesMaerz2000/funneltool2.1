@@ -137,6 +137,25 @@ export async function uploadSubmissionAssetProxy(input: {
   return res.json() as Promise<{ key: string }>;
 }
 
+export async function rotateSubmissionAsset(
+  submissionId: string,
+  key: string,
+  degrees: 90 | 180 | 270
+): Promise<void> {
+  const res = await fetch(
+    `/api/submissions/${encodeURIComponent(submissionId)}/asset/rotate`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, degrees }),
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+  }
+}
+
 export async function deleteSubmissionAsset(submissionId: string, key: string): Promise<void> {
   const qs = new URLSearchParams({ key });
   const res = await fetch(`/api/submissions/${encodeURIComponent(submissionId)}/asset?${qs}`, {

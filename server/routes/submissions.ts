@@ -2,6 +2,7 @@ import { Router, raw, type Response } from "express";
 import { Readable } from "node:stream";
 import { randomUUID } from "node:crypto";
 import archiver from "archiver";
+import sharp from "sharp";
 import type { _Object } from "@aws-sdk/client-s3";
 import { listAllObjects, presignUrl, presignUploadUrl, getObjectStream, putObject, deleteObject, PREFIX } from "../s3.js";
 import { buildAssets, buildAssetSummary, groupBySubmission, isExcludedAssetKey } from "../parser.js";
@@ -469,6 +470,77 @@ submissionsRouter.post("/:id/upload-asset", raw({ type: () => true, limit: "30mb
     if (handleSellerApiError(res, err)) return;
     console.error("[submissions] upload-asset error:", err);
     res.status(500).json({ error: "Failed to upload asset", detail: String(err) });
+  }
+});
+
+/**
+ * POST /api/submissions/:id/asset/rotate
+ * Body: { key: string, degrees: 90 | 180 | 270 }
+ * Rotates the image in place (overwrites the same S3 key).
+ */
+submissionsRouter.post("/:id/asset/rotate", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const key = parseOptionalString(req.body?.key);
+    const degreesRaw = req.body?.degrees;
+    const degrees = typeof degreesRaw === "number" ? degreesRaw : Number.parseInt(String(degreesRaw ?? ""), 10);
+
+    if (!key || !key.startsWith(PREFIX) || isExcludedAssetKey(key)) {
+      res.status(400).json({ error: "Invalid key" });
+      return;
+    }
+    if (![90, 180, 270].includes(degrees)) {
+      res.status(400).json({ error: "degrees must be 90, 180, or 270" });
+      return;
+    }
+
+    const upstream = await fetchSubmissionDetail(id);
+    const vin = isRecord(upstream.submission) ? asString(upstream.submission.vin) : undefined;
+    const objects = await getCachedObjects();
+    const groups = getCachedGroups(objects);
+    const caseInsensitiveGroups = buildCaseInsensitiveGroups(groups);
+    const allowedObjects = resolveSubmissionObjects(groups, caseInsensitiveGroups, [id, vin]);
+    const keyAllowed = allowedObjects.some((obj) => obj.Key === key);
+    if (!keyAllowed) {
+      res.status(403).json({ error: "Asset does not belong to this submission" });
+      return;
+    }
+
+    const { body, contentType } = await getObjectStream(key);
+    if (!body) {
+      res.status(404).json({ error: "Object not found" });
+      return;
+    }
+
+    const resolvedContentType = contentType ?? "image/jpeg";
+    if (!isSupportedImageContentType(resolvedContentType)) {
+      res.status(400).json({ error: "Only image assets can be rotated" });
+      return;
+    }
+
+    const inputBuffer = Buffer.from(await body.transformToByteArray());
+    // { failOn: "none" } keeps sharp from choking on minor metadata issues.
+    const pipeline = sharp(inputBuffer, { failOn: "none" }).rotate(degrees);
+
+    const lowerCt = resolvedContentType.toLowerCase();
+    let outputBuffer: Buffer;
+    if (lowerCt === "image/png") {
+      outputBuffer = await pipeline.png().toBuffer();
+    } else if (lowerCt === "image/webp") {
+      outputBuffer = await pipeline.webp({ quality: 92 }).toBuffer();
+    } else {
+      // jpeg / jpg / fallback
+      outputBuffer = await pipeline.jpeg({ quality: 92, mozjpeg: true }).toBuffer();
+    }
+
+    await putObject(key, outputBuffer, resolvedContentType);
+    invalidateS3Caches();
+
+    res.json({ ok: true, key });
+  } catch (err) {
+    if (handleSellerApiError(res, err)) return;
+    console.error("[submissions] rotate asset error:", err);
+    res.status(500).json({ error: "Failed to rotate asset", detail: String(err) });
   }
 });
 
