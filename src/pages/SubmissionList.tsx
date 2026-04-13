@@ -347,7 +347,9 @@ export default function SubmissionList() {
                       className={`cursor-pointer transition-colors hover:bg-zinc-50 ${idx % 2 === 0 ? "bg-white" : "bg-zinc-50/30"}`}
                       onClick={() =>
                         navigate({
-                          pathname: `/submissions/${encodeURIComponent(openId)}`,
+                          pathname: row.vin
+                            ? `/v/${encodeURIComponent(row.vin.toUpperCase())}`
+                            : `/submissions/${encodeURIComponent(openId)}`,
                           search: searchParams.toString() ? `?${searchParams.toString()}` : "",
                         })
                       }
@@ -355,7 +357,9 @@ export default function SubmissionList() {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
                           navigate({
-                            pathname: `/submissions/${encodeURIComponent(openId)}`,
+                            pathname: row.vin
+                              ? `/v/${encodeURIComponent(row.vin.toUpperCase())}`
+                              : `/submissions/${encodeURIComponent(openId)}`,
                             search: searchParams.toString() ? `?${searchParams.toString()}` : "",
                           });
                         }

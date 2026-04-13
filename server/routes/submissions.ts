@@ -677,6 +677,57 @@ submissionsRouter.get("/", async (req, res) => {
 });
 
 /**
+ * GET /api/submissions/by-vin/:vin
+ * Resolves a VIN to a submission id (prefers M1.5, falls back to M1).
+ */
+submissionsRouter.get("/by-vin/:vin", async (req, res) => {
+  try {
+    const vinRaw = req.params.vin;
+    const vin = parseOptionalString(vinRaw);
+    if (!vin) {
+      res.status(400).json({ error: "VIN is required" });
+      return;
+    }
+
+    const allItems: SellerSubmissionListItem[] = [];
+    let currentPage = 1;
+    let totalAvailable = 0;
+    do {
+      const upstream = await fetchSubmissionList({ page: currentPage, pageSize: 100, vin });
+      allItems.push(...upstream.items);
+      totalAvailable = upstream.total;
+      if (allItems.length >= totalAvailable || currentPage >= 10) break;
+      currentPage++;
+    } while (true);
+
+    const vinUpper = vin.toUpperCase();
+    const matches = allItems.filter((item) => item.vin?.toUpperCase() === vinUpper);
+    if (matches.length === 0) {
+      res.status(404).json({ error: "No submission found for VIN" });
+      return;
+    }
+
+    const summaries = matches.map((item) => normalizeSummary(item));
+    const cases = groupIntoCases(summaries);
+    const matchedCase = cases.find((c) => c.vin?.toUpperCase() === vinUpper) ?? cases[0];
+    if (!matchedCase) {
+      res.status(404).json({ error: "No submission found for VIN" });
+      return;
+    }
+
+    res.json({
+      id: matchedCase.openId,
+      vin: matchedCase.vin ?? null,
+      caseKey: matchedCase.caseKey,
+    });
+  } catch (err) {
+    if (handleSellerApiError(res, err)) return;
+    console.error("[submissions] by-vin error:", err);
+    res.status(500).json({ error: "Failed to resolve VIN", detail: String(err) });
+  }
+});
+
+/**
  * GET /api/submissions/:id
  */
 submissionsRouter.get("/:id", async (req, res) => {

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import SubmissionList from "./pages/SubmissionList";
 import SubmissionDetail from "./pages/SubmissionDetail";
+import SubmissionByVin from "./pages/SubmissionByVin";
 import Login from "./pages/Login";
 import { ui } from "./components/ui";
 import { onUnauthorized } from "./api/client";
@@ -53,6 +54,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/submissions" replace />} />
           <Route path="/submissions" element={<SubmissionList />} />
           <Route path="/submissions/:id" element={<SubmissionDetail />} />
+          <Route path="/v/:vin" element={<SubmissionByVin />} />
         </Routes>
       </main>
     </div>

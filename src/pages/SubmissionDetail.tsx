@@ -767,8 +767,9 @@ function ImageUploadCard({
   );
 }
 
-export default function SubmissionDetail() {
-  const { id } = useParams<{ id: string }>();
+export default function SubmissionDetail({ submissionId }: { submissionId?: string } = {}) {
+  const params = useParams<{ id: string }>();
+  const id = submissionId ?? params.id;
   const location = useLocation();
   const queryClient = useQueryClient();
   const backToList = `/submissions${location.search}`;

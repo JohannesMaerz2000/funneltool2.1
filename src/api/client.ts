@@ -49,6 +49,10 @@ export function getSubmission(id: string): Promise<SubmissionDetail> {
   return apiFetch<SubmissionDetail>(`/api/submissions/${encodeURIComponent(id)}`);
 }
 
+export function resolveSubmissionByVin(vin: string): Promise<{ id: string; vin: string | null; caseKey: string }> {
+  return apiFetch(`/api/submissions/by-vin/${encodeURIComponent(vin)}`);
+}
+
 export function getAssetUrl(submissionId: string, key: string): Promise<{ url: string }> {
   const qs = new URLSearchParams({ key });
   return apiFetch<{ url: string }>(
