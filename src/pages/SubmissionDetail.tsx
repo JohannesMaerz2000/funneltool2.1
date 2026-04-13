@@ -988,22 +988,26 @@ export default function SubmissionDetail() {
                       <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Seller Type</td>
                       <td className="py-2.5 font-bold text-zinc-700">{contactSellerType}</td>
                     </tr>
-                    <tr>
-                      <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">M1 Source</td>
-                      <td className="py-2.5">
-                        <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${sourceBadgeClasses(m1Source)}`}>
-                          {formatSource(m1Source)}
-                        </span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">M1.5 Source</td>
-                      <td className="py-2.5">
-                        <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${sourceBadgeClasses(m15Source)}`}>
-                          {formatSource(m15Source)}
-                        </span>
-                      </td>
-                    </tr>
+                    {m1Detail ? (
+                      <tr>
+                        <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">M1 Source</td>
+                        <td className="py-2.5">
+                          <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${sourceBadgeClasses(m1Source)}`}>
+                            {formatSource(m1Source)}
+                          </span>
+                        </td>
+                      </tr>
+                    ) : null}
+                    {m15Detail && m15Detail.submissionData ? (
+                      <tr>
+                        <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">M1.5 Source</td>
+                        <td className="py-2.5">
+                          <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${sourceBadgeClasses(m15Source)}`}>
+                            {formatSource(m15Source)}
+                          </span>
+                        </td>
+                      </tr>
+                    ) : null}
                   </tbody>
                 </table>
               </div>
