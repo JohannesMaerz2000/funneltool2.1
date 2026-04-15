@@ -159,9 +159,10 @@ export default function SubmissionList() {
       caseRows
         .map((row) => {
           const viewData = getViewData(row, activeViews);
+          if (!viewData || viewData.view === "initial") return null;
           return { id: viewData?.summary.id ?? row.openId, key: viewData?.summary.thumbnailKey ?? row.thumbnailKey };
         })
-        .filter((item): item is { id: string; key: string } => !!item.key),
+        .filter((item): item is { id: string; key: string } => !!item?.key),
     [activeViews, caseRows]
   );
 
@@ -353,7 +354,7 @@ export default function SubmissionList() {
                       tabIndex={0}
                     >
                       <td className="px-6 py-4">
-                        <SubmissionThumbnail url={thumbnailUrlMap.get(openId)} />
+                        {view === "initial" ? null : <SubmissionThumbnail url={thumbnailUrlMap.get(openId)} />}
                       </td>
                       <td className="px-6 py-4 font-mono text-xs font-medium text-zinc-600">{row.vin ?? "Nicht angegeben"}</td>
                       <td className="px-6 py-4">
