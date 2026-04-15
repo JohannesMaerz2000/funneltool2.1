@@ -189,8 +189,12 @@ function normalizeIntakeFilter(value?: string): IntakeFilter | undefined {
   return undefined;
 }
 
-function getAdvanceSyncState(status?: string | null): "partial" | "completed" {
-  return status?.trim().toLowerCase() === "completed" ? "completed" : "partial";
+function getAdvanceSyncState(status?: string | null): "pending" | "completed" {
+  return status?.trim().toLowerCase() === "completed" ? "completed" : "pending";
+}
+
+function hasAdvanceActivity(c: CaseSummary): boolean {
+  return (c.m15?.assetCount ?? 0) > 0;
 }
 
 function parseViewFilters(value?: string): ViewFilter[] | null {
@@ -207,10 +211,18 @@ function parseViewFilters(value?: string): ViewFilter[] | null {
 }
 
 function caseMatchesView(c: CaseSummary, view: ViewFilter): boolean {
-  if (view === "initial") return !!c.m1;
+  if (view === "initial") {
+    if (!c.m1) return false;
+    if (!c.m15) return true; // legacy safety for older records
+    const sync = getAdvanceSyncState(c.m15.pipedriveSyncStatus);
+    return sync !== "completed" && !hasAdvanceActivity(c);
+  }
   if (!c.m15) return false;
   const sync = getAdvanceSyncState(c.m15.pipedriveSyncStatus);
-  return view === "partial" ? sync === "partial" : sync === "completed";
+  if (view === "partial") {
+    return sync !== "completed" && hasAdvanceActivity(c);
+  }
+  return sync === "completed";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

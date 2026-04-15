@@ -13,7 +13,7 @@ export function onUnauthorized(cb: () => void) {
 export interface ListParams {
   vin?: string;
   pipedriveDealId?: string;
-  views?: Array<"initial" | "partial" | "advance">;
+  views?: Array<"initial" | "partial" | "completed" | "advance">;
   from?: string;
   to?: string;
   page?: number;
@@ -37,7 +37,10 @@ export function listSubmissions(params: ListParams = {}): Promise<SubmissionList
   const qs = new URLSearchParams();
   if (params.vin) qs.set("vin", params.vin);
   if (params.pipedriveDealId) qs.set("pipedrive_deal_id", params.pipedriveDealId);
-  if (params.views && params.views.length > 0) qs.set("views", params.views.join(","));
+  if (params.views && params.views.length > 0) {
+    const normalizedViews = params.views.map((view) => (view === "completed" ? "advance" : view));
+    qs.set("views", normalizedViews.join(","));
+  }
   if (params.from) qs.set("from", params.from);
   if (params.to) qs.set("to", params.to);
   if (params.page) qs.set("page", String(params.page));

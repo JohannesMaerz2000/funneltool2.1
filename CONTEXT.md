@@ -8,7 +8,7 @@ Our startup lets EV owners sell their car through a two-step funnel:
 1. **M1 (initial)** — short form with contact + basic vehicle data
 2. **M1.5 (advance)** — detailed condition form, started from M1 email link
 
-M1 and M1.5 are linked by **VIN** and surfaced as one case in the tool.
+M1 and M1.5 are surfaced as one case in the tool (case grouping key is currently VIN).
 
 Current architecture is hybrid:
 - Submission metadata and enrichment data come from Seller Funnel backend API (DB-backed).
@@ -99,6 +99,15 @@ funneltool2.1/
 - `pipedriveDealId` (prefers M1.5)
 - `assetCount`, `thumbnailKey` (prefer richer record)
 
+### Case status semantics (current)
+- `initial`: M1 exists, and advance is not completed and has no visible S3 assets yet.
+- `partial`: advance is not completed, but visible S3 assets already exist.
+- `completed`: advance exists with sync status `completed`.
+
+Important behavior note:
+- `initial` and `completed` are case-level states, not per-intake completion labels; finishing M1 auto-creates an advance submission.
+- Advance `submissionData` is typically only persisted after completion, so in-progress advance data cannot be read from DB `submissionData`; progress is inferred from S3 assets.
+
 ### Detail model
 `SubmissionDetail` extends `SubmissionSummary` with:
 - `lastSyncedAt`, `identifierInformationId`, `idempotencyKey`
@@ -110,6 +119,7 @@ funneltool2.1/
 - `assets`
 
 `submissionData` can be `null` on M1.5 when an advance form is not completed yet.
+When that happens, the tool still uses M1 data and S3 assets to represent the case.
 
 ## Data sources and mapping
 ### Seller backend API (upstream)
@@ -139,11 +149,13 @@ S3 object/group cache TTL is 5 minutes.
 |--------|------|-------------|
 | GET | `/api/health` | liveness check |
 | GET | `/api/submissions` | grouped case list (`data: CaseSummary[]`) with S3 `assetCount`/`thumbnailKey` enrichment |
+| GET | `/api/submissions/by-vin/:vin` | resolve VIN to case open id (prefers M1.5) |
 | GET | `/api/submissions/:id` | detail for one submission + enriched `assets` |
 | POST | `/api/submissions/presign-batch` | batch presign for S3 keys (max 200) |
 | POST | `/api/submissions/:id/upload-url` | presigned upload URL for images |
 | POST | `/api/submissions/:id/upload-complete` | cache bust after upload completion |
 | POST | `/api/submissions/:id/upload-asset` | direct upload proxy (photos or papers) |
+| POST | `/api/submissions/:id/asset/rotate` | rotate one image asset (90/180/270) |
 | DELETE | `/api/submissions/:id/asset?key=` | delete one asset |
 | GET | `/api/submissions/:id/asset-url?key=` | presigned read URL |
 | GET | `/api/submissions/:id/download?key=` | proxy file download |
@@ -153,31 +165,48 @@ S3 object/group cache TTL is 5 minutes.
 - `page`, `pageSize`
 - `vin`
 - `from`, `to` (ISO date)
-- `views=initial,partial,advance` (defaults to all three)
+- `views=initial,partial,advance` (server values; defaults to all three)
 - `pipedrive_deal_id`
 - `intake` (`initial|advance`) for legacy client compatibility
 
 Notes:
 - Server fetches upstream in pages of 100 and groups locally by VIN.
 - Safety cap: max 10 upstream pages (up to 1000 records).
+- Backend view filtering behavior:
+  - `initial`: awaiting advance (no completed advance and no assets on advance)
+  - `partial`: in-progress advance (not completed, but assets exist)
+  - `advance`: completed advance
+- If both `vin` and `pipedrive_deal_id` are provided, filtering is OR-based (global search mode).
 
 ## Frontend behavior
 ### List page (`src/pages/SubmissionList.tsx`)
 - Uses grouped case API (`data` array).
-- View tabs: `initial`, `partial`, `advance`.
+- View tabs/states are:
+  - `initial`
+  - `partial`
+  - `completed`
+- Frontend maps `completed` to backend `advance` in API calls.
 - Search filters VIN or deal ID.
 - Date filters (`from` / `to`) and paging.
 - Row click opens selected case member detail (`openId` / selected summary id).
 - Thumbnails resolved via `/presign-batch`.
+- List rows show one case state badge and no source column.
 
 ### Detail page (`src/pages/SubmissionDetail.tsx`)
 - Loads selected submission.
-- Attempts to fetch linked opposite intake by same VIN.
+- Attempts to fetch linked opposite intake with multi-key matching:
+  1. candidate collection by `pipedriveDealId` (if present), plus VIN fallback
+  2. candidate scoring preference:
+     - `identifierInformationId` match (strongest)
+     - `pipedriveDealId` match
+     - VIN match
 - Builds combined display:
   - **Submission Data:** always includes M1 data when available; M1.5 fields override overlapping keys.
   - If M1.5 exists with `submissionData=null` (partial), M1 data still shows.
   - Contact panel sourced from M1 data where available.
   - Car panel prefers DAT from M1.5 then M1.
+- Shows one unified case state (`initial|partial|completed`) in the overview panel.
+- Does not show separate M1/M1.5 source badges.
 - Assets gallery merges M1 + M1.5 assets and supports upload/delete/download.
 
 ## Key design decisions

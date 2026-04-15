@@ -20,6 +20,12 @@ function asString(value: unknown): string | undefined {
   return undefined;
 }
 
+function normalizedKey(value?: string | null): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed.toLowerCase() : null;
+}
+
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -314,16 +320,12 @@ function formatFieldName(fieldName: string): string {
 
 const ANALYTICS_KEYS = ["gaClientId", "gClId", "fbClId", "utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm", "newsLetter", "policyConfirmation"];
 
-function formatSource(source?: string | null): string {
-  if (!source) return "unknown";
-  return source.toLowerCase();
-}
+type CaseState = "initial" | "partial" | "completed";
 
-function sourceBadgeClasses(source?: string | null): string {
-  const normalized = formatSource(source);
-  if (normalized === "internal_form") return "border-sky-200 bg-sky-50 text-sky-700";
-  if (normalized === "feathery") return "border-amber-200 bg-amber-50 text-amber-700";
-  return "border-zinc-200 bg-zinc-100 text-zinc-600";
+function caseStateBadgeClasses(state: CaseState): string {
+  if (state === "completed") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (state === "partial") return "border-amber-200 bg-amber-50 text-amber-700";
+  return "border-sky-200 bg-sky-50 text-sky-700";
 }
 
 function SubmissionDataViewer({ rows, title, defaultCollapsed = false }: { rows: MergedRow[]; title: string; defaultCollapsed?: boolean }) {
@@ -790,23 +792,60 @@ export default function SubmissionDetail({ submissionId }: { submissionId?: stri
     data: linkedSubmission,
     isFetching: isFetchingLinked,
   } = useQuery({
-    queryKey: ["linked-submission", data?.id, data?.vin, data?.formIntake],
-    enabled: !!data?.vin,
+    queryKey: ["linked-submission", data?.id, data?.formIntake, data?.vin, data?.pipedriveDealId, data?.identifierInformationId],
+    enabled: !!data,
     queryFn: async () => {
-      if (!data?.vin) return null;
+      if (!data) return null;
 
       const currentIntake = data.formIntake?.toLowerCase();
       const targetIntake = currentIntake === "advance" ? "initial" : "advance";
-      const related = await listSubmissions({ vin: data.vin, page: 1, pageSize: 50 });
+      const caseByKey = new Map<string, Awaited<ReturnType<typeof listSubmissions>>["data"][number]>();
 
-      const targetCase = related.data.find((c) =>
-        (targetIntake === "initial" && c.m1 && c.m1.id !== data.id) ||
-        (targetIntake === "advance" && c.m15 && c.m15.id !== data.id)
+      if (data.pipedriveDealId) {
+        const byDeal = await listSubmissions({ pipedriveDealId: data.pipedriveDealId, page: 1, pageSize: 100 });
+        byDeal.data.forEach((item) => caseByKey.set(item.caseKey, item));
+      }
+      if (data.vin) {
+        const byVin = await listSubmissions({ vin: data.vin, page: 1, pageSize: 100 });
+        byVin.data.forEach((item) => caseByKey.set(item.caseKey, item));
+      }
+
+      if (caseByKey.size === 0) return null;
+
+      const candidateSummaries = [...caseByKey.values()]
+        .map((c) => (targetIntake === "initial" ? c.m1 : c.m15))
+        .filter((s): s is NonNullable<typeof s> => !!s && s.id !== data.id);
+
+      if (candidateSummaries.length === 0) return null;
+
+      const currentIdentifier = normalizedKey(data.identifierInformationId);
+      const currentDeal = normalizedKey(data.pipedriveDealId);
+      const currentVin = normalizedKey(data.vin);
+      const uniqueById = new Map(candidateSummaries.map((s) => [s.id, s]));
+      const candidates = [...uniqueById.values()].slice(0, 10);
+
+      const scoredCandidates = await Promise.all(
+        candidates.map(async (summary) => {
+          const detail = await getSubmission(summary.id).catch(() => null);
+          const candidateIdentifier = normalizedKey(detail?.identifierInformationId);
+          const candidateDeal = normalizedKey(detail?.pipedriveDealId ?? summary.pipedriveDealId ?? null);
+          const candidateVin = normalizedKey(detail?.vin ?? summary.vin ?? null);
+
+          let score = 0;
+          if (currentIdentifier && candidateIdentifier && currentIdentifier === candidateIdentifier) score += 100;
+          if (currentDeal && candidateDeal && currentDeal === candidateDeal) score += 50;
+          if (currentVin && candidateVin && currentVin === candidateVin) score += 20;
+
+          return { summary, detail, score };
+        })
       );
 
-      const targetSummary = targetIntake === "initial" ? targetCase?.m1 : targetCase?.m15;
-      if (!targetSummary) return null;
-      return getSubmission(targetSummary.id);
+      const best = scoredCandidates
+        .sort((a, b) => b.score - a.score)[0];
+
+      if (!best) return null;
+      if (best.detail) return best.detail;
+      return getSubmission(best.summary.id);
     },
     staleTime: 2 * 60_000,
   });
@@ -883,8 +922,13 @@ export default function SubmissionDetail({ submissionId }: { submissionId?: stri
   const mileage = mileageValue !== null ? `${mileageValue.toLocaleString("de-DE")} km` : "N/A";
 
   const effectiveDealId = m15Detail?.pipedriveDealId ?? data.pipedriveDealId;
-  const m1Source = m1Detail?.submissionSource;
-  const m15Source = m15Detail?.submissionSource;
+  const m15SyncCompleted = m15Detail?.pipedriveSyncStatus?.toLowerCase() === "completed";
+  const m15HasAssetActivity = (m15Detail?.assetCount ?? 0) > 0;
+  const caseState: CaseState = m15SyncCompleted
+    ? "completed"
+    : m15Detail && m15HasAssetActivity
+      ? "partial"
+      : "initial";
 
   return (
     <div className={ui.page}>
@@ -989,26 +1033,14 @@ export default function SubmissionDetail({ submissionId }: { submissionId?: stri
                       <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Seller Type</td>
                       <td className="py-2.5 font-bold text-zinc-700">{contactSellerType}</td>
                     </tr>
-                    {m1Detail ? (
-                      <tr>
-                        <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">M1 Source</td>
-                        <td className="py-2.5">
-                          <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${sourceBadgeClasses(m1Source)}`}>
-                            {formatSource(m1Source)}
-                          </span>
-                        </td>
-                      </tr>
-                    ) : null}
-                    {m15Detail && m15Detail.submissionData ? (
-                      <tr>
-                        <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">M1.5 Source</td>
-                        <td className="py-2.5">
-                          <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${sourceBadgeClasses(m15Source)}`}>
-                            {formatSource(m15Source)}
-                          </span>
-                        </td>
-                      </tr>
-                    ) : null}
+                    <tr>
+                      <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Case State</td>
+                      <td className="py-2.5">
+                        <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${caseStateBadgeClasses(caseState)}`}>
+                          {caseState}
+                        </span>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

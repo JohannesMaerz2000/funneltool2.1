@@ -7,15 +7,21 @@ import { badgeTone, ui } from "../components/ui";
 import { formatDateTime } from "../utils/dateUtils";
 import type { CaseSummary } from "../types/submission";
 
-type ViewTab = "initial" | "partial" | "advance";
-const DEFAULT_VIEWS: ViewTab[] = ["initial", "partial", "advance"];
+type ViewTab = "initial" | "partial" | "completed";
+const DEFAULT_VIEWS: ViewTab[] = ["initial", "partial", "completed"];
+const VIEW_LABELS: Record<ViewTab, string> = {
+  initial: "initial",
+  partial: "partial",
+  completed: "completed",
+};
 
 function parseViewsParam(raw: string | null): ViewTab[] {
   if (!raw) return DEFAULT_VIEWS;
   const parsed = raw
     .split(",")
     .map((value) => value.trim().toLowerCase())
-    .filter((value): value is ViewTab => value === "initial" || value === "partial" || value === "advance");
+    .map((value) => (value === "advance" ? "completed" : value))
+    .filter((value): value is ViewTab => value === "initial" || value === "partial" || value === "completed");
   const unique = [...new Set(parsed)];
   return unique.length > 0 ? unique : DEFAULT_VIEWS;
 }
@@ -49,64 +55,46 @@ function SubmissionThumbnail({ url }: { url?: string }) {
   );
 }
 
-function SyncBadge({ status }: { status?: string | null }) {
-  const normalized = status?.toLowerCase();
+function StateBadge({ state }: { state: ViewTab }) {
+  const normalized = state.toLowerCase();
   const tone =
     normalized === "completed"
       ? "success"
-      : normalized === "partial" || normalized === "pending"
+      : normalized === "partial"
         ? "warn"
-      : normalized === "failed"
-          ? "danger"
-          : "neutral";
+        : "info";
 
   return (
     <span className={`${ui.badge} ${badgeTone(tone)}`}>
-      {status ?? "unknown"}
+      {state}
     </span>
   );
 }
 
-function IntakeBadge({ view }: { view: ViewTab }) {
-  if (view === "initial") {
-    return <span className={`${ui.badge} ${badgeTone("info")}`}>initial</span>;
-  }
-  return <span className={`${ui.badge} ${badgeTone("success")}`}>advance</span>;
+function getAdvanceState(status?: string | null): "partial" | "completed" {
+  return status?.toLowerCase() === "completed" ? "completed" : "partial";
 }
 
-function formatSource(source?: string | null): string {
-  if (!source) return "unknown";
-  return source.toLowerCase();
-}
-
-function SourceBadge({ source }: { source?: string | null }) {
-  const normalized = formatSource(source);
-  const tone =
-    normalized === "internal_form"
-      ? "info"
-      : normalized === "feathery"
-        ? "warn"
-        : "neutral";
-
-  return <span className={`${ui.badge} ${badgeTone(tone)}`}>{normalized}</span>;
-}
-
-function getAdvanceState(status?: string | null): "partial" | "advance" {
-  return status?.toLowerCase() === "completed" ? "advance" : "partial";
+function hasAdvanceActivity(row: CaseSummary): boolean {
+  return (row.m15?.assetCount ?? 0) > 0;
 }
 
 function getViewData(row: CaseSummary, selectedViews: ViewTab[]) {
   const hasInitial = !!row.m1;
   const advanceState = row.m15 ? getAdvanceState(row.m15.pipedriveSyncStatus) : null;
+  const advanceHasActivity = hasAdvanceActivity(row);
 
-  if (selectedViews.includes("advance") && advanceState === "advance" && row.m15) {
-    return { view: "advance" as const, summary: row.m15, status: "completed" };
+  if (selectedViews.includes("completed") && advanceState === "completed" && row.m15) {
+    return { view: "completed" as const, summary: row.m15 };
   }
-  if (selectedViews.includes("partial") && advanceState === "partial" && row.m15) {
-    return { view: "partial" as const, summary: row.m15, status: "partial" };
+  if (selectedViews.includes("partial") && advanceState === "partial" && row.m15 && advanceHasActivity) {
+    return { view: "partial" as const, summary: row.m15 };
   }
   if (selectedViews.includes("initial") && hasInitial && row.m1) {
-    return { view: "initial" as const, summary: row.m1, status: "completed" };
+    const shouldShowAsAwaiting = !row.m15 || (advanceState === "partial" && !advanceHasActivity);
+    if (shouldShowAsAwaiting) {
+      return { view: "initial" as const, summary: row.m1 };
+    }
   }
   return null;
 }
@@ -238,19 +226,19 @@ export default function SubmissionList() {
 
         {/* View Tabs - Segmented Control (Middle) */}
         <div className="flex h-11 w-72 items-center gap-1 rounded-xl border border-zinc-200 bg-white p-1 shadow-sm">
-          {(["initial", "partial", "advance"] as const).map((tab) => {
+          {(["initial", "partial", "completed"] as const).map((tab) => {
             const isActive = selectedViews.includes(tab);
             return (
               <button
                 key={tab}
                 onClick={() => toggleView(tab)}
-                className={`flex-1 flex h-full items-center justify-center rounded-lg text-xs font-bold capitalize transition-all ${
+                className={`flex-1 flex h-full items-center justify-center rounded-lg text-xs font-bold transition-all ${
                   isActive
                     ? "bg-[#3ec099] text-white shadow-sm"
                     : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50"
                 }`}
               >
-                {tab}
+                {VIEW_LABELS[tab]}
               </button>
             );
           })}
@@ -324,9 +312,7 @@ export default function SubmissionList() {
                 <tr>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Thumbnail</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">VIN</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Intake</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Sync</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Source</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">State</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Updated</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Deal</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Assets</th>
@@ -336,7 +322,7 @@ export default function SubmissionList() {
                 {caseRows.map((row, idx) => {
                   const viewData = getViewData(row, activeViews);
                   if (!viewData) return null;
-                  const { view, summary, status } = viewData;
+                  const { view, summary } = viewData;
                   const openId = summary.id;
                   const updatedAt = summary.updatedAt;
                   const dealId = summary.pipedriveDealId;
@@ -371,13 +357,7 @@ export default function SubmissionList() {
                       </td>
                       <td className="px-6 py-4 font-mono text-xs font-medium text-zinc-600">{row.vin ?? "N/A"}</td>
                       <td className="px-6 py-4">
-                        <IntakeBadge view={view} />
-                      </td>
-                      <td className="px-6 py-4">
-                        <SyncBadge status={status} />
-                      </td>
-                      <td className="px-6 py-4">
-                        <SourceBadge source={summary.submissionSource} />
+                        <StateBadge state={view} />
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-600">{formatDateTime(updatedAt)}</td>
                       <td className="px-6 py-4 font-medium text-zinc-600">{dealId ?? "N/A"}</td>
