@@ -591,9 +591,9 @@ function caseStateBadgeClasses(state: CaseState): string {
 }
 
 function caseStateLabel(state: CaseState): string {
-  if (state === "completed") return "Abgeschlossen";
-  if (state === "partial") return "In Bearbeitung";
-  return "Eingang";
+  if (state === "completed") return "completed";
+  if (state === "partial") return "partial";
+  return "initial";
 }
 
 function SubmissionDataViewer({ rows, title, defaultCollapsed = false }: { rows: MergedRow[]; title: string; defaultCollapsed?: boolean }) {

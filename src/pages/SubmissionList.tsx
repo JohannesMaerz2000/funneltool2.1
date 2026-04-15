@@ -10,9 +10,9 @@ import type { CaseSummary } from "../types/submission";
 type ViewTab = "initial" | "partial" | "completed";
 const DEFAULT_VIEWS: ViewTab[] = ["initial", "partial", "completed"];
 const VIEW_LABELS: Record<ViewTab, string> = {
-  initial: "Eingang",
-  partial: "In Bearbeitung",
-  completed: "Abgeschlossen",
+  initial: "initial",
+  partial: "partial",
+  completed: "completed",
 };
 
 function parseViewsParam(raw: string | null): ViewTab[] {
