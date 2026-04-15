@@ -1,20 +1,19 @@
 /**
- * Formats a date string, number, or Date object into a localized string.
- * Uses the system/browser locale by default.
+ * Formats a date string, number, or Date object into a German localized string.
  */
 export function formatDateTime(date: string | number | Date | null | undefined): string {
   if (!date) return "";
   const d = typeof date === "string" ? new Date(date) : new Date(date);
   if (isNaN(d.getTime())) return String(date);
 
-  return d.toLocaleString(undefined, {
+  return d.toLocaleString("de-DE", {
     dateStyle: "medium",
     timeStyle: "short",
   });
 }
 
 /**
- * Formats a date string, number, or Date object into a localized date-only string.
+ * Formats a date string, number, or Date object into a German localized date-only string.
  */
 export function formatDate(date: string | number | Date | null | undefined): string {
   if (!date) return "";
@@ -23,7 +22,7 @@ export function formatDate(date: string | number | Date | null | undefined): str
   if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
     const [year, month, day] = date.split("-").map(Number);
     const d = new Date(year, month - 1, day);
-    return d.toLocaleDateString(undefined, {
+    return d.toLocaleDateString("de-DE", {
       dateStyle: "medium",
     });
   }
@@ -31,7 +30,7 @@ export function formatDate(date: string | number | Date | null | undefined): str
   const d = typeof date === "string" ? new Date(date) : new Date(date);
   if (isNaN(d.getTime())) return String(date);
 
-  return d.toLocaleDateString(undefined, {
+  return d.toLocaleDateString("de-DE", {
     dateStyle: "medium",
   });
 }

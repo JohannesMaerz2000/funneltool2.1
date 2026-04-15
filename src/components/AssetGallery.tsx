@@ -19,6 +19,17 @@ function isPdf(key: string) {
   return key.toLowerCase().endsWith(".pdf");
 }
 
+const ASSET_CATEGORY_LABELS: Record<string, string> = {
+  exterior: "Außen",
+  interior: "Innenraum",
+  rims: "Felgen",
+  defects: "Mängel",
+  damages: "Schäden",
+  registration_document: "Zulassungsdokument",
+  tesla_autopilot: "Tesla Autopilot",
+  digital_service_log: "Digitales Serviceheft",
+};
+
 function downloadAsset(submissionId: string, key: string) {
   const qs = new URLSearchParams({ key });
   const url = `/api/submissions/${encodeURIComponent(submissionId)}/download?${qs}`;
@@ -59,25 +70,30 @@ function TrashIcon({ className = "w-5 h-5" }: { className?: string }) {
 }
 
 function normalizeCategoryLabel(raw: string): string {
-  return raw
+  const normalized = raw
+    .toLowerCase()
     .replace(/[_-]+/g, " ")
     .trim()
-    .replace(/\s+/g, " ")
-    .replace(/\b\w/g, (m) => m.toUpperCase());
+    .replace(/\s+/g, "_");
+
+  return ASSET_CATEGORY_LABELS[normalized] ??
+    normalized
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (m) => m.toUpperCase());
 }
 
 function inferAssetCategory(asset: Asset): string {
   const filename = fileName(asset.key);
   const dot = filename.lastIndexOf(".");
   const stem = (dot === -1 ? filename : filename.slice(0, dot)).trim();
-  if (!stem) return "Uncategorized";
+  if (!stem) return "Ohne Kategorie";
 
   const parts = stem
     .replace(/[_-]+/g, " ")
     .trim()
     .split(/\s+/)
     .filter(Boolean);
-  if (parts.length === 0) return "Uncategorized";
+  if (parts.length === 0) return "Ohne Kategorie";
 
   // Common pattern: "<index>_<category>_<random-id>.<ext>"
   let start = 0;
@@ -121,7 +137,7 @@ function inferAssetCategory(asset: Asset): string {
   }
 
   const core = parts.slice(start, end).join("_");
-  if (!core) return "Uncategorized";
+  if (!core) return "Ohne Kategorie";
   return normalizeCategoryLabel(core);
 }
 
@@ -219,7 +235,7 @@ function ImageThumb({
               <div className="ml-auto flex items-center gap-2">
                 <button
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/40 disabled:cursor-not-allowed disabled:opacity-60"
-                  title={`Rotate ${name} 90° clockwise`}
+                  title={`${name} um 90° im Uhrzeigersinn drehen`}
                   disabled={isRotating}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -230,7 +246,7 @@ function ImageThumb({
                 </button>
                 <button
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/40"
-                  title={`Download ${name}`}
+                  title={`${name} herunterladen`}
                   onClick={(e) => {
                     e.stopPropagation();
                     downloadAsset(submissionId, asset.key);
@@ -240,7 +256,7 @@ function ImageThumb({
                 </button>
                 <button
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-500/30 text-white backdrop-blur-md transition-colors hover:bg-rose-500/60 disabled:cursor-not-allowed disabled:opacity-60"
-                  title={`Delete ${name}`}
+                  title={`${name} löschen`}
                   disabled={isDeleting}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -329,11 +345,11 @@ function AssetItem({
           rel="noopener noreferrer"
           className="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-600 transition-all hover:bg-[#3ec099]/10 hover:text-[#3ec099]"
         >
-          OPEN ↗
+          ÖFFNEN ↗
         </a>
       ) : (
         <span className="shrink-0 animate-pulse text-xs font-bold text-zinc-300">
-          LOADING…
+          LÄDT…
         </span>
       )}
     </div>
@@ -372,7 +388,7 @@ function PdfPopout({
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-zinc-200 text-zinc-500 transition hover:bg-[#3ec099]/10 hover:text-[#3ec099] hover:border-[#3ec099]/30"
-              title="Open in new tab"
+              title="In neuem Tab öffnen"
             >
               <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
                 <path
@@ -390,7 +406,7 @@ function PdfPopout({
             <button
               className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-zinc-200 text-zinc-500 transition hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200"
               onClick={onClose}
-              aria-label="Close"
+              aria-label="Schließen"
             >
               <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
@@ -434,7 +450,7 @@ function Lightbox({
             className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-white/20"
             onClick={onClose}
           >
-            CLOSE
+            SCHLIESSEN
           </button>
         </div>
       </div>
@@ -490,7 +506,7 @@ export default function AssetGallery({
       await queryClient.invalidateQueries({ queryKey: ["asset-urls-batch", submissionId] });
     },
     onError: (err) => {
-      const message = err instanceof Error ? err.message : "Failed to rotate asset";
+      const message = err instanceof Error ? err.message : "Asset konnte nicht gedreht werden";
       window.alert(message);
     },
   });
@@ -507,7 +523,7 @@ export default function AssetGallery({
         next.delete(key);
         return next;
       });
-      const message = err instanceof Error ? err.message : "Failed to delete asset";
+      const message = err instanceof Error ? err.message : "Asset konnte nicht gelöscht werden";
       window.alert(message);
     },
   });
@@ -534,11 +550,11 @@ export default function AssetGallery({
       else otherList.push(a);
     }
 
-    // Sort categories: Exterior first, then others alphabetically
+    // Sortierung: Außen zuerst, danach alphabetisch
     const sortedImages = Object.keys(imagesMap)
       .sort((a, b) => {
-        if (a === "Exterior") return -1;
-        if (b === "Exterior") return 1;
+        if (a === "Außen") return -1;
+        if (b === "Außen") return 1;
         return a.localeCompare(b);
       })
       .reduce((acc, key) => {
@@ -552,12 +568,12 @@ export default function AssetGallery({
       docs: docList,
       others: otherList,
     };
-  }, [assets]);
+  }, [visibleAssets]);
 
   // Stable query key based on asset keys, not array reference
   const batchItems = useMemo(
-    () => assets.map((a) => ({ id: submissionId, key: a.key })),
-    [assets, submissionId]
+    () => visibleAssets.map((a) => ({ id: submissionId, key: a.key })),
+    [visibleAssets, submissionId]
   );
 
   // Version signature so rotation bumps force a full refetch (new presigned URLs).
@@ -617,7 +633,7 @@ export default function AssetGallery({
                 </h5>
                 <div className="h-px flex-1 bg-zinc-100" />
                 <span className="text-[10px] font-bold text-zinc-300">
-                  {catImages.length} shots
+                  {catImages.length} Fotos
                 </span>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -629,7 +645,7 @@ export default function AssetGallery({
                     url={urlMap.get(a.key)}
                     onClick={(url, name) => setLightbox({ url, name })}
                     onDelete={(key) => {
-                      if (!window.confirm(`Delete this asset permanently?\n\n${fileName(key)}`)) return;
+                      if (!window.confirm(`Dieses Asset dauerhaft löschen?\n\n${fileName(key)}`)) return;
                       deleteMutation.mutate(key);
                     }}
                     onRotate={(key) => rotateMutation.mutate(key)}
@@ -648,7 +664,7 @@ export default function AssetGallery({
         <div className="space-y-6">
           <div className="flex items-center gap-4">
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
-              PDF Documents
+              PDF-Dokumente
             </h4>
             <div className="h-px flex-1 bg-zinc-100" />
           </div>
@@ -670,7 +686,7 @@ export default function AssetGallery({
         <div className="space-y-6">
           <div className="flex items-center gap-4">
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
-              Other Assets
+              Weitere Assets
             </h4>
             <div className="h-px flex-1 bg-zinc-100" />
           </div>

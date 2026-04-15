@@ -18,18 +18,18 @@ export default function SubmissionByVin() {
   });
 
   if (isLoading) {
-    return <div className="py-10 text-zinc-400">Loading submission...</div>;
+    return <div className="py-10 text-zinc-400">Lade Fall...</div>;
   }
 
   if (isError || !data) {
     return (
       <div className="p-6">
         <Link to={backToList} className="text-sm font-bold text-zinc-500 hover:text-zinc-900 transition-colors">
-          ← Back to list
+          ← Zurück zur Liste
         </Link>
         <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700 shadow-sm">
-          <strong className="block text-rose-900 mb-1">VIN not found</strong>
-          {error instanceof Error ? error.message : `No submission found for VIN ${normalizedVin ?? ""}`}
+          <strong className="block text-rose-900 mb-1">VIN nicht gefunden</strong>
+          {error instanceof Error ? error.message : `Kein Fall für VIN ${normalizedVin ?? ""} gefunden`}
         </div>
       </div>
     );

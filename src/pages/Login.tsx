@@ -20,12 +20,12 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
         body: JSON.stringify({ password }),
       });
       if (!res.ok) {
-        setError("Wrong password");
+        setError("Falsches Passwort");
         return;
       }
       onSuccess();
     } catch {
-      setError("Connection error");
+      setError("Verbindungsfehler");
     } finally {
       setLoading(false);
     }
@@ -42,10 +42,10 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
             F
           </span>
           <h1 className="text-2xl font-bold text-zinc-900">
-            Welcome Back
+            Willkommen zurück
           </h1>
           <p className="mt-2 text-sm text-zinc-500">
-            Enter your password to access Featherless
+            Bitte Passwort eingeben, um auf Featherless zuzugreifen
           </p>
         </div>
 
@@ -63,7 +63,7 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
         <div className="space-y-4">
           <div>
             <label className={ui.eyebrow} htmlFor="password">
-              Password
+              Passwort
             </label>
             <input
               id="password"
@@ -86,7 +86,7 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
             disabled={loading}
             className={`${ui.button} w-full`}
           >
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "Anmeldung läuft..." : "Anmelden"}
           </button>
         </div>
       </form>

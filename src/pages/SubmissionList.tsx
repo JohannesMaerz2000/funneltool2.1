@@ -10,9 +10,9 @@ import type { CaseSummary } from "../types/submission";
 type ViewTab = "initial" | "partial" | "completed";
 const DEFAULT_VIEWS: ViewTab[] = ["initial", "partial", "completed"];
 const VIEW_LABELS: Record<ViewTab, string> = {
-  initial: "initial",
-  partial: "partial",
-  completed: "completed",
+  initial: "Eingang",
+  partial: "In Bearbeitung",
+  completed: "Abgeschlossen",
 };
 
 function parseViewsParam(raw: string | null): ViewTab[] {
@@ -48,7 +48,7 @@ function SubmissionThumbnail({ url }: { url?: string }) {
   return (
     <img
       src={url}
-      alt="Submission thumbnail"
+      alt="Fall-Vorschau"
       className="h-16 w-16 rounded-lg border border-zinc-200 object-cover shadow-sm"
       loading="lazy"
     />
@@ -66,7 +66,7 @@ function StateBadge({ state }: { state: ViewTab }) {
 
   return (
     <span className={`${ui.badge} ${badgeTone(tone)}`}>
-      {state}
+      {VIEW_LABELS[state]}
     </span>
   );
 }
@@ -214,7 +214,7 @@ export default function SubmissionList() {
           </svg>
           <input
             type="search"
-            placeholder="VIN or Deal ID..."
+            placeholder="VIN oder Deal-ID..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -247,7 +247,7 @@ export default function SubmissionList() {
         {/* Date Range - Compact & Modern */}
         <div className="flex items-center gap-2 bg-white rounded-xl border border-zinc-200 p-1 shadow-sm h-11">
           <div className="flex items-center px-3 h-full rounded-lg hover:bg-zinc-50 transition-colors">
-            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tighter mr-2">From</span>
+            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tighter mr-2">Von</span>
             <input
               type="date"
               value={fromDate}
@@ -262,7 +262,7 @@ export default function SubmissionList() {
           <div className="w-px h-4 bg-zinc-200" />
           
           <div className="flex items-center px-3 h-full rounded-lg hover:bg-zinc-50 transition-colors">
-            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tighter mr-2">To</span>
+            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tighter mr-2">Bis</span>
             <input
               type="date"
               value={toDate}
@@ -278,42 +278,42 @@ export default function SubmissionList() {
 
         {data && createPortal(
           <div className="flex items-center gap-2 border-l border-zinc-200 pl-4 ml-2">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Total</span>
-            <span className={`${ui.badge} ${badgeTone("info")} tabular-nums`}>{data.total} cases</span>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Gesamt</span>
+            <span className={`${ui.badge} ${badgeTone("info")} tabular-nums`}>{data.total} Fälle</span>
           </div>,
           document.getElementById("header-portal-root")!
         )}
 
       {isLoading && (
         <div className="flex items-center gap-2 py-12 text-zinc-400">
-          <span className="animate-spin text-xl">⟳</span> Loading submissions...
+          <span className="animate-spin text-xl">⟳</span> Lade Fälle...
         </div>
       )}
 
       {isError && (
         <div className="rounded-xl border border-rose-900/70 bg-rose-900/20 p-6 text-base text-rose-200">
-          <strong>Error loading submissions:</strong> {error instanceof Error ? error.message : "Unknown error"}
+          <strong>Fehler beim Laden der Fälle:</strong> {error instanceof Error ? error.message : "Unbekannter Fehler"}
         </div>
       )}
 
       {data && caseRows.length === 0 && !isLoading && (
-        <p className="py-12 text-center text-base text-zinc-400">No submissions match your filters.</p>
+        <p className="py-12 text-center text-base text-zinc-400">Keine Fälle entsprechen den Filtern.</p>
       )}
 
       {data && caseRows.length > 0 && (
         <div className="relative">
           {isFetching && !isLoading && (
-            <div className="absolute right-0 top-0 py-2 text-sm text-zinc-500">Refreshing...</div>
+            <div className="absolute right-0 top-0 py-2 text-sm text-zinc-500">Aktualisiere...</div>
           )}
 
           <div className={`${ui.card} border-zinc-200 overflow-x-auto shadow-md`}>
             <table className="min-w-full text-sm">
               <thead className="border-b border-zinc-100 bg-zinc-50/50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Thumbnail</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Vorschau</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">VIN</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">State</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Updated</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Status</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Aktualisiert</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Deal</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Assets</th>
                 </tr>
@@ -355,12 +355,12 @@ export default function SubmissionList() {
                       <td className="px-6 py-4">
                         <SubmissionThumbnail url={thumbnailUrlMap.get(openId)} />
                       </td>
-                      <td className="px-6 py-4 font-mono text-xs font-medium text-zinc-600">{row.vin ?? "N/A"}</td>
+                      <td className="px-6 py-4 font-mono text-xs font-medium text-zinc-600">{row.vin ?? "Nicht angegeben"}</td>
                       <td className="px-6 py-4">
                         <StateBadge state={view} />
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-600">{formatDateTime(updatedAt)}</td>
-                      <td className="px-6 py-4 font-medium text-zinc-600">{dealId ?? "N/A"}</td>
+                      <td className="px-6 py-4 font-medium text-zinc-600">{dealId ?? "Nicht angegeben"}</td>
                       <td className="px-6 py-4 font-bold text-zinc-900">{assetCount}</td>
                     </tr>
                   );
@@ -373,12 +373,12 @@ export default function SubmissionList() {
             <div className="flex items-center gap-8">
               {totalPages > 0 && (
                 <span className="text-sm font-medium text-zinc-500">
-                  Page <span className="font-bold text-zinc-900">{page}</span> of <span className="font-bold text-zinc-900">{totalPages}</span>
+                  Seite <span className="font-bold text-zinc-900">{page}</span> von <span className="font-bold text-zinc-900">{totalPages}</span>
                 </span>
               )}
               
               <div className="flex items-center gap-2 text-sm text-zinc-500">
-                <span>Show</span>
+                <span>Zeige</span>
                 <div className="relative flex items-center">
                   <select
                     value={pageSize}
@@ -393,7 +393,7 @@ export default function SubmissionList() {
                     <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <span>per page</span>
+                <span>pro Seite</span>
               </div>
             </div>
 
@@ -404,14 +404,14 @@ export default function SubmissionList() {
                   disabled={page === 1}
                   className={`${ui.button} disabled:cursor-not-allowed disabled:opacity-40`}
                 >
-                  ← Prev
+                  ← Zurück
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                   className={`${ui.button} disabled:cursor-not-allowed disabled:opacity-40`}
                 >
-                  Next →
+                  Weiter →
                 </button>
               </div>
             )}
