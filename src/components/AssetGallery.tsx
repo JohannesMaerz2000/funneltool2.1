@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Asset } from "../types/submission";
 import { batchPresignUrls, deleteSubmissionAsset, rotateSubmissionAsset } from "../api/client";
@@ -422,6 +422,10 @@ function PdfPopout({
   );
 }
 
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 8;
+const ZOOM_STEP = 0.25;
+
 function Lightbox({
   url,
   name,
@@ -431,21 +435,206 @@ function Lightbox({
   name: string;
   onClose: () => void;
 }) {
+  const [zoom, setZoom] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
+  const imgContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const resetView = useCallback(() => {
+    setZoom(1);
+    setOffset({ x: 0, y: 0 });
+  }, []);
+
+  const clampOffset = useCallback(
+    (next: { x: number; y: number }, z: number) => {
+      const el = imgContainerRef.current;
+      if (!el) return next;
+      const rect = el.getBoundingClientRect();
+      // Allow panning proportional to zoom overflow.
+      const maxX = (rect.width * (z - 1)) / 2;
+      const maxY = (rect.height * (z - 1)) / 2;
+      return {
+        x: Math.max(-maxX, Math.min(maxX, next.x)),
+        y: Math.max(-maxY, Math.min(maxY, next.y)),
+      };
+    },
+    []
+  );
+
+  const zoomAt = useCallback(
+    (delta: number, centerX?: number, centerY?: number) => {
+      setZoom((prevZoom) => {
+        const nextZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prevZoom + delta));
+        if (nextZoom === prevZoom) return prevZoom;
+
+        setOffset((prevOffset) => {
+          if (nextZoom === MIN_ZOOM) return { x: 0, y: 0 };
+          const el = imgContainerRef.current;
+          if (!el || centerX == null || centerY == null) {
+            return clampOffset(prevOffset, nextZoom);
+          }
+          const rect = el.getBoundingClientRect();
+          // Point on the image (relative to container center) under the cursor.
+          const cx = centerX - rect.left - rect.width / 2;
+          const cy = centerY - rect.top - rect.height / 2;
+          // Keep that image point under the cursor after scaling.
+          const ratio = nextZoom / prevZoom;
+          const nextOffset = {
+            x: cx - (cx - prevOffset.x) * ratio,
+            y: cy - (cy - prevOffset.y) * ratio,
+          };
+          return clampOffset(nextOffset, nextZoom);
+        });
+
+        return nextZoom;
+      });
+    },
+    [clampOffset]
+  );
+
+  const handleWheel = useCallback(
+    (e: React.WheelEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+      zoomAt(delta, e.clientX, e.clientY);
+    },
+    [zoomAt]
+  );
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (zoom <= 1) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    dragStart.current = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y };
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+    const onMove = (e: MouseEvent) => {
+      if (!dragStart.current) return;
+      const dx = e.clientX - dragStart.current.x;
+      const dy = e.clientY - dragStart.current.y;
+      setOffset(
+        clampOffset(
+          { x: dragStart.current.ox + dx, y: dragStart.current.oy + dy },
+          zoom
+        )
+      );
+    };
+    const onUp = () => {
+      setIsDragging(false);
+      dragStart.current = null;
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [isDragging, zoom, clampOffset]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "+" || e.key === "=") zoomAt(ZOOM_STEP);
+      else if (e.key === "-" || e.key === "_") zoomAt(-ZOOM_STEP);
+      else if (e.key === "0") resetView();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, zoomAt, resetView]);
+
+  const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (zoom > 1) {
+      resetView();
+    } else {
+      zoomAt(1.5, e.clientX, e.clientY);
+    }
+  };
+
+  const handleBackdropClick = () => {
+    if (zoom > 1) {
+      resetView();
+    } else {
+      onClose();
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={handleBackdropClick}
+      onWheel={handleWheel}
     >
-      <div className="relative flex max-h-full max-w-full flex-col">
+      <div
+        ref={imgContainerRef}
+        className="relative flex max-h-[85vh] max-w-[95vw] items-center justify-center overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={handleMouseDown}
+        onDoubleClick={handleDoubleClick}
+        style={{
+          cursor: zoom > 1 ? (isDragging ? "grabbing" : "grab") : "zoom-in",
+        }}
+      >
         <img
           src={url}
           alt={name}
           decoding="async"
-          className="max-h-[85vh] max-w-[95vw] rounded-lg object-contain shadow-2xl ring-1 ring-white/10"
-          onClick={(e) => e.stopPropagation()}
+          draggable={false}
+          className="max-h-[85vh] max-w-[95vw] select-none rounded-lg object-contain shadow-2xl ring-1 ring-white/10"
+          style={{
+            transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
+            transformOrigin: "center center",
+            transition: isDragging ? "none" : "transform 120ms ease-out",
+            willChange: "transform",
+          }}
         />
-        <div className="mt-4 flex items-center justify-between px-2">
-          <p className="text-sm font-bold text-zinc-100">{name}</p>
+      </div>
+
+      <div
+        className="mt-4 flex w-full max-w-3xl items-center justify-between px-2"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="truncate text-sm font-bold text-zinc-100">{name}</p>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center overflow-hidden rounded-full bg-white/10">
+            <button
+              className="flex h-9 w-9 items-center justify-center text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={() => zoomAt(-ZOOM_STEP)}
+              disabled={zoom <= MIN_ZOOM}
+              title="Verkleinern (-)"
+              aria-label="Verkleinern"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10z" clipRule="evenodd" />
+              </svg>
+            </button>
+            <span className="min-w-[3.5rem] text-center text-xs font-bold text-white tabular-nums">
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              className="flex h-9 w-9 items-center justify-center text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={() => zoomAt(ZOOM_STEP)}
+              disabled={zoom >= MAX_ZOOM}
+              title="Vergrößern (+)"
+              aria-label="Vergrößern"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                <path fillRule="evenodd" d="M10 3a.75.75 0 01.75.75v5.5h5.5a.75.75 0 010 1.5h-5.5v5.5a.75.75 0 01-1.5 0v-5.5h-5.5a.75.75 0 010-1.5h5.5v-5.5A.75.75 0 0110 3z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+          <button
+            className="rounded-full bg-white/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+            onClick={resetView}
+            disabled={zoom === 1 && offset.x === 0 && offset.y === 0}
+            title="Ansicht zurücksetzen (0)"
+          >
+            Zurücksetzen
+          </button>
           <button
             className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-white/20"
             onClick={onClose}
@@ -454,9 +643,11 @@ function Lightbox({
           </button>
         </div>
       </div>
+
       <button
         className="absolute top-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-black/40 text-white transition-all hover:bg-white/10"
         onClick={onClose}
+        aria-label="Schließen"
       >
         <svg
           viewBox="0 0 24 24"
