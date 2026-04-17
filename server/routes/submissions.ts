@@ -78,6 +78,27 @@ function parseOptionalString(input: unknown): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function normalizeSearchToken(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function includesMatch(haystack: string | null | undefined, needle: string): boolean {
+  if (!haystack) return false;
+  const haystackTrimmed = haystack.trim();
+  if (!haystackTrimmed) return false;
+  const needleTrimmed = needle.trim();
+  if (!needleTrimmed) return false;
+
+  const haystackLower = haystackTrimmed.toLowerCase();
+  const needleLower = needleTrimmed.toLowerCase();
+  if (haystackLower.includes(needleLower)) return true;
+
+  const normalizedHaystack = normalizeSearchToken(haystackTrimmed);
+  const normalizedNeedle = normalizeSearchToken(needleTrimmed);
+  if (!normalizedHaystack || !normalizedNeedle) return false;
+  return normalizedHaystack.includes(normalizedNeedle);
+}
+
 function sanitizePathSegment(value: string): string {
   return value
     .trim()
@@ -258,6 +279,33 @@ function normalizeSummary(
     assetCount: enrichment?.assetCount ?? 0,
     thumbnailKey: enrichment?.thumbnailKey,
   };
+}
+
+async function fetchSubmissionListItems(input: {
+  vin?: string;
+  from?: string;
+  to?: string;
+  maxPages: number;
+}): Promise<SellerSubmissionListItem[]> {
+  const allItems: SellerSubmissionListItem[] = [];
+  let currentPage = 1;
+  let totalAvailable = 0;
+
+  do {
+    const upstream = await fetchSubmissionList({
+      page: currentPage,
+      pageSize: 100,
+      vin: input.vin,
+      from: input.from,
+      to: input.to,
+    });
+    allItems.push(...upstream.items);
+    totalAvailable = upstream.total;
+    if (allItems.length >= totalAvailable || currentPage >= input.maxPages) break;
+    currentPage++;
+  } while (true);
+
+  return allItems;
 }
 
 async function getAssetEnrichment(
@@ -627,22 +675,11 @@ submissionsRouter.get("/", async (req, res) => {
     const page = parseBoundedInt(req.query.page, { fallback: 1, min: 1, max: 10_000 });
     const pageSize = parseBoundedInt(req.query.pageSize, { fallback: 20, min: 1, max: 100 });
 
-    // To properly group by VIN and paginate, we need all submissions
-    // since the upstream API doesn't support grouping. We fetch pages of 100 (upstream limit)
-    // until we have them all.
-    const allItems: SellerSubmissionListItem[] = [];
-    let currentPage = 1;
-    let totalAvailable = 0;
-
-    do {
-      // When both vin and pipedrive_deal_id are set, this is a global search — don't constrain upstream by VIN
-      const upstreamVin = pipedriveDealId ? undefined : vin;
-      const upstream = await fetchSubmissionList({ page: currentPage, pageSize: 100, vin: upstreamVin, from, to });
-      allItems.push(...upstream.items);
-      totalAvailable = upstream.total;
-      if (allItems.length >= totalAvailable || currentPage >= 10) break; // limit to 1000 items total for safety
-      currentPage++;
-    } while (true);
+    const isSearchRequest = Boolean(vin || pipedriveDealId);
+    const maxPages = isSearchRequest ? 100 : 10;
+    // When both vin and pipedrive_deal_id are set, this is a global search — don't constrain upstream by VIN.
+    const upstreamVin = pipedriveDealId ? undefined : vin;
+    const allItems = await fetchSubmissionListItems({ vin: upstreamVin, from, to, maxPages });
 
     const enrichmentById = await getAssetEnrichment(
       allItems.map((item) => ({ id: item.id, vin: item.vin }))
@@ -657,18 +694,59 @@ submissionsRouter.get("/", async (req, res) => {
 
     cases = cases.filter((c) => views.some((view) => caseMatchesView(c, view)));
 
-    // Filter by deal ID — partial match, OR with VIN when both are provided
+    // VIN-only search normally uses upstream VIN filtering first.
+    // If that returns no cases, retry with a global scan and normalize VIN matching locally.
+    if (vin && !pipedriveDealId) {
+      let vinMatchedCases = cases.filter(
+        (c: CaseSummary) =>
+          includesMatch(c.vin, vin) ||
+          includesMatch(c.m1?.vin, vin) ||
+          includesMatch(c.m15?.vin, vin)
+      );
+
+      if (vinMatchedCases.length === 0) {
+        const globalItems = await fetchSubmissionListItems({ from, to, maxPages: 100 });
+        const globalEnrichmentById = await getAssetEnrichment(
+          globalItems.map((item) => ({ id: item.id, vin: item.vin }))
+        );
+        const globalSubmissions = globalItems.map((item) =>
+          normalizeSummary(item, globalEnrichmentById.get(item.id))
+        );
+        const globalCases = groupIntoCases(globalSubmissions).filter((c) =>
+          views.some((view) => caseMatchesView(c, view))
+        );
+        vinMatchedCases = globalCases.filter(
+          (c: CaseSummary) =>
+            includesMatch(c.vin, vin) ||
+            includesMatch(c.m1?.vin, vin) ||
+            includesMatch(c.m15?.vin, vin)
+        );
+      }
+
+      cases = vinMatchedCases;
+    }
+
+    // Filter by deal ID — partial match, OR with VIN when both are provided.
+    // Matching is normalized so users can find entries despite formatting differences
+    // (e.g. whitespace, hyphens, casing).
     if (pipedriveDealId) {
-      const dealLower = pipedriveDealId.toLowerCase();
       if (vin) {
-        // Both provided = OR search (global search mode)
-        const vinLower = vin.toLowerCase();
+        // Both provided = OR search (global search mode).
         cases = cases.filter((c: CaseSummary) =>
-          c.vin?.toLowerCase().includes(vinLower) ||
-          c.pipedriveDealId?.toLowerCase().includes(dealLower)
+          includesMatch(c.vin, vin) ||
+          includesMatch(c.m1?.vin, vin) ||
+          includesMatch(c.m15?.vin, vin) ||
+          includesMatch(c.pipedriveDealId, pipedriveDealId) ||
+          includesMatch(c.m1?.pipedriveDealId, pipedriveDealId) ||
+          includesMatch(c.m15?.pipedriveDealId, pipedriveDealId)
         );
       } else {
-        cases = cases.filter((c: CaseSummary) => c.pipedriveDealId?.toLowerCase().includes(dealLower));
+        cases = cases.filter(
+          (c: CaseSummary) =>
+            includesMatch(c.pipedriveDealId, pipedriveDealId) ||
+            includesMatch(c.m1?.pipedriveDealId, pipedriveDealId) ||
+            includesMatch(c.m15?.pipedriveDealId, pipedriveDealId)
+        );
       }
     }
 
@@ -701,19 +779,9 @@ submissionsRouter.get("/by-vin/:vin", async (req, res) => {
       return;
     }
 
-    const allItems: SellerSubmissionListItem[] = [];
-    let currentPage = 1;
-    let totalAvailable = 0;
-    do {
-      const upstream = await fetchSubmissionList({ page: currentPage, pageSize: 100, vin });
-      allItems.push(...upstream.items);
-      totalAvailable = upstream.total;
-      if (allItems.length >= totalAvailable || currentPage >= 10) break;
-      currentPage++;
-    } while (true);
+    const allItems = await fetchSubmissionListItems({ vin, maxPages: 100 });
 
-    const vinUpper = vin.toUpperCase();
-    const matches = allItems.filter((item) => item.vin?.toUpperCase() === vinUpper);
+    const matches = allItems.filter((item) => includesMatch(item.vin ?? undefined, vin));
     if (matches.length === 0) {
       res.status(404).json({ error: "No submission found for VIN" });
       return;
@@ -721,7 +789,7 @@ submissionsRouter.get("/by-vin/:vin", async (req, res) => {
 
     const summaries = matches.map((item) => normalizeSummary(item));
     const cases = groupIntoCases(summaries);
-    const matchedCase = cases.find((c) => c.vin?.toUpperCase() === vinUpper) ?? cases[0];
+    const matchedCase = cases.find((c) => includesMatch(c.vin, vin)) ?? cases[0];
     if (!matchedCase) {
       res.status(404).json({ error: "No submission found for VIN" });
       return;
