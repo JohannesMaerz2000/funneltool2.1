@@ -1,0 +1,47 @@
+{
+    "total": 1,
+    "page": 1,
+    "pageSize": 100,
+    "data": [
+        {
+            "caseKey": "LRW3E7FS1RC940901",
+            "vin": "LRW3E7FS1RC940901",
+            "m1": {
+                "id": "bdcabde5-ce3c-42a3-8f11-2035318a5e6a",
+                "createdAt": "2026-04-10T15:10:26.062Z",
+                "updatedAt": "2026-04-10T15:10:26.062Z",
+                "vin": "LRW3E7FS1RC940901",
+                "sessionId": "9e8728c3-8cea-4f94-9a9d-21294d6a3721",
+                "formIntake": "initial",
+                "formId": "initial-intake-v1",
+                "pipedriveDealId": "20760",
+                "pipedriveSyncStatus": "completed",
+                "submissionSource": "internal_form",
+                "registrationCountry": "de",
+                "assetCount": 23,
+                "thumbnailKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_3f161921lrw3.jpg"
+            },
+            "m15": {
+                "id": "8843bf13-dfec-42dc-8404-81fe97110d28",
+                "createdAt": "2026-04-10T15:10:26.736Z",
+                "updatedAt": "2026-04-10T15:10:26.736Z",
+                "vin": "LRW3E7FS1RC940901",
+                "sessionId": "f08c597b-0aef-442d-86d2-820555d6f79b",
+                "formIntake": "advance",
+                "formId": "advance-intake-v1",
+                "pipedriveDealId": "20760",
+                "pipedriveSyncStatus": "completed",
+                "submissionSource": "internal_form",
+                "registrationCountry": "de",
+                "assetCount": 23,
+                "thumbnailKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_3f161921lrw3.jpg"
+            },
+            "openId": "8843bf13-dfec-42dc-8404-81fe97110d28",
+            "updatedAt": "2026-04-10T15:10:26.736Z",
+            "pipedriveSyncStatus": "completed",
+            "pipedriveDealId": "20760",
+            "assetCount": 23,
+            "thumbnailKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_3f161921lrw3.jpg"
+        }
+    ]
+}

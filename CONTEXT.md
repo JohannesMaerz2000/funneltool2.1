@@ -171,7 +171,13 @@ S3 object/group cache TTL is 5 minutes.
 
 Notes:
 - Server fetches upstream in pages of 100 and groups locally by VIN.
-- Safety cap: max 10 upstream pages (up to 1000 records).
+- Fetch depth is tiered:
+  - default list requests (no VIN/deal search): max 10 upstream pages (up to 1000 records).
+  - search requests (`vin` and/or `pipedrive_deal_id`): max 100 upstream pages (up to 10,000 records).
+- VIN-only resilience fallback:
+  - first pass uses upstream VIN filtering.
+  - if no case is found, backend retries with a global scan (up to 10,000) and local normalized VIN matching.
+- Search matching is normalized (case-insensitive, tolerant to separators/formatting differences).
 - Backend view filtering behavior:
   - `initial`: awaiting advance (no completed advance and no assets on advance)
   - `partial`: in-progress advance (not completed, but assets exist)

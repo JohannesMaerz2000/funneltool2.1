@@ -1,0 +1,805 @@
+{
+    "id": "8843bf13-dfec-42dc-8404-81fe97110d28",
+    "createdAt": "2026-04-10T15:10:26.736Z",
+    "updatedAt": "2026-04-10T15:10:26.736Z",
+    "vin": "LRW3E7FS1RC940901",
+    "sessionId": "f08c597b-0aef-442d-86d2-820555d6f79b",
+    "formIntake": "advance",
+    "formId": "advance-intake-v1",
+    "pipedriveDealId": "20760",
+    "pipedriveSyncStatus": "completed",
+    "submissionSource": "internal_form",
+    "registrationCountry": "de",
+    "lastSyncedAt": "2026-04-10T15:21:14.145Z",
+    "identifierInformationId": "64e248fe-5c33-439b-9045-00f88c878bbc",
+    "idempotencyKey": null,
+    "submission": {
+        "id": "8843bf13-dfec-42dc-8404-81fe97110d28",
+        "created_at": "2026-04-10T15:10:26.736Z",
+        "updated_at": "2026-04-10T15:10:26.736Z",
+        "session_id": "f08c597b-0aef-442d-86d2-820555d6f79b",
+        "vin": "LRW3E7FS1RC940901",
+        "pipedrive_deal_id": "20760",
+        "last_synced_at": "2026-04-10T15:21:14.145Z",
+        "form_intake": "advance",
+        "pipedrive_sync_status": "completed",
+        "identifier_information_id": "64e248fe-5c33-439b-9045-00f88c878bbc",
+        "submission_data": {
+            "lastSyncedAt": "2026-04-10T15:21:14.143Z",
+            "submissionData": {
+                "mileage": null,
+                "isPetCar": false,
+                "tuvUntil": "2026-11-28",
+                "tyreTypes": [
+                    "sommerreifen",
+                    "winterreifen"
+                ],
+                "loanAmount": null,
+                "isSmokerCar": false,
+                "tyreDetails": {
+                    "sommerreifen": {
+                        "rimType": "weiss_ich_nicht",
+                        "treadCondition": "in_ordnung"
+                    },
+                    "winterreifen": {
+                        "rimType": "ohne_felge",
+                        "treadCondition": "in_ordnung"
+                    }
+                },
+                "accidentFree": true,
+                "numberOfKeys": 2,
+                "chargingCable": {
+                    "typ2": true,
+                    "schuko": true
+                },
+                "numberOfOwners": 2,
+                "vehicleDefects": [],
+                "formOfOwnership": "owned",
+                "hasTrailerHitch": true,
+                "pickupAgreement": true,
+                "digitalCheckbook": true,
+                "vehicleAgreement": true,
+                "vehicleDocuments": [
+                    "vehicle_ownership_document",
+                    "registration_document",
+                    "coc_certificate"
+                ],
+                "accidentDescription": null,
+                "additionalAccessories": "2befair premium Gummi schmutzmatten im vorder und hinterbereich sowie im Kofferraum ",
+                "digitalCheckbookPhotos": null,
+                "serviceHistoryMaintained": true,
+                "registrationDocumentOwner": null,
+                "informationDisclosureAgreement": true,
+                "nonOriginalConditionDescription": null
+            }
+        },
+        "submission_source": "internal_form",
+        "form_id": "advance-intake-v1",
+        "registration_country": "de",
+        "idempotency_key": null
+    },
+    "submissionData": {
+        "lastSyncedAt": "2026-04-10T15:21:14.143Z",
+        "submissionData": {
+            "mileage": null,
+            "isPetCar": false,
+            "tuvUntil": "2026-11-28",
+            "tyreTypes": [
+                "sommerreifen",
+                "winterreifen"
+            ],
+            "loanAmount": null,
+            "isSmokerCar": false,
+            "tyreDetails": {
+                "sommerreifen": {
+                    "rimType": "weiss_ich_nicht",
+                    "treadCondition": "in_ordnung"
+                },
+                "winterreifen": {
+                    "rimType": "ohne_felge",
+                    "treadCondition": "in_ordnung"
+                }
+            },
+            "accidentFree": true,
+            "numberOfKeys": 2,
+            "chargingCable": {
+                "typ2": true,
+                "schuko": true
+            },
+            "numberOfOwners": 2,
+            "vehicleDefects": [],
+            "formOfOwnership": "owned",
+            "hasTrailerHitch": true,
+            "pickupAgreement": true,
+            "digitalCheckbook": true,
+            "vehicleAgreement": true,
+            "vehicleDocuments": [
+                "vehicle_ownership_document",
+                "registration_document",
+                "coc_certificate"
+            ],
+            "accidentDescription": null,
+            "additionalAccessories": "2befair premium Gummi schmutzmatten im vorder und hinterbereich sowie im Kofferraum ",
+            "digitalCheckbookPhotos": null,
+            "serviceHistoryMaintained": true,
+            "registrationDocumentOwner": null,
+            "informationDisclosureAgreement": true,
+            "nonOriginalConditionDescription": null
+        }
+    },
+    "datInformation": {
+        "id": "64e248fe-5c33-439b-9045-00f88c878bbc",
+        "vin": "LRW3E7FS1RC940901",
+        "make": "Tesla",
+        "model": "Model 3",
+        "variant": "Basis RWD",
+        "first_registration": "2023-09-15",
+        "dat_ecode": "018530040010002",
+        "container": "DE002",
+        "container_description": "DE - Lim4, 60 kWh RWD, (Facelift) 2023 - 2026",
+        "description": "Model 3 RWD 60 kwH",
+        "is_confirmed": true,
+        "construction_time": 9999,
+        "construction_time_from": "09/2023",
+        "construction_time_to": "03/2026",
+        "identification_source": "IDENTIFICATIONSOURCE_DAT_VIN",
+        "country": "de",
+        "registration_country": "de",
+        "vehicle_type": "1",
+        "mileage": 29250,
+        "power_kw": 208,
+        "capacity": 60,
+        "fuel_method": "Elektro",
+        "drive_type": "rwd",
+        "list_price_with_options": null,
+        "list_price_without_options": null,
+        "special_equipment_price": null,
+        "kba_number": [
+            "1480/AAZ"
+        ],
+        "email": null,
+        "is_dat_confirmed_optional_equipment": null,
+        "is_dat_confirmed_vehicle_selection": null,
+        "special_equipments": [
+            {
+                "isSelected": true,
+                "description": "Anhängerkupplung",
+                "originalPrice": 1134,
+                "datEquipmentId": "14200",
+                "equipmentClass": "EXTERIOR",
+                "equipmentGroup": "AHK"
+            },
+            {
+                "isSelected": false,
+                "description": "Fahrassistenz-System: Autonomes Fahren (Volles Potenzial)",
+                "originalPrice": 6303,
+                "datEquipmentId": "70527",
+                "equipmentClass": "GENERAL",
+                "equipmentGroup": null
+            },
+            {
+                "isSelected": false,
+                "description": "Fahrassistenz-System: Autopilot (erweiterter Umfang)",
+                "originalPrice": 3193,
+                "datEquipmentId": "41183",
+                "equipmentClass": "GENERAL",
+                "equipmentGroup": "FA26"
+            }
+        ],
+        "standard_equipments": [
+            {
+                "description": "15 Lautsprecher",
+                "datEquipmentId": "24645",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Airbag Fahrer-/Beifahrerseite",
+                "datEquipmentId": "26803",
+                "equipmentClass": null,
+                "equipmentGroup": "AIR1"
+            },
+            {
+                "description": "Anti-Blockier-System (ABS)",
+                "datEquipmentId": "40000",
+                "equipmentClass": null,
+                "equipmentGroup": "ABS"
+            },
+            {
+                "description": "Antriebsart: Heckantrieb",
+                "datEquipmentId": "70601",
+                "equipmentClass": "4",
+                "equipmentGroup": "HIAN"
+            },
+            {
+                "description": "Außenspiegel anklappbar",
+                "datEquipmentId": "15001",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Außenspiegel elektr. heiz- und anklappbar",
+                "datEquipmentId": "15202",
+                "equipmentClass": null,
+                "equipmentGroup": "AUSP"
+            },
+            {
+                "description": "Elektromotor 208 kW",
+                "datEquipmentId": "79651",
+                "equipmentClass": "1",
+                "equipmentGroup": null
+            },
+            {
+                "description": "Fahrassistenz-System: Auffahrwarnsystem (Forward Collision Warning, FCW)",
+                "datEquipmentId": "40955",
+                "equipmentClass": null,
+                "equipmentGroup": "ASTW"
+            },
+            {
+                "description": "Fahrassistenz-System: Autom. Distanzregelung (ACC) mit Frontradar-Assistent",
+                "datEquipmentId": "41150",
+                "equipmentClass": null,
+                "equipmentGroup": "ABRG"
+            },
+            {
+                "description": "Fahrassistenz-System: Autonomer Notbrems-Assistent (AEB)",
+                "datEquipmentId": "40798",
+                "equipmentClass": null,
+                "equipmentGroup": "FA05"
+            },
+            {
+                "description": "Fahrassistenz-System: Autopilot (Basic)",
+                "datEquipmentId": "41224",
+                "equipmentClass": null,
+                "equipmentGroup": "FA26"
+            },
+            {
+                "description": "Getriebe für Elektrofahrzeug",
+                "datEquipmentId": "76400",
+                "equipmentClass": "11",
+                "equipmentGroup": "AG1"
+            },
+            {
+                "description": "Glasdach fest",
+                "datEquipmentId": "17101",
+                "equipmentClass": null,
+                "equipmentGroup": "SD2"
+            },
+            {
+                "description": "Heckklappenöffnung elektr.",
+                "datEquipmentId": "35506",
+                "equipmentClass": null,
+                "equipmentGroup": "HKEL"
+            },
+            {
+                "description": "Heckleuchten LED",
+                "datEquipmentId": "18802",
+                "equipmentClass": null,
+                "equipmentGroup": "LEDH"
+            },
+            {
+                "description": "Heizungs-/Klimaanlage: Wärmepumpe (Supermanifold)",
+                "datEquipmentId": "29299",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "HV-Batterie 60 kWh",
+                "datEquipmentId": "72705",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Induktionsladeschale für Smartphone",
+                "datEquipmentId": "39898",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Innenausstattung: Premium schwarz",
+                "datEquipmentId": "33138",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Karosserie: 4-türig",
+                "datEquipmentId": "10004",
+                "equipmentClass": "2",
+                "equipmentGroup": null
+            },
+            {
+                "description": "Knieairbag Fahrer-/Beifahrerseite",
+                "datEquipmentId": "26695",
+                "equipmentClass": null,
+                "equipmentGroup": "AIR5"
+            },
+            {
+                "description": "Kopf-Airbag-System (Windowbag) vorn + hinten",
+                "datEquipmentId": "26808",
+                "equipmentClass": null,
+                "equipmentGroup": "AIR4"
+            },
+            {
+                "description": "Lenkrad heizbar",
+                "datEquipmentId": "69005",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "LM-Felgen",
+                "datEquipmentId": "49206",
+                "equipmentClass": null,
+                "equipmentGroup": "ALU"
+            },
+            {
+                "description": "Mittelarmlehne vorn mit Ablagefach",
+                "datEquipmentId": "27204",
+                "equipmentClass": null,
+                "equipmentGroup": "MALV"
+            },
+            {
+                "description": "Modellpflege",
+                "datEquipmentId": "250",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Multimedia-Schnittstelle 2 x USB (Typ C) vorn und 2 x USB-Ladeanschluß (Typ C) Mittelkonsole hinten",
+                "datEquipmentId": "25043",
+                "equipmentClass": null,
+                "equipmentGroup": "MP3A"
+            },
+            {
+                "description": "Nebelscheinwerfer LED",
+                "datEquipmentId": "18313",
+                "equipmentClass": null,
+                "equipmentGroup": "BEL"
+            },
+            {
+                "description": "Parkbremse elektronisch (EPB)",
+                "datEquipmentId": "40803",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Rückfahrkamera HD",
+                "datEquipmentId": "39804",
+                "equipmentClass": null,
+                "equipmentGroup": "FA25"
+            },
+            {
+                "description": "Rücksitzlehne geteilt/klappbar (60:40)",
+                "datEquipmentId": "33519",
+                "equipmentClass": null,
+                "equipmentGroup": "SITH"
+            },
+            {
+                "description": "Sitze vorn elektr. verstellbar (12-fach)",
+                "datEquipmentId": "32899",
+                "equipmentClass": null,
+                "equipmentGroup": "SIT"
+            },
+            {
+                "description": "Sitzheizung vorn",
+                "datEquipmentId": "29500",
+                "equipmentClass": null,
+                "equipmentGroup": "SITB"
+            },
+            {
+                "description": "Sonderlackierung Perl-Weiß",
+                "datEquipmentId": "11247",
+                "equipmentClass": null,
+                "equipmentGroup": "SONL"
+            },
+            {
+                "description": "Sound-System Premium",
+                "datEquipmentId": "24622",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Sprachsteuerungs-System",
+                "datEquipmentId": "24709",
+                "equipmentClass": null,
+                "equipmentGroup": "TEL4"
+            },
+            {
+                "description": "Subwoofer",
+                "datEquipmentId": "24595",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Wi-Fi on Board",
+                "datEquipmentId": "24840",
+                "equipmentClass": null,
+                "equipmentGroup": null
+            },
+            {
+                "description": "Zentralverriegelung / Startanlage Keyless-Entry",
+                "datEquipmentId": "35510",
+                "equipmentClass": null,
+                "equipmentGroup": "KEYL"
+            }
+        ],
+        "extra_equipments": []
+    },
+    "vinHistory": {
+        "id": "754a3cd5-a2ee-487f-8deb-4d7ae7506c1a",
+        "vin": "LRW3E7FS1RC940901",
+        "first_registration": "2023-09-15",
+        "match_count": 3,
+        "number_of_request": 1,
+        "created_at": "2026-04-10T15:09:17.924Z",
+        "updated_at": "2026-04-10T15:09:17.924Z"
+    },
+    "imageProcessingJobs": [
+        {
+            "id": "a0e235cb-b48f-4e4e-9f6f-9b73c3053f37",
+            "created_at": "2026-04-10T15:21:14.347Z",
+            "updated_at": "2026-04-10T15:21:48.339Z",
+            "deal_id": "20760",
+            "vin": "LRW3E7FS1RC940901",
+            "status": "completed",
+            "source": "s3",
+            "save_local": false,
+            "result": {
+                "vin": "LRW3E7FS1RC940901",
+                "dealId": "20760",
+                "failed": 0,
+                "source": "s3",
+                "results": [
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_0dfec728lrw3.jpg",
+                        "originalName": "0_exterior_0dfec728lrw3.jpeg",
+                        "originalSize": 4891850,
+                        "processedName": "0_exterior_0dfec728lrw3.jpg",
+                        "processedSize": 771081
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_2a46a0b0lrw3.jpg",
+                        "originalName": "0_exterior_2a46a0b0lrw3.jpeg",
+                        "originalSize": 5664998,
+                        "processedName": "0_exterior_2a46a0b0lrw3.jpg",
+                        "processedSize": 910310
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_34eb6f97lrw3.jpg",
+                        "originalName": "0_exterior_34eb6f97lrw3.jpeg",
+                        "originalSize": 4891850,
+                        "processedName": "0_exterior_34eb6f97lrw3.jpg",
+                        "processedSize": 771081
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_3b56042clrw3.jpg",
+                        "originalName": "0_exterior_3b56042clrw3.jpeg",
+                        "originalSize": 5140786,
+                        "processedName": "0_exterior_3b56042clrw3.jpg",
+                        "processedSize": 796212
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_3f161921lrw3.jpg",
+                        "originalName": "0_exterior_3f161921lrw3.jpeg",
+                        "originalSize": 5106102,
+                        "processedName": "0_exterior_3f161921lrw3.jpg",
+                        "processedSize": 781852
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_4591b819lrw3.jpg",
+                        "originalName": "0_exterior_4591b819lrw3.jpeg",
+                        "originalSize": 5780703,
+                        "processedName": "0_exterior_4591b819lrw3.jpg",
+                        "processedSize": 902656
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_5691ae86lrw3.jpg",
+                        "originalName": "0_exterior_5691ae86lrw3.jpeg",
+                        "originalSize": 5780703,
+                        "processedName": "0_exterior_5691ae86lrw3.jpg",
+                        "processedSize": 902656
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_72a7c164lrw3.jpg",
+                        "originalName": "0_exterior_72a7c164lrw3.jpeg",
+                        "originalSize": 5664998,
+                        "processedName": "0_exterior_72a7c164lrw3.jpg",
+                        "processedSize": 910310
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_7a94cc64lrw3.jpg",
+                        "originalName": "0_exterior_7a94cc64lrw3.jpeg",
+                        "originalSize": 4229046,
+                        "processedName": "0_exterior_7a94cc64lrw3.jpg",
+                        "processedSize": 658297
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_83bddedclrw3.jpg",
+                        "originalName": "0_exterior_83bddedclrw3.jpeg",
+                        "originalSize": 5106102,
+                        "processedName": "0_exterior_83bddedclrw3.jpg",
+                        "processedSize": 781852
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_8a085b06lrw3.jpg",
+                        "originalName": "0_exterior_8a085b06lrw3.jpeg",
+                        "originalSize": 5677455,
+                        "processedName": "0_exterior_8a085b06lrw3.jpg",
+                        "processedSize": 867514
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_9dabb010lrw3.jpg",
+                        "originalName": "0_exterior_9dabb010lrw3.jpeg",
+                        "originalSize": 5140786,
+                        "processedName": "0_exterior_9dabb010lrw3.jpg",
+                        "processedSize": 796212
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_b30ad73alrw3.jpg",
+                        "originalName": "0_exterior_b30ad73alrw3.jpeg",
+                        "originalSize": 4229046,
+                        "processedName": "0_exterior_b30ad73alrw3.jpg",
+                        "processedSize": 658297
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_e8b40dcalrw3.jpg",
+                        "originalName": "0_exterior_e8b40dcalrw3.jpeg",
+                        "originalSize": 5677455,
+                        "processedName": "0_exterior_e8b40dcalrw3.jpg",
+                        "processedSize": 867514
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/1_interior_5b9a3aa5lrw3.jpg",
+                        "originalName": "1_interior_5b9a3aa5lrw3.jpeg",
+                        "originalSize": 3093233,
+                        "processedName": "1_interior_5b9a3aa5lrw3.jpg",
+                        "processedSize": 428944
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/1_interior_7bec5af7lrw3.jpg",
+                        "originalName": "1_interior_7bec5af7lrw3.jpeg",
+                        "originalSize": 2453980,
+                        "processedName": "1_interior_7bec5af7lrw3.jpg",
+                        "processedSize": 290708
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/1_interior_905b7a8dlrw3.jpg",
+                        "originalName": "1_interior_905b7a8dlrw3.jpeg",
+                        "originalSize": 2625277,
+                        "processedName": "1_interior_905b7a8dlrw3.jpg",
+                        "processedSize": 328347
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/1_interior_a4557201lrw3.jpg",
+                        "originalName": "1_interior_a4557201lrw3.jpeg",
+                        "originalSize": 2970574,
+                        "processedName": "1_interior_a4557201lrw3.jpg",
+                        "processedSize": 395403
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/1_interior_f2a04fddlrw3.jpg",
+                        "originalName": "1_interior_f2a04fddlrw3.jpeg",
+                        "originalSize": 1254445,
+                        "processedName": "1_interior_f2a04fddlrw3.jpg",
+                        "processedSize": 147764
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/2_rims_6fca1446lrw3.jpg",
+                        "originalName": "2_rims_6fca1446lrw3.jpeg",
+                        "originalSize": 5664998,
+                        "processedName": "2_rims_6fca1446lrw3.jpg",
+                        "processedSize": 910310
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/2_rims_a21fbc71lrw3.jpg",
+                        "originalName": "2_rims_a21fbc71lrw3.jpeg",
+                        "originalSize": 5780703,
+                        "processedName": "2_rims_a21fbc71lrw3.jpg",
+                        "processedSize": 902656
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/2_rims_ba5f5a88lrw3.jpg",
+                        "originalName": "2_rims_ba5f5a88lrw3.jpeg",
+                        "originalSize": 5677455,
+                        "processedName": "2_rims_ba5f5a88lrw3.jpg",
+                        "processedSize": 867514
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/2_rims_bf2a64a9lrw3.jpg",
+                        "originalName": "2_rims_bf2a64a9lrw3.jpeg",
+                        "originalSize": 5140786,
+                        "processedName": "2_rims_bf2a64a9lrw3.jpg",
+                        "processedSize": 796212
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/2_rims_c825bc82lrw3.jpg",
+                        "originalName": "2_rims_c825bc82lrw3.jpeg",
+                        "originalSize": 4229046,
+                        "processedName": "2_rims_c825bc82lrw3.jpg",
+                        "processedSize": 658297
+                    },
+                    {
+                        "success": true,
+                        "s3OutputKey": "advance/LRW3E7FS1RC940901/01_Fahrzeugpapiere/4_registration_document_68abf3c5lrw3.jpg",
+                        "originalName": "4_registration_document_68abf3c5lrw3.jpg",
+                        "originalSize": 2737252,
+                        "processedName": "4_registration_document_68abf3c5lrw3.jpg",
+                        "processedSize": 384753
+                    }
+                ],
+                "saveLocal": false,
+                "succeeded": 25,
+                "totalImages": 25,
+                "totalOriginalSize": 114609629,
+                "totalProcessedSize": 17486752
+            },
+            "error": null,
+            "completed_at": "2026-04-10T15:21:48.338Z"
+        }
+    ],
+    "assetCount": 23,
+    "thumbnailKey": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_3f161921lrw3.jpg",
+    "assets": [
+        {
+            "key": "advance/LRW3E7FS1RC940901/01_Fahrzeugpapiere/4_registration_document_68abf3c5lrw3.jpg",
+            "type": "image",
+            "size": 384753,
+            "lastModified": "2026-04-10T15:21:49.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_0dfec728lrw3.jpg",
+            "type": "image",
+            "size": 269623,
+            "lastModified": "2026-04-10T17:44:02.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_2a46a0b0lrw3.jpg",
+            "type": "image",
+            "size": 910310,
+            "lastModified": "2026-04-10T15:21:27.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_3b56042clrw3.jpg",
+            "type": "image",
+            "size": 1780534,
+            "lastModified": "2026-04-10T17:43:59.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_3f161921lrw3.jpg",
+            "type": "image",
+            "size": 253621,
+            "lastModified": "2026-04-10T17:44:00.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_4591b819lrw3.jpg",
+            "type": "image",
+            "size": 288276,
+            "lastModified": "2026-04-10T17:43:59.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_5691ae86lrw3.jpg",
+            "type": "image",
+            "size": 288276,
+            "lastModified": "2026-04-10T17:43:59.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_72a7c164lrw3.jpg",
+            "type": "image",
+            "size": 910310,
+            "lastModified": "2026-04-10T15:21:28.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_7a94cc64lrw3.jpg",
+            "type": "image",
+            "size": 310048,
+            "lastModified": "2026-04-10T17:43:58.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_8a085b06lrw3.jpg",
+            "type": "image",
+            "size": 306702,
+            "lastModified": "2026-04-10T17:43:58.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_9dabb010lrw3.jpg",
+            "type": "image",
+            "size": 1780534,
+            "lastModified": "2026-04-10T17:44:02.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_b30ad73alrw3.jpg",
+            "type": "image",
+            "size": 310048,
+            "lastModified": "2026-04-10T17:44:03.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/0_exterior_e8b40dcalrw3.jpg",
+            "type": "image",
+            "size": 306702,
+            "lastModified": "2026-04-10T17:43:58.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/1_interior_5b9a3aa5lrw3.jpg",
+            "type": "image",
+            "size": 428944,
+            "lastModified": "2026-04-10T15:21:37.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/1_interior_7bec5af7lrw3.jpg",
+            "type": "image",
+            "size": 290708,
+            "lastModified": "2026-04-10T15:21:38.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/1_interior_905b7a8dlrw3.jpg",
+            "type": "image",
+            "size": 328347,
+            "lastModified": "2026-04-10T15:21:41.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/1_interior_a4557201lrw3.jpg",
+            "type": "image",
+            "size": 395403,
+            "lastModified": "2026-04-10T15:21:42.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/1_interior_f2a04fddlrw3.jpg",
+            "type": "image",
+            "size": 147764,
+            "lastModified": "2026-04-10T15:21:41.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/2_rims_6fca1446lrw3.jpg",
+            "type": "image",
+            "size": 910310,
+            "lastModified": "2026-04-10T15:21:44.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/2_rims_a21fbc71lrw3.jpg",
+            "type": "image",
+            "size": 902656,
+            "lastModified": "2026-04-10T15:21:47.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/2_rims_ba5f5a88lrw3.jpg",
+            "type": "image",
+            "size": 867514,
+            "lastModified": "2026-04-10T15:21:47.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/2_rims_bf2a64a9lrw3.jpg",
+            "type": "image",
+            "size": 796212,
+            "lastModified": "2026-04-10T15:21:47.000Z"
+        },
+        {
+            "key": "advance/LRW3E7FS1RC940901/02_Fahrzeugfotos/2_rims_c825bc82lrw3.jpg",
+            "type": "image",
+            "size": 658297,
+            "lastModified": "2026-04-10T15:21:48.000Z"
+        }
+    ]
+}
