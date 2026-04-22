@@ -21,6 +21,8 @@ export interface CaseSummary {
   vin?: string;
   m1?: SubmissionSummary;
   m15?: SubmissionSummary;
+  m1CompletionSeconds?: number | null;
+  m15CompletionSeconds?: number | null;
   openId: string;
   updatedAt: string;
   pipedriveSyncStatus?: string | null;
@@ -55,4 +57,14 @@ export interface SubmissionListResponse {
   page: number;
   pageSize: number;
   data: CaseSummary[];
+}
+
+export interface PrefetchedCaseContext {
+  caseKey: string;
+  vin: string | null;
+  openId: string;
+  m1Id: string | null;
+  m15Id: string | null;
+  m1CompletionSeconds: number | null;
+  m15CompletionSeconds: number | null;
 }

@@ -23,6 +23,18 @@ type S3ObjectList = Awaited<ReturnType<typeof listAllObjects>>;
 let objectCache: { ts: number; data: S3ObjectList } | null = null;
 let groupCache: { objectTs: number; data: ReturnType<typeof groupBySubmission> } | null = null;
 const CACHE_TTL_MS = 5 * 60_000; // 5 minutes
+const DURATION_CACHE_TTL_MS = 5 * 60_000; // 5 minutes
+const DURATION_FETCH_CONCURRENCY = 10;
+const M1_DURATION_BY_VIN_CACHE_TTL_MS = 5 * 60_000; // 5 minutes
+const M1_DURATION_BY_VIN_FETCH_CONCURRENCY = 5;
+
+type CompletionDurations = {
+  m1CompletionSeconds: number | null;
+  m15CompletionSeconds: number | null;
+};
+
+const completionDurationCache = new Map<string, { ts: number; data: CompletionDurations }>();
+const m1DurationByVinCache = new Map<string, { ts: number; data: number | null }>();
 
 function invalidateS3Caches() {
   objectCache = null;
@@ -258,6 +270,185 @@ function asString(value: unknown): string | undefined {
 
 function asNullableString(value: unknown): string | null {
   return asString(value) ?? null;
+}
+
+function parseIsoMillis(value: unknown): number | null {
+  const parsed = asString(value);
+  if (!parsed) return null;
+  const ts = Date.parse(parsed);
+  return Number.isNaN(ts) ? null : ts;
+}
+
+function durationSecondsBetween(start: unknown, end: unknown): number | null {
+  const startMs = parseIsoMillis(start);
+  const endMs = parseIsoMillis(end);
+  if (startMs === null || endMs === null) return null;
+  const diffMs = Math.abs(endMs - startMs);
+  return Math.round(diffMs / 1000);
+}
+
+function normalizeVinCacheKey(vin: string): string {
+  return vin.trim().toUpperCase();
+}
+
+function extractVinHistoryCreatedAt(vinHistory: unknown): string | undefined {
+  if (!isRecord(vinHistory)) return undefined;
+  return asString(vinHistory.created_at) ?? asString(vinHistory.createdAt);
+}
+
+function computeCompletionDurations(
+  submission: Record<string, unknown>,
+  vinHistory: unknown
+): CompletionDurations {
+  const intake = asString(submission.form_intake)?.toLowerCase();
+  if (intake === "initial") {
+    return {
+      m1CompletionSeconds: durationSecondsBetween(
+        extractVinHistoryCreatedAt(vinHistory),
+        submission.created_at
+      ),
+      m15CompletionSeconds: null,
+    };
+  }
+  if (intake === "advance") {
+    const syncState = getAdvanceSyncState(asNullableString(submission.pipedrive_sync_status));
+    if (syncState !== "completed") {
+      return {
+        m1CompletionSeconds: null,
+        m15CompletionSeconds: null,
+      };
+    }
+
+    return {
+      m1CompletionSeconds: null,
+      m15CompletionSeconds: durationSecondsBetween(
+        submission.created_at,
+        submission.last_synced_at
+      ),
+    };
+  }
+  return {
+    m1CompletionSeconds: null,
+    m15CompletionSeconds: null,
+  };
+}
+
+async function getCompletionDurationsBySubmissionId(
+  submissionIds: string[]
+): Promise<Map<string, CompletionDurations>> {
+  const uniqueSubmissionIds = Array.from(new Set(submissionIds.filter(Boolean)));
+  const durationsById = new Map<string, CompletionDurations>();
+  if (uniqueSubmissionIds.length === 0) return durationsById;
+
+  const now = Date.now();
+  const uncachedIds: string[] = [];
+  uniqueSubmissionIds.forEach((id) => {
+    const cached = completionDurationCache.get(id);
+    if (cached && now - cached.ts < DURATION_CACHE_TTL_MS) {
+      durationsById.set(id, cached.data);
+      return;
+    }
+    uncachedIds.push(id);
+  });
+
+  for (let i = 0; i < uncachedIds.length; i += DURATION_FETCH_CONCURRENCY) {
+    const batch = uncachedIds.slice(i, i + DURATION_FETCH_CONCURRENCY);
+    const batchResults = await Promise.all(
+      batch.map(async (id): Promise<[string, CompletionDurations, boolean]> => {
+        try {
+          const upstream = await fetchSubmissionDetail(id);
+          const durations =
+            isRecord(upstream.submission)
+              ? computeCompletionDurations(upstream.submission, upstream.vin_history)
+              : { m1CompletionSeconds: null, m15CompletionSeconds: null };
+          return [id, durations, true];
+        } catch {
+          return [id, { m1CompletionSeconds: null, m15CompletionSeconds: null }, false];
+        }
+      })
+    );
+
+    batchResults.forEach(([id, durations, cacheable]) => {
+      durationsById.set(id, durations);
+      if (cacheable) {
+        completionDurationCache.set(id, { ts: Date.now(), data: durations });
+      }
+    });
+  }
+
+  return durationsById;
+}
+
+async function enrichCasesWithCompletionDurations(cases: CaseSummary[]): Promise<CaseSummary[]> {
+  const submissionIds = cases.flatMap((row) => [row.m1?.id, row.m15?.id]).filter(
+    (id): id is string => !!id
+  );
+  const durationsById = await getCompletionDurationsBySubmissionId(submissionIds);
+  return cases.map((row) => ({
+    ...row,
+    m1CompletionSeconds: row.m1 ? durationsById.get(row.m1.id)?.m1CompletionSeconds ?? null : null,
+    m15CompletionSeconds: row.m15 ? durationsById.get(row.m15.id)?.m15CompletionSeconds ?? null : null,
+  }));
+}
+
+async function getM1CompletionSecondsByVin(vin: string): Promise<number | null> {
+  const cacheKey = normalizeVinCacheKey(vin);
+  const cached = m1DurationByVinCache.get(cacheKey);
+  const now = Date.now();
+  if (cached && now - cached.ts < M1_DURATION_BY_VIN_CACHE_TTL_MS) {
+    return cached.data;
+  }
+
+  try {
+    const items = await fetchSubmissionListItems({ vin: cacheKey, maxPages: 100 });
+    const initialItem = items
+      .filter((item) => item.form_intake?.toLowerCase() === "initial")
+      .sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))[0];
+
+    if (!initialItem) {
+      m1DurationByVinCache.set(cacheKey, { ts: now, data: null });
+      return null;
+    }
+
+    const byId = await getCompletionDurationsBySubmissionId([initialItem.id]);
+    const seconds = byId.get(initialItem.id)?.m1CompletionSeconds ?? null;
+    m1DurationByVinCache.set(cacheKey, { ts: now, data: seconds });
+    return seconds;
+  } catch {
+    return null;
+  }
+}
+
+async function backfillMissingM1Durations(cases: CaseSummary[]): Promise<CaseSummary[]> {
+  const vinsToResolve = Array.from(
+    new Set(
+      cases
+        .filter((row) => row.m1CompletionSeconds === null || row.m1CompletionSeconds === undefined)
+        .map((row) => row.vin)
+        .filter((vin): vin is string => typeof vin === "string" && vin.trim() !== "")
+        .map((vin) => normalizeVinCacheKey(vin))
+    )
+  );
+
+  if (vinsToResolve.length === 0) return cases;
+
+  const resolvedByVin = new Map<string, number | null>();
+  for (let i = 0; i < vinsToResolve.length; i += M1_DURATION_BY_VIN_FETCH_CONCURRENCY) {
+    const batch = vinsToResolve.slice(i, i + M1_DURATION_BY_VIN_FETCH_CONCURRENCY);
+    const batchResults = await Promise.all(
+      batch.map(async (vin): Promise<[string, number | null]> => [vin, await getM1CompletionSecondsByVin(vin)])
+    );
+    batchResults.forEach(([vin, seconds]) => resolvedByVin.set(vin, seconds));
+  }
+
+  return cases.map((row) => {
+    if (row.m1CompletionSeconds !== null && row.m1CompletionSeconds !== undefined) return row;
+    const normalizedVin = row.vin ? normalizeVinCacheKey(row.vin) : null;
+    if (!normalizedVin) return row;
+    const backfilled = resolvedByVin.get(normalizedVin);
+    if (backfilled === undefined) return row;
+    return { ...row, m1CompletionSeconds: backfilled };
+  });
 }
 
 function normalizeSummary(
@@ -752,12 +943,14 @@ submissionsRouter.get("/", async (req, res) => {
 
     const total = cases.length;
     const paginatedData = cases.slice((page - 1) * pageSize, page * pageSize);
+    const paginatedDataWithDurations = await enrichCasesWithCompletionDurations(paginatedData);
+    const paginatedDataWithBackfilledM1 = await backfillMissingM1Durations(paginatedDataWithDurations);
 
     res.json({
       total,
       page,
       pageSize,
-      data: paginatedData,
+      data: paginatedDataWithBackfilledM1,
     });
   } catch (err) {
     if (handleSellerApiError(res, err)) return;

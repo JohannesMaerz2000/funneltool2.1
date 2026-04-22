@@ -2,9 +2,13 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { getSubmission, listSubmissions, uploadSubmissionAssetProxy } from "../api/client";
-import type { Asset, SubmissionDetail as SubmissionDetailType } from "../types/submission";
+import type {
+  Asset,
+  PrefetchedCaseContext,
+  SubmissionDetail as SubmissionDetailType,
+} from "../types/submission";
 import AssetGallery, { DownloadIcon } from "../components/AssetGallery";
-import { formatDate, formatIfDate } from "../utils/dateUtils";
+import { durationSecondsBetween, formatDate, formatDurationSeconds, formatIfDate } from "../utils/dateUtils";
 import { ui } from "../components/ui";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -24,6 +28,36 @@ function normalizedKey(value?: string | null): string | null {
   if (!value) return null;
   const trimmed = value.trim();
   return trimmed ? trimmed.toLowerCase() : null;
+}
+
+function extractVinHistoryCreatedAt(vinHistory: Record<string, unknown> | null | undefined): string | null {
+  if (!vinHistory) return null;
+  return asString(vinHistory.created_at) ?? asString(vinHistory.createdAt) ?? null;
+}
+
+type SubmissionDetailLocationState = {
+  prefetchedCase?: PrefetchedCaseContext;
+};
+
+function getPrefetchedLinkedId(
+  prefetchedCase: PrefetchedCaseContext | undefined,
+  current: SubmissionDetailType
+): string | null {
+  if (!prefetchedCase) return null;
+  if (
+    prefetchedCase.vin &&
+    current.vin &&
+    prefetchedCase.vin.toUpperCase() !== current.vin.toUpperCase()
+  ) {
+    return null;
+  }
+  if (prefetchedCase.m1Id === current.id) return prefetchedCase.m15Id;
+  if (prefetchedCase.m15Id === current.id) return prefetchedCase.m1Id;
+
+  const currentIntake = current.formIntake?.toLowerCase();
+  if (currentIntake === "initial") return prefetchedCase.m15Id;
+  if (currentIntake === "advance") return prefetchedCase.m1Id;
+  return null;
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -1139,6 +1173,8 @@ export default function SubmissionDetail({ submissionId }: { submissionId?: stri
   const params = useParams<{ id: string }>();
   const id = submissionId ?? params.id;
   const location = useLocation();
+  const locationState = location.state as SubmissionDetailLocationState | null;
+  const prefetchedCase = locationState?.prefetchedCase;
   const queryClient = useQueryClient();
   const backToList = `/submissions${location.search}`;
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -1158,23 +1194,39 @@ export default function SubmissionDetail({ submissionId }: { submissionId?: stri
     data: linkedSubmission,
     isFetching: isFetchingLinked,
   } = useQuery({
-    queryKey: ["linked-submission", data?.id, data?.formIntake, data?.vin, data?.pipedriveDealId, data?.identifierInformationId],
+    queryKey: [
+      "linked-submission",
+      data?.id,
+      data?.formIntake,
+      data?.vin,
+      data?.pipedriveDealId,
+      data?.identifierInformationId,
+      prefetchedCase?.caseKey,
+      prefetchedCase?.m1Id,
+      prefetchedCase?.m15Id,
+    ],
     enabled: !!data,
     queryFn: async () => {
       if (!data) return null;
+      const prefetchedLinkedId = getPrefetchedLinkedId(prefetchedCase, data);
+      if (prefetchedLinkedId && prefetchedLinkedId !== data.id) {
+        const prefetchedLinkedSubmission = await getSubmission(prefetchedLinkedId).catch(() => null);
+        if (prefetchedLinkedSubmission) return prefetchedLinkedSubmission;
+      }
+
+      if (!data.pipedriveDealId && !data.vin) return null;
 
       const currentIntake = data.formIntake?.toLowerCase();
       const targetIntake = currentIntake === "advance" ? "initial" : "advance";
       const caseByKey = new Map<string, Awaited<ReturnType<typeof listSubmissions>>["data"][number]>();
-
-      if (data.pipedriveDealId) {
-        const byDeal = await listSubmissions({ pipedriveDealId: data.pipedriveDealId, page: 1, pageSize: 100 });
-        byDeal.data.forEach((item) => caseByKey.set(item.caseKey, item));
-      }
-      if (data.vin) {
-        const byVin = await listSubmissions({ vin: data.vin, page: 1, pageSize: 100 });
-        byVin.data.forEach((item) => caseByKey.set(item.caseKey, item));
-      }
+      const [byDeal, byVin] = await Promise.all([
+        data.pipedriveDealId
+          ? listSubmissions({ pipedriveDealId: data.pipedriveDealId, page: 1, pageSize: 100 })
+          : Promise.resolve(null),
+        data.vin ? listSubmissions({ vin: data.vin, page: 1, pageSize: 100 }) : Promise.resolve(null),
+      ]);
+      byDeal?.data.forEach((item) => caseByKey.set(item.caseKey, item));
+      byVin?.data.forEach((item) => caseByKey.set(item.caseKey, item));
 
       if (caseByKey.size === 0) return null;
 
@@ -1184,14 +1236,44 @@ export default function SubmissionDetail({ submissionId }: { submissionId?: stri
 
       if (candidateSummaries.length === 0) return null;
 
+      const uniqueById = new Map(candidateSummaries.map((s) => [s.id, s]));
+      const uniqueCandidates = [...uniqueById.values()];
+      if (uniqueCandidates.length === 1) {
+        return getSubmission(uniqueCandidates[0].id);
+      }
+
       const currentIdentifier = normalizedKey(data.identifierInformationId);
       const currentDeal = normalizedKey(data.pipedriveDealId);
       const currentVin = normalizedKey(data.vin);
-      const uniqueById = new Map(candidateSummaries.map((s) => [s.id, s]));
-      const candidates = [...uniqueById.values()].slice(0, 10);
+
+      const dealMatchedCandidates = currentDeal
+        ? uniqueCandidates.filter((summary) => normalizedKey(summary.pipedriveDealId ?? null) === currentDeal)
+        : [];
+      if (dealMatchedCandidates.length === 1) {
+        return getSubmission(dealMatchedCandidates[0].id);
+      }
+
+      const vinMatchedCandidates = currentVin
+        ? uniqueCandidates.filter((summary) => normalizedKey(summary.vin ?? null) === currentVin)
+        : [];
+      if (vinMatchedCandidates.length === 1) {
+        return getSubmission(vinMatchedCandidates[0].id);
+      }
+
+      const seen = new Set<string>();
+      const orderedCandidates = [
+        ...dealMatchedCandidates,
+        ...vinMatchedCandidates,
+        ...uniqueCandidates,
+      ].filter((summary) => {
+        if (seen.has(summary.id)) return false;
+        seen.add(summary.id);
+        return true;
+      });
+      const candidatesForScoring = orderedCandidates.slice(0, 3);
 
       const scoredCandidates = await Promise.all(
-        candidates.map(async (summary) => {
+        candidatesForScoring.map(async (summary) => {
           const detail = await getSubmission(summary.id).catch(() => null);
           const candidateIdentifier = normalizedKey(detail?.identifierInformationId);
           const candidateDeal = normalizedKey(detail?.pipedriveDealId ?? summary.pipedriveDealId ?? null);
@@ -1211,7 +1293,7 @@ export default function SubmissionDetail({ submissionId }: { submissionId?: stri
 
       if (!best) return null;
       if (best.detail) return best.detail;
-      return getSubmission(best.summary.id);
+      return getSubmission(best.summary.id).catch(() => null);
     },
     staleTime: 2 * 60_000,
   });
@@ -1298,6 +1380,25 @@ export default function SubmissionDetail({ submissionId }: { submissionId?: stri
     : m15Detail && m15HasAssetActivity
       ? "partial"
       : "initial";
+  const computedM1CompletionSeconds = durationSecondsBetween(
+    extractVinHistoryCreatedAt(m1Detail?.vinHistory),
+    m1Detail?.createdAt ?? null
+  );
+  const computedM15CompletionSeconds = durationSecondsBetween(
+    m15Detail?.createdAt ?? null,
+    m15Detail?.lastSyncedAt ?? null
+  );
+  const m1CompletionSeconds = computedM1CompletionSeconds ?? prefetchedCase?.m1CompletionSeconds ?? null;
+  const rawM15CompletionSeconds = computedM15CompletionSeconds ?? prefetchedCase?.m15CompletionSeconds ?? null;
+  const m15CompletionSeconds = m15SyncCompleted ? rawM15CompletionSeconds : null;
+  const m1CompletionText =
+    typeof m1CompletionSeconds === "number"
+      ? formatDurationSeconds(m1CompletionSeconds)
+      : "-";
+  const m15CompletionText =
+    typeof m15CompletionSeconds === "number"
+      ? formatDurationSeconds(m15CompletionSeconds)
+      : "-";
 
   return (
     <div className={ui.page}>
@@ -1409,6 +1510,14 @@ export default function SubmissionDetail({ submissionId }: { submissionId?: stri
                           {caseStateLabel(caseState)}
                         </span>
                       </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">M1 Zeit</td>
+                      <td className="py-2.5 font-bold text-zinc-700">{m1CompletionText}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 pr-4 text-zinc-500 font-bold text-[10px] uppercase tracking-wider">M1.5 Zeit</td>
+                      <td className="py-2.5 font-bold text-zinc-700">{m15CompletionText}</td>
                     </tr>
                   </tbody>
                 </table>

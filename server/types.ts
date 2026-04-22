@@ -19,6 +19,8 @@ export interface CaseSummary {
   vin?: string;
   m1?: SubmissionSummary;
   m15?: SubmissionSummary;
+  m1CompletionSeconds?: number | null;
+  m15CompletionSeconds?: number | null;
   openId: string;
   updatedAt: string;
   pipedriveSyncStatus?: string | null;

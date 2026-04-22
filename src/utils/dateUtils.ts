@@ -52,3 +52,31 @@ export function formatIfDate(value: unknown): string {
   
   return value;
 }
+
+export function durationSecondsBetween(
+  start: string | null | undefined,
+  end: string | null | undefined
+): number | null {
+  if (!start || !end) return null;
+  const startMs = Date.parse(start);
+  const endMs = Date.parse(end);
+  if (Number.isNaN(startMs) || Number.isNaN(endMs)) return null;
+  return Math.round(Math.abs(endMs - startMs) / 1000);
+}
+
+export function formatDurationSeconds(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return "";
+  const totalSeconds = Math.round(seconds);
+  const days = Math.floor(totalSeconds / 86_400);
+  const hours = Math.floor((totalSeconds % 86_400) / 3_600);
+  const minutes = Math.floor((totalSeconds % 3_600) / 60);
+  const secs = totalSeconds % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);
+
+  return parts.slice(0, 2).join(" ");
+}

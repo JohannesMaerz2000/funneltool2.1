@@ -4,8 +4,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { batchPresignUrls, listSubmissions } from "../api/client";
 import { badgeTone, ui } from "../components/ui";
-import { formatDateTime } from "../utils/dateUtils";
-import type { CaseSummary } from "../types/submission";
+import { formatDateTime, formatDurationSeconds } from "../utils/dateUtils";
+import type { CaseSummary, PrefetchedCaseContext } from "../types/submission";
 
 type ViewTab = "initial" | "partial" | "completed";
 const DEFAULT_VIEWS: ViewTab[] = ["initial", "partial", "completed"];
@@ -97,6 +97,18 @@ function getViewData(row: CaseSummary, selectedViews: ViewTab[]) {
     }
   }
   return null;
+}
+
+function buildPrefetchedCaseContext(row: CaseSummary, openId: string): PrefetchedCaseContext {
+  return {
+    caseKey: row.caseKey,
+    vin: row.vin ?? null,
+    openId,
+    m1Id: row.m1?.id ?? null,
+    m15Id: row.m15?.id ?? null,
+    m1CompletionSeconds: row.m1CompletionSeconds ?? null,
+    m15CompletionSeconds: row.m15CompletionSeconds ?? null,
+  };
 }
 
 export default function SubmissionList() {
@@ -314,6 +326,8 @@ export default function SubmissionList() {
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Vorschau</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">VIN</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Status</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">M1 Zeit</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">M1.5 Zeit</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Aktualisiert</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Deal</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-zinc-500">Assets</th>
@@ -328,27 +342,42 @@ export default function SubmissionList() {
                   const updatedAt = summary.updatedAt;
                   const dealId = summary.pipedriveDealId;
                   const assetCount = summary.assetCount;
+                  const m1DurationText =
+                    typeof row.m1CompletionSeconds === "number"
+                      ? formatDurationSeconds(row.m1CompletionSeconds)
+                      : "-";
+                  const m15DurationText =
+                    typeof row.m15CompletionSeconds === "number"
+                      ? formatDurationSeconds(row.m15CompletionSeconds)
+                      : "-";
+                  const prefetchedCase = buildPrefetchedCaseContext(row, openId);
                   return (
                     <tr
                       key={`${row.caseKey}:${view}`}
                       className={`cursor-pointer transition-colors hover:bg-zinc-50 ${idx % 2 === 0 ? "bg-white" : "bg-zinc-50/30"}`}
                       onClick={() =>
-                        navigate({
-                          pathname: row.vin
-                            ? `/v/${encodeURIComponent(row.vin.toUpperCase())}`
-                            : `/submissions/${encodeURIComponent(openId)}`,
-                          search: searchParams.toString() ? `?${searchParams.toString()}` : "",
-                        })
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          navigate({
+                        navigate(
+                          {
                             pathname: row.vin
                               ? `/v/${encodeURIComponent(row.vin.toUpperCase())}`
                               : `/submissions/${encodeURIComponent(openId)}`,
                             search: searchParams.toString() ? `?${searchParams.toString()}` : "",
-                          });
+                          },
+                          { state: { prefetchedCase } }
+                        )
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          navigate(
+                            {
+                              pathname: row.vin
+                                ? `/v/${encodeURIComponent(row.vin.toUpperCase())}`
+                                : `/submissions/${encodeURIComponent(openId)}`,
+                              search: searchParams.toString() ? `?${searchParams.toString()}` : "",
+                            },
+                            { state: { prefetchedCase } }
+                          );
                         }
                       }}
                       tabIndex={0}
@@ -360,6 +389,8 @@ export default function SubmissionList() {
                       <td className="px-6 py-4">
                         <StateBadge state={view} />
                       </td>
+                      <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-600">{m1DurationText}</td>
+                      <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-600">{m15DurationText}</td>
                       <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-600">{formatDateTime(updatedAt)}</td>
                       <td className="px-6 py-4 font-medium text-zinc-600">{dealId ?? "Nicht angegeben"}</td>
                       <td className="px-6 py-4 font-bold text-zinc-900">{assetCount}</td>
